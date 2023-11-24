@@ -1,1 +1,6 @@
 .idea/
+.dart_tool/
+pubspec.lock
+
+.dockerignore
+docker-compose.yml

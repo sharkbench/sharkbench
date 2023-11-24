@@ -1,0 +1,3 @@
+language,mode,version,median_time
+Dart,AOT,3.2,10772
+Dart,JIT,3.2,5831

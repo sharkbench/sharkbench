@@ -20,7 +20,7 @@ function calcPi(iterations) {
 
 const server = http.createServer((req, res) => {
     const queryObject = url.parse(req.url, true).query;
-    let iterations = parseInt(queryObject.iterations, 10) || 1;
+    const iterations = parseInt(queryObject.iterations);
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end(`${calcPi(iterations)}`);

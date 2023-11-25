@@ -1,0 +1,7 @@
+name: benchmark
+
+environment:
+  sdk: ">=2.14.0 <3.3.0"
+
+dependencies:
+  shelf: 1.2.0

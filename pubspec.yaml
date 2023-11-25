@@ -6,3 +6,6 @@ environment:
 dependencies:
   http: 1.1.1
   yaml: 3.1.2
+
+dev_dependencies:
+  test: ^1.24.0

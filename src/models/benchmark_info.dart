@@ -5,7 +5,7 @@ import 'package:yaml/yaml.dart';
 class BenchmarkInfo {
   final String language;
   final String mode;
-  final String languageVersion;
+  final List<String> languageVersion;
   final String? framework;
   final String? frameworkVersion;
 
@@ -20,7 +20,7 @@ class BenchmarkInfo {
   void printInfo() {
     print(' - Language: $language');
     print(' - Mode: $mode');
-    print(' - Language version: $languageVersion');
+    print(' - Language version: ${languageVersion.length == 1 ? languageVersion.first : languageVersion}');
     if (framework != null) {
       print(' - Framework: $framework');
     }
@@ -38,14 +38,16 @@ class BenchmarkInfo {
     );
     final benchmarkLanguage = benchmarkInfo['language'].toString();
     final benchmarkMode = benchmarkInfo['mode'].toString();
-    final benchmarkVersion = benchmarkInfo['version'].toString();
+    final benchmarkVersion = benchmarkInfo['version'];
     final benchmarkFramework = benchmarkInfo['framework']?.toString();
-    final benchmarkFrameworkVersion = benchmarkInfo['frameworkVersion']?.toString();
+    final benchmarkFrameworkVersion = benchmarkInfo['frameworkVersion'];
 
     return BenchmarkInfo(
       language: benchmarkLanguage,
       mode: benchmarkMode,
-      languageVersion: benchmarkVersion,
+      languageVersion: benchmarkVersion is List
+          ? benchmarkVersion.cast<String>()
+          : [benchmarkVersion as String],
       framework: benchmarkFramework,
       frameworkVersion: benchmarkFrameworkVersion,
     );

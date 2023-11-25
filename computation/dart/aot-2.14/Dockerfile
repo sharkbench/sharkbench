@@ -1,4 +1,4 @@
-FROM dart:3.2
+FROM dart:2.14
 
 WORKDIR /app
 
@@ -7,4 +7,6 @@ RUN dart pub get
 ADD . /app/
 
 EXPOSE 3000
-CMD ["dart", "main.dart"]
+RUN dart compile exe main.dart -o main
+
+CMD ["./main"]

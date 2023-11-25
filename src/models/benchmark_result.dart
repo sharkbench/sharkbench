@@ -1,7 +1,9 @@
 class BenchmarkResult {
-  final int medianTime;
+  final int timeMedian;
+  final int memoryMedian;
 
   BenchmarkResult({
-    required this.medianTime,
+    required this.timeMedian,
+    required this.memoryMedian,
   });
 }

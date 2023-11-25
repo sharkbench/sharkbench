@@ -1,8 +1,0 @@
-name: benchmark
-
-environment:
-  sdk: ">=3.2.0 <3.3.0"
-
-dependencies:
-  dbcrypt: 2.0.0
-  shelf: 1.4.1

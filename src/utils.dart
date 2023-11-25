@@ -70,6 +70,7 @@ Future<BenchmarkResult> benchmarkInDocker({
     print(' -> Result #${executionTimes.length + 1}: ${millis} ms with ${memory.bytesToString()} RAM');
     executionTimes.add(millis);
     memoryUsages.add(memory);
+    await Future.delayed(const Duration(seconds: 1));
   } while (executionTimes.length < rounds);
 
   print(' -> Stopping container');

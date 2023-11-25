@@ -1,13 +1,17 @@
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart';
+import 'dart:io';
+
+const port = 3000;
 
 void main() async {
-  await serve((Request request) {
-    final params = request.url.queryParameters;
+  final server = await HttpServer.bind('0.0.0.0', port);
+  server.listen((HttpRequest request) {
+    final params = request.uri.queryParameters;
     final i = int.parse(params['iterations']!);
-    return Response.ok(pi(i).toString());
-  }, '0.0.0.0', 3000);
-  print('Running!');
+    request.response.write(pi(i).toString());
+    request.response.close();
+  });
+
+  print('Running on port $port');
 }
 
 double pi(int iterations) {

@@ -1,0 +1,15 @@
+{
+  "name": "bcrypt-hash-server",
+  "version": "1.0.0",
+  "description": "A simple server to create bcrypt hashes",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2"
+  },
+  "author": "",
+  "license": "ISC"
+}

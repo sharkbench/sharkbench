@@ -1,0 +1,3 @@
+language: Java
+mode: Temurin
+version: "21"

@@ -46,9 +46,10 @@ Future<BenchmarkResult> benchmarkInDocker({
     } catch (e) {
       print(' -> Retrying because of error: $e');
       failCount++;
-      if (failCount > 5) {
+      if (failCount > 10) {
         throw 'Too many errors';
       }
+      await Future.delayed(const Duration(seconds: 1));
       continue;
     }
 

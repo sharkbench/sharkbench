@@ -2,3 +2,4 @@ language,mode,version,median_time
 Dart,AOT,3.2,10772
 Dart,JIT,3.2,5831
 JavaScript,Node.js,20.10,4027
+Python,Default,3.9,3605

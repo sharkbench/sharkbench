@@ -6,5 +6,5 @@ enum BenchmarkType {
 }
 
 void main() {
-  benchmarkComputation('computation/dart/dart-aot-3-2');
+  benchmarkComputation('computation/java/temurin-21');
 }

@@ -1,5 +1,6 @@
 language,mode,version,median_time
-Dart,AOT,3.2,10772
-Dart,JIT,3.2,5831
-JavaScript,Node.js,20.10,4027
-Python,Default,3.9,3605
+Dart,AOT,3.2,976
+Dart,JIT,3.2,878
+Java,Temurin,21,1540
+JavaScript,Node.js,20.10,20292
+Python,Default,3.9,81745

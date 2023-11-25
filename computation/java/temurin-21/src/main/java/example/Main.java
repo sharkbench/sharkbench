@@ -3,7 +3,6 @@ package example;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.mindrot.jbcrypt.BCrypt;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -19,21 +18,34 @@ public class Main {
         context.setContextPath("/");
         server.setHandler(context);
 
-        context.addServlet(new ServletHolder(new BcryptServlet()), "/*");
+        context.addServlet(new ServletHolder(new MyServlet()), "/*");
 
         server.start();
         System.out.println("Running!");
         server.join();
     }
 
-    public static class BcryptServlet extends HttpServlet {
+    public static class MyServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            String password = req.getParameter("password");
-            String salt = req.getParameter("salt");
-            System.out.println("salt: " + BCrypt.gensalt(12));
-            String hashed = BCrypt.hashpw(password, salt);
-            resp.getWriter().println(hashed);
+            String iterations = req.getParameter("iterations");
+            double pi = pi(Integer.parseInt(iterations));
+            resp.getWriter().print(pi);
+        }
+
+        private double pi(int iterations) {
+            double pi = 0.0;
+            double denominator = 1.0;
+            for (int x = 0; x < iterations; x++) {
+                if (x % 2 == 0) {
+                    pi = pi + (1 / denominator);
+                } else {
+                    pi = pi - (1 / denominator);
+                }
+                denominator = denominator + 2;
+            }
+            pi = pi * 4;
+            return pi;
         }
     }
 }

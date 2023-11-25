@@ -6,11 +6,10 @@ import 'src/models/benchmark_info.dart';
 import 'src/utils.dart';
 
 const query = {
-  'password': 'weihgtow347ghtuw3e',
-  'salt': r'$2b$16$s5egOfzRG8bqyFZqxDt8d.',
+  'iterations': '1000000000',
 };
 
-const expectedResult = r'$2b$16$s5egOfzRG8bqyFZqxDt8d.wXHQdgnzB88pYh5kv/oTwavPyDGizd.';
+const expectedResult = '3.1415926525880504';
 
 /// Runs a computation benchmark.
 Future<void> benchmarkComputation(String dir) async {
@@ -25,7 +24,7 @@ Future<void> benchmarkComputation(String dir) async {
     run: () async {
       final result = await http.get(Uri.http('localhost:3000', '/', query));
       if (result.body != expectedResult) {
-        throw 'Unexpected result: ${result.body}';
+        throw 'Unexpected result: "${result.body}"';
       }
     },
   );

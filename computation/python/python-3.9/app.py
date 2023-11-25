@@ -5,11 +5,20 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    password = request.args.get('password')
-    salt = request.args.get('salt')
+    iterations = int(request.args.get('iterations'))
+    return str(calc_pi(iterations))
 
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt.encode('utf-8')).decode('utf-8')
-    return hashed_password
+def calc_pi(iterations):
+    pi = 0.0
+    denominator = 1.0
+    for x in range(iterations):
+        if x % 2 == 0:
+            pi = pi + (1 / denominator)
+        else:
+            pi = pi - (1 / denominator)
+        denominator = denominator + 2
+    pi = pi * 4
+    return pi
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=True)

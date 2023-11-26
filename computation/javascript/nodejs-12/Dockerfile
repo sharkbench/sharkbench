@@ -1,8 +1,7 @@
 FROM node:12-alpine
 
 WORKDIR /app
-
-ADD . /app/
+COPY . .
 
 EXPOSE 3000
 CMD ["node", "main.js"]

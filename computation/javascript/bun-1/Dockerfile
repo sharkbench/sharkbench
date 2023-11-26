@@ -1,8 +1,7 @@
 FROM oven/bun:1-alpine
 
 WORKDIR /app
-
-ADD . /app/
+COPY . .
 
 EXPOSE 3000
 CMD ["bun", "run", "main.js"]

@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import '../utils.dart';
+import 'package:sharkbench/utils/shell.dart';
 
 // The start of a stats line is marked by the following bytes.
 // We ignore them because they are not valid JSON.
 final _statsPrefix = String.fromCharCodes([27, 91, 50, 74, 27, 91, 72]);
 
-class DockerStatsHandler {
+class DockerStatsReader {
   final String containerName;
   bool _isTracking = false;
   Process? _process;
   final _ramUsage = <int>[];
 
-  DockerStatsHandler({
+  DockerStatsReader({
     required this.containerName,
   });
 

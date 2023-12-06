@@ -1,7 +1,7 @@
 name: sharkbench
 
 environment:
-  sdk: ^3.0.0
+  sdk: ^3.2.0
 
 dependencies:
   http: 1.1.1

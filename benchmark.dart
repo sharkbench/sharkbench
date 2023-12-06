@@ -1,5 +1,5 @@
-import 'benchmark_computation.dart';
-import 'src/utils/docker_stats.dart';
+import 'package:sharkbench/benchmark/computation/computation.dart';
+import 'package:sharkbench/utils/docker_stats.dart';
 
 enum BenchmarkType {
   computation,
@@ -7,18 +7,18 @@ enum BenchmarkType {
 }
 
 void main() async {
-  final statsHandler = DockerStatsHandler(
+  final statsReader = DockerStatsReader(
     containerName: 'benchmark',
   );
 
-  await statsHandler.run();
+  await statsReader.run();
 
   await benchmarkComputation(
     dir: 'computation/dart/aot-2.14',
-    statsHandler: statsHandler,
+    statsReader: statsReader,
   );
 
   print('Finishing...');
 
-  statsHandler.dispose();
+  statsReader.dispose();
 }

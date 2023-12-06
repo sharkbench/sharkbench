@@ -1,6 +1,5 @@
+import 'package:sharkbench/utils/docker_file_utils.dart';
 import 'package:test/test.dart';
-
-import '../src/utils.dart';
 
 void main() {
   group('updateDockerFileWithVersion', () {

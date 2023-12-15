@@ -1,4 +1,5 @@
 import 'package:sharkbench/benchmark/computation/computation.dart';
+import 'package:sharkbench/benchmark/web/web.dart';
 import 'package:sharkbench/utils/docker_stats.dart';
 
 enum BenchmarkType {
@@ -13,8 +14,8 @@ void main() async {
 
   await statsReader.run();
 
-  await benchmarkComputation(
-    dir: 'computation/dart/aot-2.14',
+  await benchmarkWeb(
+    dir: 'benchmark/web/dart/httpserver-aot-2.14',
     statsReader: statsReader,
   );
 

@@ -4,11 +4,11 @@ import 'package:sharkbench/models/benchmark_info.dart';
 import 'package:sharkbench/utils/docker_stats.dart';
 import 'package:sharkbench/utils/result_writer.dart';
 
-const query = {
+const _query = {
   'iterations': '1000000000',
 };
 
-const expectedResult = '3.1415926525880504';
+const _expectedResult = '3.1415926525880504';
 
 /// Runs a computation benchmark.
 Future<void> benchmarkComputation({
@@ -30,10 +30,10 @@ Future<void> benchmarkComputation({
               initialFromVersion: benchmarkInfo.languageVersion.first,
               newFromVersion: languageVersion,
             ),
-      rounds: 10,
+      rounds: 3,
       onIteration: () async {
-        final result = await http.get(Uri.http('localhost:3000', '/', query));
-        if (result.body != expectedResult) {
+        final result = await http.get(Uri.http('localhost:3000', '/', _query));
+        if (result.body != _expectedResult) {
           throw 'Unexpected result: "${result.body}"';
         }
       },
@@ -41,14 +41,15 @@ Future<void> benchmarkComputation({
 
     writeResultToFile(
       filePath: 'result/computation_result.csv',
-      language: benchmarkInfo.language,
-      mode: benchmarkInfo.mode,
-      version: languageVersion,
-      framework: '',
-      frameworkVersion: '',
-      includeFramework: false,
-      timeMedian: result.timeMedian,
-      memoryMedian: result.memoryMedian,
+      keys: {
+        'language': benchmarkInfo.language,
+        'mode': benchmarkInfo.mode,
+        'version': languageVersion,
+      },
+      data: {
+        'time_median': result.timeMedian,
+        'memory_median': result.memoryMedian,
+      },
     );
   }
 

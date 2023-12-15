@@ -4,13 +4,16 @@ import 'package:sharkbench/utils/shell.dart';
 
 /// Starts a docker container with the given [composeFile].
 /// The container is stopped after the function [onContainerStarted] has finished.
+/// If [composeFile] is null, the directory is expected to contain a docker-compose.yml file.
 Future<void> runDockerCompose({
   required String dir,
-  required String composeFile,
+  required String? composeFile,
   required Future<void> Function() onContainerStarted,
 }) async {
-  File('$dir/docker-compose.yml').writeAsStringSync(composeFile);
-  File('$dir/.dockerignore').writeAsStringSync(_ignoreFile);
+  if (composeFile != null) {
+    File('$dir/docker-compose.yml').writeAsStringSync(composeFile);
+    File('$dir/.dockerignore').writeAsStringSync(_ignoreFile);
+  }
 
   print(' -> Building image');
   await runShell(
@@ -28,8 +31,10 @@ Future<void> runDockerCompose({
     workingDir: dir,
   );
 
-  File('$dir/docker-compose.yml').deleteSync();
-  File('$dir/.dockerignore').deleteSync();
+  if (composeFile != null) {
+    File('$dir/docker-compose.yml').deleteSync();
+    File('$dir/.dockerignore').deleteSync();
+  }
 }
 
 const _ignoreFile = '''

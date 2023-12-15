@@ -1,0 +1,11 @@
+language,mode,version,framework,framework_version,requests_per_second_median,memory_median
+Dart,AOT,2.14,shelf,1,88,48119153
+Dart,AOT,2.15,shelf,1,91,47752151
+Dart,AOT,2.16,shelf,1,84,46714061
+Dart,AOT,2.17,shelf,1,84,45109740
+Dart,AOT,2.18,shelf,1,89,21212692
+Dart,AOT,2.19,shelf,1,69,21936210
+Dart,AOT,3.0,shelf,1,88,25165824
+Dart,AOT,3.1,shelf,1,68,14680064
+Dart,AOT,3.2,shelf,1,568,49188700
+JavaScript,Node.js,12,express,4,293,63218647

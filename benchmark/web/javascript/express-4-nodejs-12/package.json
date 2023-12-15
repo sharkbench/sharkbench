@@ -1,0 +1,11 @@
+{
+  "name": "sharkbench",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.0.0"
+  }
+}

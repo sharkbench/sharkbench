@@ -8,11 +8,18 @@ import 'package:sharkbench/utils/docker_stats.dart';
 const _composeFile = '''
 version: "3"
 services:
-  app:
+  benchmark:
     build: .
     container_name: benchmark
     ports:
       - "3000:3000"
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65535
+
+networks:
+  default:
+    name: "sharkbench-benchmark-network"
+    external: true
 ''';
 
 class DockerFileManipulation {
@@ -98,12 +105,10 @@ Future<BenchmarkResult> runBenchmark({
   // Calculate median time
   executionTimes.sort();
   final timeMedian = executionTimes[executionTimes.length ~/ 2];
-  print(' -> Median: $timeMedian ms');
 
   // Calculate median memory
   memoryUsages.sort();
   final memoryMedian = memoryUsages[memoryUsages.length ~/ 2];
-  print(' -> Median: ${memoryMedian.bytesToString()}');
 
   return BenchmarkResult(
     timeMedian: timeMedian,

@@ -67,6 +67,9 @@ class DockerStatsReader {
 
   int get medianMemory {
     _ramUsage.sort();
+    if (_ramUsage.isEmpty) {
+      return 0;
+    }
     return _ramUsage[_ramUsage.length ~/ 2];
   }
 

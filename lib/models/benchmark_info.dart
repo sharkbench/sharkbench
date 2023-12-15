@@ -7,7 +7,7 @@ class BenchmarkInfo {
   final String mode;
   final List<String> languageVersion;
   final String? framework;
-  final String? frameworkVersion;
+  final List<String>? frameworkVersion;
 
   BenchmarkInfo({
     required this.language,
@@ -25,7 +25,7 @@ class BenchmarkInfo {
       print(' - Framework: $framework');
     }
     if (frameworkVersion != null) {
-      print(' - Framework version: $frameworkVersion');
+      print(' - Framework version: ${frameworkVersion!.length == 1 ? frameworkVersion!.first : frameworkVersion}');
     }
     print('');
   }
@@ -36,20 +36,13 @@ class BenchmarkInfo {
     final benchmarkInfo = loadYaml(
       File('$dir/_benchmark.yaml').readAsStringSync(),
     );
-    final benchmarkLanguage = benchmarkInfo['language'].toString();
-    final benchmarkMode = benchmarkInfo['mode'].toString();
-    final benchmarkVersion = benchmarkInfo['version'];
-    final benchmarkFramework = benchmarkInfo['framework']?.toString();
-    final benchmarkFrameworkVersion = benchmarkInfo['frameworkVersion'];
 
     return BenchmarkInfo(
-      language: benchmarkLanguage,
-      mode: benchmarkMode,
-      languageVersion: benchmarkVersion is List
-          ? benchmarkVersion.cast<String>()
-          : [benchmarkVersion as String],
-      framework: benchmarkFramework,
-      frameworkVersion: benchmarkFrameworkVersion,
+      language: benchmarkInfo['language'].toString(),
+      mode: benchmarkInfo['mode'].toString(),
+      languageVersion: (benchmarkInfo['version'] as List).cast<String>(),
+      framework: benchmarkInfo['framework']?.toString(),
+      frameworkVersion: (benchmarkInfo['frameworkVersion'] as List?)?.cast<String>(),
     );
   }
 }

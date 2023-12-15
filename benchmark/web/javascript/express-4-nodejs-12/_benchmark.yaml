@@ -1,0 +1,7 @@
+language: JavaScript
+mode: Node.js
+version:
+  - "12"
+framework: express
+frameworkVersion:
+  - "4"

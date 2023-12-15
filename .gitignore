@@ -4,3 +4,6 @@ pubspec.lock
 
 .dockerignore
 docker-compose.yml
+
+# Rust
+/target

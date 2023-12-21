@@ -9,14 +9,14 @@ use regex::Regex;
 const STATS_PREFIX: &[u8] = &[27, 91, 50, 74, 27, 91, 72];
 
 pub struct DockerStatsReader {
-    container_name: String,
+    container_name: &'static str,
     is_tracking: Arc<Mutex<bool>>,
     process: Option<Child>,
     ram_usage: Arc<Mutex<Vec<i64>>>,
 }
 
 impl DockerStatsReader {
-    pub fn new(container_name: String) -> DockerStatsReader {
+    pub fn new(container_name: &'static str) -> DockerStatsReader {
         DockerStatsReader {
             container_name,
             is_tracking: Arc::new(Mutex::new(false)),
@@ -27,7 +27,7 @@ impl DockerStatsReader {
 
     pub fn run(&mut self) -> Receiver<()> {
         let (tx, rx) = mpsc::channel();
-        let container_name = self.container_name.clone();
+        let container_name = self.container_name;
         let is_tracking = Arc::clone(&self.is_tracking);
         let ram_usage = Arc::clone(&self.ram_usage);
 
@@ -113,14 +113,4 @@ fn get_bytes_of_ram(mem_usage: &str) -> i64 {
         "GiB" => (mem_usage_value * 1024.0 * 1024.0 * 1024.0) as i64,
         _ => panic!("Unknown unit: {}", mem_usage_unit),
     }
-}
-
-fn main() {
-    // Example usage
-    let mut reader = DockerStatsReader::new("container_name".to_string());
-    reader.start();
-    let _ = reader.run();
-    // Do other work...
-    reader.stop();
-    reader.dispose();
 }

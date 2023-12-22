@@ -14,16 +14,16 @@ pub fn run_docker_compose<F>(dir: &str, compose_file: Option<&str>, on_container
     where
         F: FnOnce(),
 {
-    if let Some(file_contents) = compose_file {
-        fs::write(format!("{}/docker-compose.yml", dir), file_contents).unwrap();
+    if let Some(compose_file_content) = compose_file {
+        fs::write(format!("{}/docker-compose.yml", dir), compose_file_content).unwrap();
         fs::write(format!("{}/.dockerignore", dir), IGNORE_FILE).unwrap();
     }
 
     println!(" -> Building image");
     run_shell(&["docker", "compose", "up", "--build", "-d"], dir);
 
-    let delay = Duration::from_secs(5);
-    thread::sleep(delay);
+    // A heuristic to wait for the container to be ready
+    thread::sleep(Duration::from_secs(5));
 
     on_container_started();
 

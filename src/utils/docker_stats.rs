@@ -56,7 +56,13 @@ impl DockerStatsReader {
                         continue;
                     }
 
-                    let json: serde_json::Value = serde_json::from_str(trimmed).unwrap();
+                    let json: serde_json::Value = match serde_json::from_str(trimmed) {
+                        Ok(json) => json,
+                        Err(e) => {
+                            println!("Failed to parse JSON: {} \n {}", trimmed, e);
+                            continue;
+                        }
+                    };
                     let name = json["Name"].as_str().unwrap();
                     if name != container_name {
                         continue;
@@ -65,7 +71,6 @@ impl DockerStatsReader {
                     ram_usage.lock().unwrap().push(mem_usage);
                 }
             }
-
 
             println!("Docker stats reader thread finished");
             tx.send(()).unwrap();
@@ -101,6 +106,8 @@ impl DockerStatsReader {
     }
 }
 
+/// Parses the given memory usage string and returns the number of bytes.
+/// Example: "1.5GiB" -> 1610612736
 fn get_bytes_of_ram(mem_usage: &str) -> i64 {
     let mem_usage_regex = Regex::new(r"(\d*\.?\d+)(\w+)").unwrap();
     let mem_usage_match = mem_usage_regex.captures(mem_usage).unwrap();

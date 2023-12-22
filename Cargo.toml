@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 regex = "1.10.2"
-serde = "1.0.193"
-serde_json = { version = "1.0.108", features = [] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+serde_yaml = "0.9.29"
+reqwest = { version = "0.11", features = ["json", "blocking"] }

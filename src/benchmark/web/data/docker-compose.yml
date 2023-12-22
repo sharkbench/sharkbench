@@ -1,0 +1,11 @@
+version: "3"
+services:
+  web-data-source:
+    build: .
+    container_name: web_data_source
+    ports:
+      - "3001:80"
+networks:
+  default:
+    name: "sharkbench-benchmark-network"
+    external: true

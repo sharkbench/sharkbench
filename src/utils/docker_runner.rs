@@ -23,6 +23,7 @@ pub fn run_docker_compose<F>(dir: &str, compose_file: Option<&str>, on_container
     run_shell(&["docker", "compose", "up", "--build", "-d"], dir);
 
     // A heuristic to wait for the container to be ready
+    println!(" -> Waiting for container to be ready");
     thread::sleep(Duration::from_secs(5));
 
     on_container_started();

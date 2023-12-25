@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use crate::benchmark::benchmark::{DockerFileManipulation, run_benchmark};
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::meta_data_parser::BenchmarkMetaData;
@@ -35,7 +36,8 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                 if body != EXPECTED_RESPONSE {
                     return Err(Box::from(format!("Invalid response: {} (expected: {})", body, EXPECTED_RESPONSE)));
                 }
-                Ok(())
+
+                Ok(IndexMap::new())
             },
         );
 

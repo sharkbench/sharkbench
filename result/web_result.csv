@@ -9,3 +9,6 @@ Dart,AOT,3.0,httpserver,1,4099,21495808
 Dart,AOT,3.1,httpserver,1,4084,17049845
 Dart,AOT,3.2,httpserver,1,4321,17322475
 JavaScript,Node.js,12,express,4,3002,53613690
+Python,Default,3.8,Flask,2.3,615,26958888
+Rust,Default,1.74,Actix,4,4718,10236198
+Rust,Default,1.74,Axum,0.7,5203,10071572

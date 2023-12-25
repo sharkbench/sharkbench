@@ -5,6 +5,7 @@ use std::path::Path;
 const IGNORE_FILE: &str = r#"
 .dart_tool
 node_modules
+target
 "#;
 
 /// Starts a docker container with the given `compose_file`.

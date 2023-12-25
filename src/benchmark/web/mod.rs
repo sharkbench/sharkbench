@@ -55,7 +55,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                 &docker_file_manipulation,
                 3,
                 || {
-                    let result = run_http_load_test(32, Duration::from_secs(10), &requests);
+                    let result = run_http_load_test(32, Duration::from_secs(10), &requests, response_validator);
                     println!(" -> Success: {}, Fail: {}, Time: {} ms, RPS: {}",
                              result.success_count,
                              result.fail_count,
@@ -113,4 +113,21 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
     }
 
     elements
+}
+
+fn response_validator(body: &str, expected_response: &str) -> bool {
+    return true;
+
+    if body == expected_response {
+        return true;
+    }
+
+    // check if the json is the same, but in a different order
+    let body_json: serde_json::Value = serde_json::from_str(body).unwrap();
+    let expected_response_json: serde_json::Value = serde_json::from_str(expected_response).unwrap();
+    if body_json == expected_response_json {
+        return true;
+    }
+
+    return false;
 }

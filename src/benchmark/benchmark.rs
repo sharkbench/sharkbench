@@ -1,7 +1,7 @@
 use std::time::Duration;
 use std::{fs, thread};
 use std::cmp::Ordering;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use indexmap::IndexMap;
 use crate::utils::docker_runner::run_docker_compose;
 
@@ -15,6 +15,10 @@ services:
       - "3000:3000"
     sysctls:
       - net.ipv4.ip_local_port_range=1024 65535
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
 
 networks:
   default:
@@ -33,20 +37,29 @@ pub struct BenchmarkResult {
     pub additional_data: IndexMap<String, AdditionalData>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum AdditionalData {
     Int(i32),
     Float(f64),
 }
 
+impl Debug for AdditionalData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        format_additional_data(self, f)
+    }
+}
+
 impl Display for AdditionalData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str = match self {
-            AdditionalData::Int(value) => value.to_string(),
-            AdditionalData::Float(value) => value.to_string(),
-        };
-        write!(f, "{}", str)
+        format_additional_data(self, f)
     }
+}
+
+fn format_additional_data(data: &AdditionalData, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", match data {
+        AdditionalData::Int(value) => value.to_string(),
+        AdditionalData::Float(value) => value.to_string(),
+    })
 }
 
 pub fn run_benchmark<F>(

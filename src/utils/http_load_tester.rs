@@ -14,16 +14,20 @@ pub struct HttpLoadResult {
     pub requests_per_second: i32,
 }
 
+type RequestValidatorFn = fn(&str, &str) -> bool;
+
 pub fn run_http_load_test(
     concurrency: usize,
     duration: Duration,
     requests: &Vec<(String, String)>,
+    request_validator: RequestValidatorFn,
 ) -> HttpLoadResult {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let result = rt.block_on(run_load_test(
         concurrency,
         duration,
         requests,
+        request_validator,
     ));
     result
 }
@@ -32,6 +36,7 @@ async fn run_load_test(
     concurrency: usize,
     duration: Duration,
     requests: &Vec<(String, String)>,
+    request_validator: RequestValidatorFn,
 ) -> HttpLoadResult {
     let mut handles: Vec<JoinHandle<ThreadResult>> = Vec::new();
 
@@ -53,19 +58,21 @@ async fn run_load_test(
                     match client.get(uri).send().await {
                         Ok(response) => {
                             let body = response.text().await.unwrap();
-                            if body == *expected_response {
+                            if request_validator(&body, expected_response) {
                                 local_success_count += 1;
                             } else {
                                 local_fail_count += 1;
                                 println!("Unexpected response for {}: {}, expected: {}", uri, body, expected_response);
                             }
                         }
-                        Err(e) => println!("Request to {} failed: {}", uri, e),
+                        Err(e) => {
+                            println!("Request to {} failed: {}", uri, e);
+                            local_fail_count += 1;
+                        },
                     }
                 }
             }
 
-            println!("Thread finished in {}ms", start.elapsed().as_millis());
             ThreadResult {
                 success_count: local_success_count,
                 fail_count: local_fail_count,

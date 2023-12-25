@@ -5,10 +5,12 @@ import requests
 app = Flask(__name__)
 app.json.sort_keys = False
 
+session = requests.Session()
+
 def fetchData(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
+    with session.get(url) as response:
+        response.raise_for_status()
+        return response.json()
 
 @app.route('/', methods=['GET'])
 def index():

@@ -3,5 +3,5 @@ mode: Default
 version:
   - "3.8"
 framework: Flask
-frameworkVersion:
+framework_version:
   - "2.3"

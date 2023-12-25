@@ -50,6 +50,12 @@ Response:
 - [Rust](https://www.rust-lang.org/)
 - [Docker](https://www.docker.com/)
 
+Create Docker network:
+
+```bash
+docker network create sharkbench-benchmark-network
+```
+
 ### ➤ Batch
 
 To run all benchmarks, run:

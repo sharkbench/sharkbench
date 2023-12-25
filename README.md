@@ -1,13 +1,6 @@
 # Sharkbench
 
-Benchmarking web frameworks and languages.
-
-## Run benchmarks
-
-```bash
-dart pub get
-dart run benchmark.dart
-```
+Benchmarking programming languages and frameworks.
 
 ## Computation Benchmark
 
@@ -48,4 +41,52 @@ Response:
   "number": 2,
   "group": 18
 }
+```
+
+## Run benchmarks
+
+### ➤ Prerequisites
+
+- [Rust](https://www.rust-lang.org/)
+- [Docker](https://www.docker.com/)
+
+### ➤ Batch
+
+To run all benchmarks, run:
+
+```bash
+cargo run --release
+```
+
+## Contributing
+
+### ➤ File structure
+
+In general, each benchmark is located in a separate folder.
+
+- `benchmark/`: Contains all benchmarks.
+  - `computation/`: Contains all computation benchmarks.
+    - `<language>/<mode>-<min-version>`: A benchmark.
+  - `memory/`: Contains all memory benchmarks.
+    - `<language>/<mode>-<min-version>`: A benchmark.
+  - `web/`: Contains all web benchmarks.
+    - `<language>/<framework>-<min-framework-version>-<mode>-<min-version>`: A benchmark.
+- `src/`: The main source code to run the benchmarks.
+
+### ➤ Config
+
+Each benchmark has a `_benchmark.yaml` file that contains the configuration for the benchmark.
+
+```yaml
+language: Dart
+mode: AOT # or set "Default" if there is only one run mode / flavor
+version:
+  - "2.14" # first version should match the version in the Dockerfile
+  - "3.2"
+
+# only for web benchmarks
+framework: Shelf
+framework_version:
+  - "1" # first version should match the version in the Dockerfile
+  - "2"
 ```

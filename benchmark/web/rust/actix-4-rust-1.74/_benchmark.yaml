@@ -1,0 +1,7 @@
+language: Rust
+mode: Default
+version:
+  - "1.74"
+framework: Actix
+framework_version:
+  - "4"

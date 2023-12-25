@@ -1,0 +1,6 @@
+GET http://localhost:3000/api/v1/periodic-table/element?symbol=He
+Accept: application/json
+
+###
+GET http://localhost:3001/data.json
+Accept: application/json

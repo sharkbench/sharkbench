@@ -3,5 +3,5 @@ mode: Node.js
 version:
   - "12"
 framework: express
-frameworkVersion:
+framework_version:
   - "4"

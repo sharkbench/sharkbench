@@ -1,0 +1,7 @@
+language: Rust
+mode: Default
+version:
+  - "1.74"
+framework: Axum
+framework_version:
+  - "0.7"

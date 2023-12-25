@@ -15,6 +15,7 @@ mod utils {
     pub mod http_load_tester;
     pub mod meta_data_parser;
     pub mod result_writer;
+    pub mod serialization;
 }
 
 const CONTAINER_NAME: &str = "benchmark";

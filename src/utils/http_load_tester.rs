@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use reqwest;
 use tokio;
 use std::sync::Arc;
@@ -6,6 +7,7 @@ use std::time::Duration;
 use tokio::{task, time};
 use rand::seq::SliceRandom;
 use tokio::task::JoinHandle;
+use crate::utils::serialization::SerializedValue;
 
 pub struct HttpLoadResult {
     pub success_count: i32,
@@ -14,12 +16,12 @@ pub struct HttpLoadResult {
     pub requests_per_second: i32,
 }
 
-type RequestValidatorFn = fn(&str, &str) -> bool;
+type RequestValidatorFn = fn(&str, &HashMap<String, SerializedValue>) -> bool;
 
 pub fn run_http_load_test(
     concurrency: usize,
     duration: Duration,
-    requests: &Vec<(String, String)>,
+    requests: &Vec<(String, HashMap<String, SerializedValue>)>,
     request_validator: RequestValidatorFn,
 ) -> HttpLoadResult {
     let rt = tokio::runtime::Runtime::new().unwrap();
@@ -35,7 +37,7 @@ pub fn run_http_load_test(
 async fn run_load_test(
     concurrency: usize,
     duration: Duration,
-    requests: &Vec<(String, String)>,
+    requests: &Vec<(String, HashMap<String, SerializedValue>)>,
     request_validator: RequestValidatorFn,
 ) -> HttpLoadResult {
     let mut handles: Vec<JoinHandle<ThreadResult>> = Vec::new();
@@ -58,11 +60,11 @@ async fn run_load_test(
                     match client.get(uri).send().await {
                         Ok(response) => {
                             let body = response.text().await.unwrap();
-                            if request_validator(&body, expected_response) {
+                            if request_validator(&body, &expected_response) {
                                 local_success_count += 1;
                             } else {
                                 local_fail_count += 1;
-                                println!("Unexpected response for {}: {}, expected: {}", uri, body, expected_response);
+                                println!("Unexpected response for {}: {}, expected: {:?}", uri, body, expected_response);
                             }
                         }
                         Err(e) => {

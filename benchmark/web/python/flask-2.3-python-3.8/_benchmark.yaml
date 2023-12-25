@@ -1,0 +1,7 @@
+language: Python
+mode: Default
+version:
+  - "3.8"
+framework: Flask
+frameworkVersion:
+  - "2.3"

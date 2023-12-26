@@ -37,6 +37,11 @@ pub struct BenchmarkResult {
     pub additional_data: IndexMap<String, AdditionalData>,
 }
 
+pub struct IterationResult {
+    pub additional_data: IndexMap<String, AdditionalData>,
+    pub debugging_data: IndexMap<String, AdditionalData>,
+}
+
 #[derive(Clone)]
 pub enum AdditionalData {
     Int(i32),
@@ -69,7 +74,7 @@ pub fn run_benchmark<F>(
     rounds: usize,
     on_iteration: F,
 ) -> BenchmarkResult
-    where F: Fn() -> Result<IndexMap<String, AdditionalData>, Box<dyn std::error::Error>>
+    where F: Fn() -> Result<IterationResult, Box<dyn std::error::Error>>
 {
     let original_docker_file = match docker_file_manipulation {
         Some(manipulation) => {
@@ -85,46 +90,71 @@ pub fn run_benchmark<F>(
     let mut memory_usages: Vec<i64> = Vec::new();
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
-    run_docker_compose(dir, Some(COMPOSE_FILE), || {
-        println!(" -> Running benchmark");
-        let mut fail_count = 0;
-        let mut first_run = true; // For warm-up
-        while execution_times.len() < rounds {
-            let start = std::time::Instant::now();
-            stats_reader.start();
+    run_docker_compose(
+        dir,
+        Some(COMPOSE_FILE),
+        || {
+            println!(" -> Running benchmark");
+            let mut fail_count = 0;
+            let mut first_run = true; // For warm-up
+            while execution_times.len() < rounds {
+                if first_run {
+                    println!(" -> [Warmup]: Running...");
+                } else {
+                    println!(" -> [Run #{}]: Running...", execution_times.len() + 1);
+                }
 
-            let result = match on_iteration() {
-                Ok(result) => result,
-                Err(e) => {
-                    println!(" -> Error: {}", e);
-                    fail_count += 1;
-                    if fail_count > 10 {
-                        panic!("Too many errors");
+                let start = std::time::Instant::now();
+                stats_reader.start();
+
+                let result = match on_iteration() {
+                    Ok(result) => result,
+                    Err(e) => {
+                        println!(" -> Error: {}", e);
+                        fail_count += 1;
+                        if fail_count > 10 {
+                            panic!("Too many errors");
+                        }
+                        thread::sleep(Duration::from_secs(1));
+                        println!("Retrying...");
+                        continue;
                     }
-                    thread::sleep(Duration::from_secs(1));
-                    println!("Retrying...");
+                };
+
+                stats_reader.stop();
+
+                let elapsed = start.elapsed().as_millis() as i64;
+                let memory_usage = stats_reader.median_memory();
+
+                if first_run {
+                    first_run = false;
+                    println!(
+                        " -> [Warmup]: t = {} ms, RAM = {}, {:?}, {:?}",
+                        elapsed,
+                        memory_usage.bytes_to_string(),
+                        result.additional_data,
+                        result.debugging_data,
+                    );
                     continue;
                 }
-            };
 
-            stats_reader.stop();
+                println!(
+                    " -> [Run #{}]: t = {} ms, RAM = {}, {:?}, {:?}",
+                    execution_times.len() + 1,
+                    elapsed,
+                    memory_usage.bytes_to_string(),
+                    result.additional_data,
+                    result.debugging_data,
+                );
+                execution_times.push(elapsed);
+                memory_usages.push(memory_usage);
+                additional_data.push(result.additional_data);
 
-            let elapsed = start.elapsed().as_millis() as i64;
-            let memory_usage = stats_reader.median_memory();
-
-            if first_run {
-                first_run = false;
-                println!(" -> [Warmup]:    t = {} ms, RAM = {}, {:?}", elapsed, memory_usage.bytes_to_string(), result);
-                continue;
+                // Wait for 2 seconds to let the container cool down
+                thread::sleep(Duration::from_secs(2));
             }
-
-            println!(" -> [Result #{}]: t = {} ms, RAM = {}, {:?}", execution_times.len() + 1, elapsed, memory_usage.bytes_to_string(), result);
-            execution_times.push(elapsed);
-            memory_usages.push(memory_usage);
-            additional_data.push(result);
-            thread::sleep(Duration::from_secs(1));
-        }
-    });
+        },
+    );
 
     // Reset Dockerfile
     if let Some(original_docker_file) = original_docker_file {

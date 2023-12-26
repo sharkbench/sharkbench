@@ -3,7 +3,7 @@ use std::fs;
 use std::time::Duration;
 use indexmap::IndexMap;
 use serde::{Deserialize};
-use crate::benchmark::benchmark::{AdditionalData, DockerFileManipulation, run_benchmark};
+use crate::benchmark::benchmark::{AdditionalData, DockerFileManipulation, IterationResult, run_benchmark};
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::run_http_load_test;
 use crate::utils::meta_data_parser::{WebBenchmarkMetaData};
@@ -52,16 +52,25 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                 &docker_file_manipulation,
                 5,
                 || {
-                    let result = run_http_load_test(32, Duration::from_secs(15), &requests, response_validator);
-                    println!(" -> Success: {}, Fail: {}, Time: {} ms, RPS: {}",
-                             result.success_count,
-                             result.fail_count,
-                             result.total_time.as_millis(),
-                             result.requests_per_second);
+                    let result = run_http_load_test(
+                        32,
+                        Duration::from_secs(15),
+                        &requests,
+                        response_validator,
+                    );
 
-                    let mut map: IndexMap<String, AdditionalData> = IndexMap::new();
-                    map.insert("requests_per_second".to_string(), AdditionalData::Int(result.requests_per_second));
-                    Ok(map)
+                    let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
+                    additional_data.insert("requests_per_second".to_string(), AdditionalData::Int(result.requests_per_second));
+
+                    let mut debugging_data: IndexMap<String, AdditionalData> = IndexMap::new();
+                    debugging_data.insert("success".to_string(), AdditionalData::Int(result.success_count));
+                    debugging_data.insert("fail".to_string(), AdditionalData::Int(result.fail_count));
+                    debugging_data.insert("time".to_string(), AdditionalData::Int(result.total_time.as_millis() as i32));
+
+                    Ok(IterationResult {
+                        additional_data,
+                        debugging_data,
+                    })
                 },
             );
 

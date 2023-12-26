@@ -3,6 +3,7 @@ use reqwest;
 use tokio;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::Relaxed;
 use std::time::Duration;
 use tokio::{task, time};
 use rand::seq::SliceRandom;
@@ -55,8 +56,12 @@ async fn run_load_test(
             let mut local_fail_count = 0;
 
             let client = reqwest::Client::builder().build().unwrap();
-            while running_clone.load(std::sync::atomic::Ordering::Relaxed) {
+            'outer: loop {
                 for (uri, expected_response) in &requests_clone {
+                    if !running_clone.load(Relaxed) {
+                        break 'outer;
+                    }
+
                     match client.get(uri).send().await {
                         Ok(response) => {
                             let body = response.text().await.unwrap();
@@ -88,7 +93,7 @@ async fn run_load_test(
     time::sleep(duration).await;
 
     // Cancel all running tasks after the duration
-    running.store(false, std::sync::atomic::Ordering::Relaxed);
+    running.store(false, Relaxed);
 
     let mut handle_results: Vec<ThreadResult> = Vec::new();
     for handle in handles.into_iter() {

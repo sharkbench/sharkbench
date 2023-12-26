@@ -102,7 +102,7 @@ struct PeriodicTableElement {
 }
 
 fn load_data() -> HashMap<String, PeriodicTableElement> {
-    let data: String = fs::read_to_string("src/benchmark/web/data/data.json").unwrap();
+    let data: String = fs::read_to_string("src/benchmark/web/data/static/data.json").unwrap();
     let json: serde_json::Value = serde_json::from_str(data.as_str()).unwrap();
 
     let mut elements: HashMap<String, PeriodicTableElement> = HashMap::new();

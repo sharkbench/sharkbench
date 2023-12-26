@@ -1,7 +1,14 @@
-FROM nginx:1.25.3-alpine
-COPY config.conf /etc/nginx/conf.d/default.conf
-COPY data.json /usr/share/nginx/html
+FROM rust:1.74 AS builder
 
-# Start server
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /app
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY static ./static
+
+RUN cargo build --release
+
+FROM debian:bookworm AS runtime
+COPY --from=builder /app/target/release/app /app
+
+EXPOSE 3000
+ENTRYPOINT ["/app"]

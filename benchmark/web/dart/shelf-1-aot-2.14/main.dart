@@ -15,7 +15,10 @@ void main() async {
 
   app.get('/api/v1/periodic-table/element', (Request request) async {
     final symbol = request.requestedUri.queryParameters['symbol'] as String;
-    final json = await fetchJson(url, httpClient);
+
+    final tmpReq = await httpClient.getUrl(url);
+    final tmpRes = await tmpReq.close();
+    final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
     final entry = json[symbol] as Map<String, dynamic>;
 
     return Response.ok(jsonEncode({
@@ -27,7 +30,10 @@ void main() async {
 
   app.get('/api/v1/periodic-table/shells', (Request request) async {
     final symbol = request.requestedUri.queryParameters['symbol'] as String;
-    final json = await fetchJson(url, httpClient);
+
+    final tmpReq = await httpClient.getUrl(url);
+    final tmpRes = await tmpReq.close();
+    final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
 
     return Response.ok(jsonEncode({
       'shells': json[symbol]['shells'],
@@ -37,10 +43,4 @@ void main() async {
   await serve(app, '0.0.0.0', port);
 
   print('Running on port $port');
-}
-
-Future<dynamic> fetchJson(Uri uri, HttpClient client) async {
-  final httpClientReq = await client.getUrl(uri);
-  final httpClientRes = await httpClientReq.close();
-  return jsonDecode(await httpClientRes.transform(utf8.decoder).join());
 }

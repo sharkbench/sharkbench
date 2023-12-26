@@ -10,7 +10,11 @@ void main() async {
   final server = await HttpServer.bind('0.0.0.0', port);
   server.listen((HttpRequest request) async {
     final symbol = request.uri.queryParameters['symbol'] as String;
-    final json = await fetchJson(url, httpClient);
+
+    final tmpReq = await httpClient.getUrl(url);
+    final tmpRes = await tmpReq.close();
+    final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
+
     switch (request.uri.path) {
       case '/api/v1/periodic-table/element':
         final entry = json[symbol] as Map<String, dynamic>;
@@ -30,10 +34,4 @@ void main() async {
   });
 
   print('Running on port $port');
-}
-
-Future<dynamic> fetchJson(Uri uri, HttpClient client) async {
-  final httpClientReq = await client.getUrl(uri);
-  final httpClientRes = await httpClientReq.close();
-  return jsonDecode(await httpClientRes.transform(utf8.decoder).join());
 }

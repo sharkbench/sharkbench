@@ -2,6 +2,6 @@ language: JavaScript
 mode: Node.js
 version:
   - "12"
-framework: express
+framework: Express
 framework_version:
   - "4"

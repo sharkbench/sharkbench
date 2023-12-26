@@ -3,5 +3,6 @@ mode: Temurin
 version:
   - "21"
 framework: Spring Boot
+framework_flavor: MVC
 framework_version:
-  - "3"
+  - "3.2"

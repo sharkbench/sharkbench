@@ -84,15 +84,17 @@ In general, each benchmark is located in a separate folder.
 Each benchmark has a `_benchmark.yaml` file that contains the configuration for the benchmark.
 
 ```yaml
-language: Dart
-mode: AOT # or set "Default" if there is only one run mode / flavor
+language: Java
+mode: Temurin # or set "Default" if there is only one mode / flavor
 version:
-  - "2.14" # first version should match the version in the Dockerfile
-  - "3.2"
+  - "11" # first version should match the version in the source code
+  - "17"
+  - "21"
 
 # only for web benchmarks
-framework: Shelf
+framework: Spring Boot
+framework_flavor: MVC # or set "Default" if there is only one flavor
 framework_version:
-  - "1" # first version should match the version in the Dockerfile
-  - "2"
+  - "2.5" # first version should match the version in the source code
+  - "3.2"
 ```

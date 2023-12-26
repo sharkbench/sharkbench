@@ -72,6 +72,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     ("mode", meta_data.mode.as_str()),
                     ("version", language_version.as_str()),
                     ("framework", meta_data.framework.as_str()),
+                    ("framework_flavor", meta_data.framework_flavor.as_str()),
                     ("framework_version", framework_version.as_str()),
                 ]),
                 &Vec::from([

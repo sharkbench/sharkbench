@@ -25,7 +25,7 @@ fn main() {
     reader.run();
 
     benchmark_web(
-        "benchmark/web/dart/httpserver-aot-2.14",
+        "benchmark/web/java/springboot-3.2-mvc-temurin-21",
         &mut reader,
     );
 

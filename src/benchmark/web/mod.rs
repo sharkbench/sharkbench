@@ -50,9 +50,9 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                 dir,
                 stats_reader,
                 &docker_file_manipulation,
-                3,
+                5,
                 || {
-                    let result = run_http_load_test(32, Duration::from_secs(10), &requests, response_validator);
+                    let result = run_http_load_test(32, Duration::from_secs(15), &requests, response_validator);
                     println!(" -> Success: {}, Fail: {}, Time: {} ms, RPS: {}",
                              result.success_count,
                              result.fail_count,

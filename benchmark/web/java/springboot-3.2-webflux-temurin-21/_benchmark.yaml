@@ -1,0 +1,8 @@
+language: Java
+mode: Temurin
+version:
+  - "21"
+framework: Spring Boot
+framework_flavor: WebFlux
+framework_version:
+  - "3.2"

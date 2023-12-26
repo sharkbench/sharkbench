@@ -1,3 +1,4 @@
 language: Java
 mode: Temurin
-version: "21"
+version:
+  - "21"

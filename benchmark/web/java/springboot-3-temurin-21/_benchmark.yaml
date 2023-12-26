@@ -1,0 +1,7 @@
+language: Java
+mode: Temurin
+version:
+  - "21"
+framework: Spring Boot
+framework_version:
+  - "3"

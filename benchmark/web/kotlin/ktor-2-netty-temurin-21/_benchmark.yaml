@@ -1,0 +1,8 @@
+language: Kotlin
+mode: Temurin
+version:
+  - "21"
+framework: Ktor
+framework_flavor: Netty
+framework_version:
+  - "2"

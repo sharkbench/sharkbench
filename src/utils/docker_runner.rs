@@ -4,6 +4,8 @@ use std::path::Path;
 
 const IGNORE_FILE: &str = r#"
 .dart_tool
+.gradle
+build
 node_modules
 target
 "#;

@@ -35,6 +35,5 @@ fn calc_pi(iterations: usize) -> f64 {
         }
         denominator = denominator + 2.0;
     }
-    pi = pi * 4.0;
-    pi
+    pi * 4.0
 }

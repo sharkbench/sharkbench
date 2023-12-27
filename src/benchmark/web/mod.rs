@@ -50,6 +50,10 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                 dir,
                 stats_reader,
                 &docker_file_manipulation,
+                match meta_data.extended_warmup {
+                    true => 3,
+                    false => 1,
+                },
                 5,
                 || {
                     let result = run_http_load_test(

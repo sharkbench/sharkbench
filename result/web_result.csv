@@ -1,30 +1,30 @@
 language,mode,version,framework,framework_flavor,framework_version,requests_per_second_median,memory_median
-Dart,AOT,2.14,HttpServer,Default,1,3554,53078917
-Dart,AOT,2.14,Shelf,Default,1,3329,50635735
-Dart,AOT,2.15,HttpServer,Default,1,3563,53026488
-Dart,AOT,2.15,Shelf,Default,1,3332,48632954
-Dart,AOT,2.16,HttpServer,Default,1,3678,50415534
-Dart,AOT,2.16,Shelf,Default,1,3342,49293557
-Dart,AOT,2.17,HttpServer,Default,1,3638,48381296
-Dart,AOT,2.17,Shelf,Default,1,3344,47301263
-Dart,AOT,2.18,HttpServer,Default,1,3667,21642608
-Dart,AOT,2.18,Shelf,Default,1,3416,22575841
-Dart,AOT,2.19,HttpServer,Default,1,3661,22334668
-Dart,AOT,2.19,Shelf,Default,1,3384,22596812
-Dart,AOT,3.0,HttpServer,Default,1,3689,22638755
-Dart,AOT,3.0,Shelf,Default,1,2848,25060966
-Dart,AOT,3.1,HttpServer,Default,1,3234,20552089
-Dart,AOT,3.1,Shelf,Default,1,2781,22858956
-Dart,AOT,3.2,HttpServer,Default,1,3670,18150850
-Dart,AOT,3.2,Shelf,Default,1,2482,21128806
-Java,Temurin,21,Spring Boot,MVC,3.2,1530,183500800
-Java,Temurin,21,Spring Boot,WebFlux,3.2,3832,190945689
+Dart,AOT,2.14,HttpServer,Default,1,3896,48182067
+Dart,AOT,2.14,Shelf,Default,1,3561,48276439
+Dart,AOT,2.15,HttpServer,Default,1,3919,49828331
+Dart,AOT,2.15,Shelf,Default,1,3589,48349839
+Dart,AOT,2.16,HttpServer,Default,1,3945,49377443
+Dart,AOT,2.16,Shelf,Default,1,3588,51013222
+Dart,AOT,2.17,HttpServer,Default,1,3923,48653926
+Dart,AOT,2.17,Shelf,Default,1,3602,47678750
+Dart,AOT,2.18,HttpServer,Default,1,3897,22649241
+Dart,AOT,2.18,Shelf,Default,1,3582,21904752
+Dart,AOT,2.19,HttpServer,Default,1,3922,22051553
+Dart,AOT,2.19,Shelf,Default,1,3589,25585254
+Dart,AOT,3.0,HttpServer,Default,1,3787,22145925
+Dart,AOT,3.0,Shelf,Default,1,3639,22953328
+Dart,AOT,3.1,HttpServer,Default,1,3925,18486394
+Dart,AOT,3.1,Shelf,Default,1,3595,23152558
+Dart,AOT,3.2,HttpServer,Default,1,4127,19262341
+Dart,AOT,3.2,Shelf,Default,1,3649,23760732
+Java,Temurin,21,Spring Boot,MVC,3.2,1468,183081369
+Java,Temurin,21,Spring Boot,WebFlux,3.2,4424,181718220
 JavaScript,Node.js,12,Express,Default,4,2427,57430507
 JavaScript,Node.js,14,Express,Default,4,2548,59863203
 JavaScript,Node.js,16,Express,Default,4,2241,59223572
 JavaScript,Node.js,18,Express,Default,4,2375,72561459
 JavaScript,Node.js,20,Express,Default,4,3691,66584576
-Kotlin,Temurin,21,Ktor,Netty,2,451,167143014
-Python,Default,3.8,Flask,Default,2.3,466,25899827
+Kotlin,Temurin,21,Ktor,Netty,2,422,175741337
+Python,Default,3.8,Flask,Default,2.3,529,29464985
 Rust,Default,1.74,Actix,Default,4,5362,14984151
 Rust,Default,1.74,Axum,Default,0.7,8670,11859394

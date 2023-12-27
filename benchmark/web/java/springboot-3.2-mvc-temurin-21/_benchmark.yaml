@@ -6,3 +6,5 @@ framework: Spring Boot
 framework_flavor: MVC
 framework_version:
   - "3.2"
+
+extended_warmup: true

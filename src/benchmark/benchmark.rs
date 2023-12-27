@@ -71,6 +71,7 @@ pub fn run_benchmark<F>(
     dir: &str,
     stats_reader: &mut crate::utils::docker_stats::DockerStatsReader,
     docker_file_manipulation: &Option<DockerFileManipulation>,
+    warmup_rounds: usize,
     rounds: usize,
     on_iteration: F,
 ) -> BenchmarkResult
@@ -96,9 +97,9 @@ pub fn run_benchmark<F>(
         || {
             println!(" -> Running benchmark");
             let mut fail_count = 0;
-            let mut first_run = true; // For warm-up
+            let mut warmup_counter = 0;
             while execution_times.len() < rounds {
-                if first_run {
+                if warmup_counter < warmup_rounds {
                     println!(" -> [Warmup]: Running...");
                 } else {
                     println!(" -> [Run #{}]: Running...", execution_times.len() + 1);
@@ -126,8 +127,8 @@ pub fn run_benchmark<F>(
                 let elapsed = start.elapsed().as_millis() as i64;
                 let memory_usage = stats_reader.median_memory();
 
-                if first_run {
-                    first_run = false;
+                if warmup_counter < warmup_rounds {
+                    warmup_counter += 1;
                     println!(
                         " -> [Warmup]: t = {} ms, RAM = {}, {:?}, {:?}",
                         elapsed,

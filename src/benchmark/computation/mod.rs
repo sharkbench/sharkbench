@@ -25,6 +25,10 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
             dir,
             stats_reader,
             &docker_file_manipulation,
+            match meta_data.extended_warmup {
+                true => 3,
+                false => 1,
+            },
             3,
             || {
                 let client = reqwest::blocking::Client::new();

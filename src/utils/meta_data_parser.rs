@@ -9,6 +9,9 @@ pub struct BenchmarkMetaData {
 
     #[serde(rename = "version")]
     pub language_version: Vec<String>,
+
+    #[serde(default="default_as_false")]
+    pub extended_warmup: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -25,6 +28,13 @@ pub struct WebBenchmarkMetaData {
     pub framework_flavor: String,
 
     pub framework_version: Vec<String>,
+
+    #[serde(default="default_as_false")]
+    pub extended_warmup: bool,
+}
+
+fn default_as_false() -> bool {
+    false
 }
 
 enum BenchmarkType {

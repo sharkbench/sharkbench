@@ -6,3 +6,5 @@ framework: Ktor
 framework_flavor: Netty
 framework_version:
   - "2"
+
+extended_warmup: true

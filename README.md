@@ -97,4 +97,7 @@ framework_flavor: MVC # or set "Default" if there is only one flavor
 framework_version:
   - "2.5" # first version should match the version in the source code
   - "3.2"
+
+# optional
+extended_warmup: true # set to true if the benchmark needs a longer warmup
 ```

@@ -5,3 +5,5 @@ docker-compose.yml
 
 # Rust
 /target
+
+.DS_Store

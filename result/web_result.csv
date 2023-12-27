@@ -17,6 +17,7 @@ Dart,AOT,3.1,HttpServer,Default,1,3925,18486394
 Dart,AOT,3.1,Shelf,Default,1,3595,23152558
 Dart,AOT,3.2,HttpServer,Default,1,4127,19262341
 Dart,AOT,3.2,Shelf,Default,1,3649,23760732
+Go,Default,1.21,Gin,Default,1,661,38818283
 Java,Temurin,21,Spring Boot,MVC,3.2,1468,183081369
 Java,Temurin,21,Spring Boot,WebFlux,3.2,4424,181718220
 JavaScript,Node.js,12,Express,Default,4,2427,57430507

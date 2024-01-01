@@ -1,8 +1,12 @@
 from flask import Flask, request, Response
+import logging
 import requests
 
 app = Flask(__name__)
 app.json.sort_keys = False
+
+log = logging.getLogger('werkzeug')
+log.disabled = True
 
 session = requests.Session()
 
@@ -32,4 +36,4 @@ def get_shells():
     }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3000)
+    app.run(host='0.0.0.0', port=3000, debug=False)

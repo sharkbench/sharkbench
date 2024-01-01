@@ -26,6 +26,7 @@ JavaScript,Node.js,16,Express,Default,4,2241,59223572
 JavaScript,Node.js,18,Express,Default,4,2375,72561459
 JavaScript,Node.js,20,Express,Default,4,3691,66584576
 Kotlin,Temurin,21,Ktor,Netty,2,422,175741337
-Python,Default,3.8,Flask,Default,2.3,529,29464985
+Python,Default,3.8,Flask,Development Server,2.3,507,29894901
+Python,Default,3.8,Flask,Gunicorn,2.3,498,89569361
 Rust,Default,1.74,Actix,Default,4,5362,14984151
 Rust,Default,1.74,Axum,Default,0.7,8670,11859394

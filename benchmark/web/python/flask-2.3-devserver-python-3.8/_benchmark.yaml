@@ -1,0 +1,8 @@
+language: Python
+mode: Default
+version:
+  - "3.8"
+framework: Flask
+framework_flavor: Development Server
+framework_version:
+  - "2.3"

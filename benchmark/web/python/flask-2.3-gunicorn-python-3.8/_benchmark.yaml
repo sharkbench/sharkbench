@@ -3,6 +3,6 @@ mode: Default
 version:
   - "3.8"
 framework: Flask
-framework_flavor: Default
+framework_flavor: Gunicorn
 framework_version:
   - "2.3"

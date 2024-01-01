@@ -14,7 +14,9 @@ async fn main() {
 
     let app = Router::new().merge(memory_router);
 
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", PORT)).await.unwrap();
-    println!("Server listening on port {}", PORT);
+    let address = format!("0.0.0.0:{}", PORT);
+    let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
+    println!("Started Rust server serving static files.");
+    println!("Listening on {}", address);
     axum::serve(listener, app).await.unwrap();
 }

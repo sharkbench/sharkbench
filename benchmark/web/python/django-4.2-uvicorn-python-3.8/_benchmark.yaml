@@ -1,0 +1,8 @@
+language: Python
+mode: Default
+version:
+  - "3.8"
+framework: Django
+framework_flavor: Uvicorn
+framework_version:
+  - "4.2"

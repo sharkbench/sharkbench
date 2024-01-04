@@ -15,6 +15,7 @@ pub struct HttpLoadResult {
     pub fail_count: i32,
     pub total_time: Duration,
     pub requests_per_second: i32,
+    pub latency_median: Duration,
 }
 
 type RequestValidatorFn = fn(&str, &HashMap<String, SerializedValue>) -> bool;
@@ -51,22 +52,27 @@ async fn run_load_test(
         let running_clone = running.clone();
 
         let handle = task::spawn(async move {
-            let start = std::time::Instant::now();
             let mut local_success_count = 0;
             let mut local_fail_count = 0;
+            let mut local_latency_us: Vec<u64> = Vec::new();
+            local_latency_us.reserve(100000);
 
             let client = reqwest::Client::builder().build().unwrap();
+            let start = std::time::Instant::now();
             'outer: loop {
                 for (uri, expected_response) in &requests_clone {
                     if !running_clone.load(Relaxed) {
                         break 'outer;
                     }
 
+                    let request_start = std::time::Instant::now();
                     match client.get(uri).send().await {
                         Ok(response) => {
                             let body = response.text().await.unwrap();
+                            let latency_us = request_start.elapsed().as_micros() as u64;
                             if request_validator(&body, &expected_response) {
                                 local_success_count += 1;
+                                local_latency_us.push(latency_us);
                             } else {
                                 local_fail_count += 1;
                                 println!("Unexpected response for {}: {}, expected: {:?}", uri, body, expected_response);
@@ -83,6 +89,7 @@ async fn run_load_test(
             ThreadResult {
                 success_count: local_success_count,
                 fail_count: local_fail_count,
+                latency_us: local_latency_us,
                 total_time: Duration::from_millis(start.elapsed().as_millis() as u64),
             }
         });
@@ -117,11 +124,20 @@ async fn run_load_test(
         fail_count,
         total_time,
         requests_per_second: (success_count as f64 / total_time.as_secs_f64()) as i32,
+        latency_median: {
+            let mut latency_us: Vec<u64> = handle_results.iter().fold(Vec::new(), |mut acc, x| {
+                acc.extend(x.latency_us.clone());
+                acc
+            });
+            latency_us.sort();
+            Duration::from_micros(latency_us[latency_us.len() / 2])
+        },
     }
 }
 
 struct ThreadResult {
     success_count: i32,
     fail_count: i32,
+    latency_us: Vec<u64>,
     total_time: Duration,
 }

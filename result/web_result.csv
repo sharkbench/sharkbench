@@ -26,10 +26,15 @@ JavaScript,Node.js,16,Express,Default,4,2823,9161,57556336
 JavaScript,Node.js,18,Express,Default,4,3023,8848,66521661
 JavaScript,Node.js,20,Express,Default,4,4658,6451,69866618
 Kotlin,Temurin,21,Ktor,Netty,2,643,20311,162634137
+Python,Default,3.10,FastAPI,Uvicorn,0.108,1007,21816,47039119
+Python,Default,3.11,FastAPI,Uvicorn,0.108,1200,18547,47280291
+Python,Default,3.12,FastAPI,Uvicorn,0.108,1250,17741,46902804
 Python,Default,3.8,Django,Development Server,4.2,716,34353,76000788
 Python,Default,3.8,Django,Gunicorn,4.2,389,14518,128765132
 Python,Default,3.8,Django,Uvicorn,4.2,254,111501,48622469
+Python,Default,3.8,FastAPI,Uvicorn,0.108,882,24215,46881832
 Python,Default,3.8,Flask,Development Server,2.3,506,43773,27996979
 Python,Default,3.8,Flask,Gunicorn,2.3,417,16517,89464504
+Python,Default,3.9,FastAPI,Uvicorn,0.108,911,23872,47175434
 Rust,Default,1.74,Actix,Default,4,7103,4358,8601468
 Rust,Default,1.74,Axum,Default,0.7,7108,4081,7507804

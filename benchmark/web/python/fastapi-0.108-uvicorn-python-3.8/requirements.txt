@@ -1,0 +1,3 @@
+fastapi==0.108.0
+httpx
+uvicorn

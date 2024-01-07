@@ -54,6 +54,7 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                 ("language", meta_data.language.as_str()),
                 ("mode", meta_data.mode.as_str()),
                 ("version", language_version.as_str()),
+                ("path", dir.replace("benchmark/computation/", "").as_str()),
             ]),
             &Vec::from([
                 ("time_median", result.time_median.to_string().as_str()),

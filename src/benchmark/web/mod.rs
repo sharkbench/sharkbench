@@ -88,6 +88,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     ("framework", meta_data.framework.as_str()),
                     ("framework_flavor", meta_data.framework_flavor.as_str()),
                     ("framework_version", framework_version.as_str()),
+                    ("path", dir.replace("benchmark/web/", "").as_str()),
                 ]),
                 &Vec::from([
                     ("requests_per_second_median", result.additional_data.get("requests_per_second").unwrap().to_string().as_str()),

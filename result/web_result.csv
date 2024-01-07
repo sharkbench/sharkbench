@@ -1,40 +1,40 @@
-language,mode,version,framework,framework_flavor,framework_version,requests_per_second_median,latency_median,memory_median
-Dart,AOT,2.14,HttpServer,Default,1,3762,7883,48003809
-Dart,AOT,2.14,Shelf,Default,1,3530,8390,49398415
-Dart,AOT,2.15,HttpServer,Default,1,3782,7827,50646220
-Dart,AOT,2.15,Shelf,Default,1,3553,8286,47636807
-Dart,AOT,2.16,HttpServer,Default,1,3762,7929,50478448
-Dart,AOT,2.16,Shelf,Default,1,3515,8370,49188700
-Dart,AOT,2.17,HttpServer,Default,1,3837,7806,51306823
-Dart,AOT,2.17,Shelf,Default,1,3582,8284,46567260
-Dart,AOT,2.18,HttpServer,Default,1,3873,7720,21642608
-Dart,AOT,2.18,Shelf,Default,1,3583,8174,21212692
-Dart,AOT,2.19,HttpServer,Default,1,3884,7553,20426260
-Dart,AOT,2.19,Shelf,Default,1,3626,8062,21695037
-Dart,AOT,3.0,HttpServer,Default,1,3937,7558,21621637
-Dart,AOT,3.0,Shelf,Default,1,3690,7949,22670213
-Dart,AOT,3.1,HttpServer,Default,1,3880,7516,21831352
-Dart,AOT,3.1,Shelf,Default,1,3686,7991,30052188
-Dart,AOT,3.2,HttpServer,Default,1,4112,7211,20719861
-Dart,AOT,3.2,Shelf,Default,1,3697,7934,31939624
-Go,Default,1.21,Gin,Default,1,1824,7799,26266828
-Java,Temurin,21,Spring Boot,MVC,3.2,4718,4220,179621068
-Java,Temurin,21,Spring Boot,WebFlux,3.2,5495,3375,191050547
-JavaScript,Node.js,12,Express,Default,4,3097,8503,57157877
-JavaScript,Node.js,14,Express,Default,4,3089,8678,58510540
-JavaScript,Node.js,16,Express,Default,4,2823,9161,57556336
-JavaScript,Node.js,18,Express,Default,4,3023,8848,66521661
-JavaScript,Node.js,20,Express,Default,4,4658,6451,69866618
-Kotlin,Temurin,21,Ktor,Netty,2,643,20311,162634137
-Python,Default,3.8,Django,Development Server,4.2,716,34353,76000788
-Python,Default,3.8,Django,Gunicorn,4.2,389,14518,128765132
-Python,Default,3.8,Django,Uvicorn,4.2,254,111501,48622469
-Python,Default,3.8,FastAPI,Uvicorn,0.108,882,24215,46881832
-Python,Default,3.8,Flask,Development Server,2.3,506,43773,27996979
-Python,Default,3.8,Flask,Gunicorn,2.3,417,16517,89464504
-Python,Default,3.9,FastAPI,Uvicorn,0.108,911,23872,47175434
-Python,Default,3.10,FastAPI,Uvicorn,0.108,1007,21816,47039119
-Python,Default,3.11,FastAPI,Uvicorn,0.108,1200,18547,47280291
-Python,Default,3.12,FastAPI,Uvicorn,0.108,1250,17741,46902804
-Rust,Default,1.74,Actix,Default,4,7103,4358,8601468
-Rust,Default,1.74,Axum,Default,0.7,7108,4081,7507804
+language,mode,version,framework,framework_flavor,framework_version,path,requests_per_second_median,latency_median,memory_median
+Dart,AOT,2.14,HttpServer,Default,1,dart/httpserver-aot-2.14,3762,7883,48003809
+Dart,AOT,2.14,Shelf,Default,1,dart/shelf-1-aot-2.14,3530,8390,49398415
+Dart,AOT,2.15,HttpServer,Default,1,dart/httpserver-aot-2.14,3782,7827,50646220
+Dart,AOT,2.15,Shelf,Default,1,dart/shelf-1-aot-2.14,3553,8286,47636807
+Dart,AOT,2.16,HttpServer,Default,1,dart/httpserver-aot-2.14,3762,7929,50478448
+Dart,AOT,2.16,Shelf,Default,1,dart/shelf-1-aot-2.14,3515,8370,49188700
+Dart,AOT,2.17,HttpServer,Default,1,dart/httpserver-aot-2.14,3837,7806,51306823
+Dart,AOT,2.17,Shelf,Default,1,dart/shelf-1-aot-2.14,3582,8284,46567260
+Dart,AOT,2.18,HttpServer,Default,1,dart/httpserver-aot-2.14,3873,7720,21642608
+Dart,AOT,2.18,Shelf,Default,1,dart/shelf-1-aot-2.14,3583,8174,21212692
+Dart,AOT,2.19,HttpServer,Default,1,dart/httpserver-aot-2.14,3884,7553,20426260
+Dart,AOT,2.19,Shelf,Default,1,dart/shelf-1-aot-2.14,3626,8062,21695037
+Dart,AOT,3.0,HttpServer,Default,1,dart/httpserver-aot-2.14,3937,7558,21621637
+Dart,AOT,3.0,Shelf,Default,1,dart/shelf-1-aot-2.14,3690,7949,22670213
+Dart,AOT,3.1,HttpServer,Default,1,dart/httpserver-aot-2.14,3880,7516,21831352
+Dart,AOT,3.1,Shelf,Default,1,dart/shelf-1-aot-2.14,3686,7991,30052188
+Dart,AOT,3.2,HttpServer,Default,1,dart/httpserver-aot-2.14,4112,7211,20719861
+Dart,AOT,3.2,Shelf,Default,1,dart/shelf-1-aot-2.14,3697,7934,31939624
+Go,Default,1.21,Gin,Default,1,go/gin-1-go-1.21,1824,7799,26266828
+Java,Temurin,21,Spring Boot,MVC,3.2,java/springboot-3.2-mvc-temurin-21,4718,4220,179621068
+Java,Temurin,21,Spring Boot,WebFlux,3.2,java/springboot-3.2-webflux-temurin-21,5495,3375,191050547
+JavaScript,Node.js,12,Express,Default,4,javascript/express-4-nodejs-12,3097,8503,57157877
+JavaScript,Node.js,14,Express,Default,4,javascript/express-4-nodejs-12,3089,8678,58510540
+JavaScript,Node.js,16,Express,Default,4,javascript/express-4-nodejs-12,2823,9161,57556336
+JavaScript,Node.js,18,Express,Default,4,javascript/express-4-nodejs-12,3023,8848,66521661
+JavaScript,Node.js,20,Express,Default,4,javascript/express-4-nodejs-12,4658,6451,69866618
+Kotlin,Temurin,21,Ktor,Netty,2,kotlin/ktor-2-netty-temurin-21,643,20311,162634137
+Python,Default,3.8,Django,Development Server,4.2,python/django-4.2-devserver-python-3.8,716,34353,76000788
+Python,Default,3.8,Django,Gunicorn,4.2,python/django-4.2-gunicorn-python-3.8,389,14518,128765132
+Python,Default,3.8,Django,Uvicorn,4.2,python/django-4.2-uvicorn-python-3.8,254,111501,48622469
+Python,Default,3.8,FastAPI,Uvicorn,0.108,python/fastapi-0.108-uvicorn-python-3.8,882,24215,46881832
+Python,Default,3.8,Flask,Development Server,2.3,python/flask-2.3-devserver-python-3.8,506,43773,27996979
+Python,Default,3.8,Flask,Gunicorn,2.3,python/flask-2.3-gunicorn-python-3.8,417,16517,89464504
+Python,Default,3.9,FastAPI,Uvicorn,0.108,python/fastapi-0.108-uvicorn-python-3.8,911,23872,47175434
+Python,Default,3.10,FastAPI,Uvicorn,0.108,python/fastapi-0.108-uvicorn-python-3.8,1007,21816,47039119
+Python,Default,3.11,FastAPI,Uvicorn,0.108,python/fastapi-0.108-uvicorn-python-3.8,1200,18547,47280291
+Python,Default,3.12,FastAPI,Uvicorn,0.108,python/fastapi-0.108-uvicorn-python-3.8,1250,17741,46902804
+Rust,Default,1.74,Actix,Default,4,rust/actix-4-rust-1.74,7103,4358,8601468
+Rust,Default,1.74,Axum,Default,0.7,rust/axum-0.7-rust-1.74,7108,4081,7507804

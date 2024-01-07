@@ -16,6 +16,7 @@ mod utils {
     pub mod meta_data_parser;
     pub mod result_writer;
     pub mod serialization;
+    pub mod version;
 }
 
 const CONTAINER_NAME: &str = "benchmark";

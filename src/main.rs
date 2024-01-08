@@ -62,11 +62,11 @@ fn main() {
 
     if let Some(dir) = args.only {
         if args.computing {
-            let full_dir = format!("benchmark/computing{}", dir);
+            let full_dir = format!("benchmark/computing/{}", dir);
             println!(" -> Running only {}", full_dir);
             benchmark_computation(full_dir.as_str(), &mut reader);
         } else if args.web {
-            let full_dir = format!("benchmark/web{}", dir);
+            let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
             run_docker_compose(WEB_DATASOURCE_DIR, None, || {
                 benchmark_web(full_dir.as_str(), &mut reader);

@@ -10,6 +10,8 @@ use crate::utils::meta_data_parser::{WebBenchmarkMetaData};
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::serialization::SerializedValue;
 
+const DEFAULT_CONCURRENCY: usize = 32;
+
 pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
     println!(" -> Benchmarking {}", dir);
 
@@ -33,6 +35,14 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
         (url, expected_response)
     }).collect::<Vec<(String, HashMap<String, SerializedValue>)>>()].concat();
 
+    let concurrency = match meta_data.concurrency {
+        Some(concurrency) => {
+            println!(" -> Using concurrency = {} instead of default = {}", concurrency, DEFAULT_CONCURRENCY);
+            concurrency
+        },
+        None => DEFAULT_CONCURRENCY,
+    };
+
     for language_version in &meta_data.language_version {
         for framework_version in &meta_data.framework_version {
             let docker_file_manipulation: Option<DockerFileManipulation> = match (meta_data.language_version.len(), meta_data.framework_version.len()) {
@@ -54,7 +64,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                 5,
                 || {
                     let result = run_http_load_test(
-                        32,
+                        concurrency,
                         Duration::from_secs(15),
                         &requests,
                         response_validator,
@@ -87,6 +97,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     ("framework", meta_data.framework.as_str()),
                     ("framework_flavor", meta_data.framework_flavor.as_str()),
                     ("framework_version", framework_version.as_str()),
+                    ("concurrency", concurrency.to_string().as_str()),
                     ("path", dir.replace("benchmark/web/", "").as_str()),
                 ]),
                 &Vec::from([

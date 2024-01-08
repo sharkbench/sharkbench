@@ -31,6 +31,8 @@ pub struct WebBenchmarkMetaData {
 
     #[serde(default="default_as_false")]
     pub extended_warmup: bool,
+
+    pub concurrency: Option<usize>,
 }
 
 fn default_as_false() -> bool {

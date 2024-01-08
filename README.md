@@ -2,30 +2,28 @@
 
 Benchmarking programming languages and frameworks.
 
-## Computation Benchmark
+Checkout the results at [sharkbench.dev](https://sharkbench.dev).
 
-Here, we are testing how fast a programming language (or its implementation)
-can approximate the value of PI using the [Leibniz formula](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80).
+## Benchmark Types
 
-This benchmark tests how fast a language can perform
-mathematical computations without any I/O or memory allocation.
+### ➤ Computation Benchmark
 
-## Memory Benchmark
+This benchmark tests how fast a programming language can perform mathematical computations without any I/O or memory allocation.
+We are using the [Leibniz formula](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80) to approximate the value of PI.
 
-Here, we are testing how fast a programming language (or its implementation)
-can solve memory heavy tasks.
-(TODO: Find a good benchmark for this.)
+### ➤ Memory Benchmark
 
-This benchmark tests how efficient a language can perform
-memory management (i.e., memory allocation, memory deallocation, garbage collection)
+This benchmark tests how efficiently a programming language can perform memory management.
+We are using the [A* algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm), a popular pathfinding algorithm, to find the shortest path between two points.
 
-## Web Framework Benchmark
+### ➤ Web Framework Benchmark
 
-Here, we are testing how fast a web framework can serve a simple JSON response.
-It needs to parse the request, wait for an I/O operation, and serialize the response.
+This benchmark tests how fast a framework can perform concurrent HTTP requests, I/O operations, and JSON de/serialization.
 
-This benchmark tests how fast a web framework can perform
-I/O and JSON serialization / deserialization.
+Using [Docker](https://www.docker.com/), we are limiting the CPU usage to 1 core equivalent to not put single-threaded frameworks at a disadvantage.
+Multithreaded frameworks are still able to use multiple cores but at a lower usage.
+
+In production, single-threaded frameworks can be scaled up horizontally to use all available cores.
 
 Request:
 

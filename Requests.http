@@ -1,11 +1,11 @@
-###
+### Fetch general element info
 GET http://localhost:3000/api/v1/periodic-table/element?symbol=He
 Accept: application/json
 
-###
+### Fetch shell info of an element
 GET http://localhost:3000/api/v1/periodic-table/shells?symbol=He
 Accept: application/json
 
-###
+### Fetch all elements from the data source
 GET http://localhost:3001/data.json
 Accept: application/json

@@ -1,5 +1,6 @@
 use std::{fs, io};
 use std::cmp::Ordering;
+use std::path::Path;
 use crate::utils::version::Version;
 
 /// Writes the given result to the given `file_path`.
@@ -80,6 +81,12 @@ fn write_lines_to_file(file_path: &str, lines: &Vec<String>, header: &String) ->
     for line in lines {
         output.push_str(&line);
         output.push_str("\n");
+    }
+
+    // create directory if it does not exist
+    let parent_dir = Path::new(file_path).parent().unwrap();
+    if !parent_dir.exists() {
+        fs::create_dir_all(parent_dir).expect(format!("Failed to create directory {}", parent_dir.display()).as_str());
     }
 
     fs::write(file_path, output.as_bytes()).expect(format!("Failed to write {}", file_path).as_str());

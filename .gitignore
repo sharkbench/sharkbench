@@ -2,6 +2,7 @@
 
 .dockerignore
 docker-compose.yml
+/result/
 
 # Rust
 /target

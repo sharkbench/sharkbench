@@ -11,11 +11,12 @@ import java.util.Map;
 @RestController
 class MyController {
 
-    private final WebClient webClient = WebClient.create("http://web-data-source/data.json");
+    private final WebClient webClientElement = WebClient.create("http://web-data-source/element.json");
+    private final WebClient webClientShells = WebClient.create("http://web-data-source/shells.json");
 
     @GetMapping("/api/v1/periodic-table/element")
     public Mono<Map<String, Object>> getElement(@RequestParam String symbol) {
-        return webClient.get()
+        return webClientElement.get()
                 .retrieve()
                 .bodyToMono(Map.class)
                 .map(elements -> {
@@ -30,12 +31,11 @@ class MyController {
 
     @GetMapping("/api/v1/periodic-table/shells")
     public Mono<Map<String, Object>> getShells(@RequestParam String symbol) {
-        return webClient.get()
+        return webClientShells.get()
                 .retrieve()
                 .bodyToMono(Map.class)
                 .map(elements -> {
-                    Map<String, Object> elementData = (Map<String, Object>) elements.get(symbol);
-                    return Map.of("shells", elementData.get("shells"));
+                    return Map.of("shells", elements.get(symbol));
                 });
     }
 }

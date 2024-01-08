@@ -12,12 +12,11 @@ import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
     val client = HttpClient(CIO)
-    val dataSourceUrl = "http://web-data-source/data.json"
 
     routing {
         get("/api/v1/periodic-table/element") {
             val symbol = call.request.queryParameters["symbol"]!!
-            val elementsJson = client.get(dataSourceUrl).bodyAsText()
+            val elementsJson = client.get("http://web-data-source/element.json").bodyAsText()
             val elements: Map<String, DataSourceElement> = Json.decodeFromString(elementsJson)
             val elementData = elements[symbol]!!
 
@@ -30,12 +29,11 @@ fun Application.configureRouting() {
 
         get("/api/v1/periodic-table/shells") {
             val symbol = call.request.queryParameters["symbol"]!!
-            val elementsJson = client.get(dataSourceUrl).bodyAsText()
-            val elements: Map<String, DataSourceElement> = Json.decodeFromString(elementsJson)
-            val elementData = elements[symbol]!!
+            val elementsJson = client.get("http://web-data-source/shells.json").bodyAsText()
+            val elements: Map<String, List<Int>> = Json.decodeFromString(elementsJson)
 
             call.respond(ShellsResponse(
-                shells = elementData.shells
+                shells = elements[symbol]!!
             ))
         }
     }
@@ -46,7 +44,6 @@ data class DataSourceElement(
     val name: String,
     val number: Int,
     val group: Int,
-    val shells: List<Int>
 )
 
 @Serializable

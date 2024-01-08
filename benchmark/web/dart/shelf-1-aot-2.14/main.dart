@@ -8,7 +8,8 @@ import 'package:shelf_router/shelf_router.dart';
 const port = 3000;
 
 void main() async {
-  final url = Uri.http('web-data-source', '/data.json');
+  final elementUrl = Uri.http('web-data-source', '/element.json');
+  final shellsUrl = Uri.http('web-data-source', '/shells.json');
   final httpClient = HttpClient();
 
   final app = Router();
@@ -16,7 +17,7 @@ void main() async {
   app.get('/api/v1/periodic-table/element', (Request request) async {
     final symbol = request.requestedUri.queryParameters['symbol'] as String;
 
-    final tmpReq = await httpClient.getUrl(url);
+    final tmpReq = await httpClient.getUrl(elementUrl);
     final tmpRes = await tmpReq.close();
     final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
     final entry = json[symbol] as Map<String, dynamic>;
@@ -31,12 +32,12 @@ void main() async {
   app.get('/api/v1/periodic-table/shells', (Request request) async {
     final symbol = request.requestedUri.queryParameters['symbol'] as String;
 
-    final tmpReq = await httpClient.getUrl(url);
+    final tmpReq = await httpClient.getUrl(shellsUrl);
     final tmpRes = await tmpReq.close();
     final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
 
     return Response.ok(jsonEncode({
-      'shells': json[symbol]['shells'],
+      'shells': json[symbol],
     }));
   });
 

@@ -1,63 +1,59 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"net/http"
+    "github.com/gin-gonic/gin"
+    "net/http"
+    "encoding/json"
+    "io/ioutil"
 )
 
 var (
 	client = &http.Client{}
 )
 
-type ElementData map[string]struct {
-	Name    string   `json:"name"`
-	Number  int      `json:"number"`
-	Group   int      `json:"group"`
-	Shells  []int    `json:"shells"`
-}
-
-func fetchData(url string) ElementData {
-	response, _ := client.Get(url)
-	defer response.Body.Close()
-
-	body, _ := ioutil.ReadAll(response.Body)
-
-	var data ElementData
-	json.Unmarshal(body, &data)
-	return data
-}
-
-func getElements(c *gin.Context) {
-	symbol := c.Query("symbol")
-	data := fetchData("http://web-data-source/data.json")
-
-	element := data[symbol]
-
-	c.JSON(http.StatusOK, gin.H{
-		"name":   element.Name,
-		"number": element.Number,
-		"group":  element.Group,
-	})
-}
-
-func getShells(c *gin.Context) {
-	symbol := c.Query("symbol")
-	data := fetchData("http://web-data-source/data.json")
-
-	element := data[symbol]
-
-	c.JSON(http.StatusOK, gin.H{"shells": element.Shells})
-}
-
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+    gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
 
-	router.GET("/api/v1/periodic-table/element", getElements)
-	router.GET("/api/v1/periodic-table/shells", getShells)
+    router.GET("/api/v1/periodic-table/element", getElement)
+    router.GET("/api/v1/periodic-table/shells", getShells)
 
-	router.Run(":3000")
+    router.Run(":3000")
+}
+
+func getElement(c *gin.Context) {
+    symbol := c.Query("symbol")
+
+    resp, _ := client.Get("http://web-data-source/element.json")
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+
+    var json_data map[string]interface{}
+    json.Unmarshal(body, &json_data)
+
+    entry, _ := json_data[symbol].(map[string]interface{})
+
+    c.JSON(http.StatusOK, gin.H{
+        "name":   entry["name"],
+        "number": entry["number"],
+        "group":  entry["group"],
+    })
+}
+
+func getShells(c *gin.Context) {
+    symbol := c.Query("symbol")
+
+    resp, _ := client.Get("http://web-data-source/shells.json")
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+
+    var json_data map[string]interface{}
+    json.Unmarshal(body, &json_data)
+
+    shells, _ := json_data[symbol].([]interface{})
+
+    c.JSON(http.StatusOK, gin.H{"shells": shells})
 }

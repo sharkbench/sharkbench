@@ -22,7 +22,7 @@ function fetchData(url, callback) {
 
 app.get('/api/v1/periodic-table/element', (req, res) => {
     const symbol = req.query.symbol;
-    fetchData('http://web-data-source/data.json', (err, json) => {
+    fetchData('http://web-data-source/element.json', (err, json) => {
         const entry = json[symbol];
         res.json({
             name: entry.name,
@@ -34,9 +34,9 @@ app.get('/api/v1/periodic-table/element', (req, res) => {
 
 app.get('/api/v1/periodic-table/shells', (req, res) => {
     const symbol = req.query.symbol;
-    fetchData('http://web-data-source/data.json', (err, json) => {
+    fetchData('http://web-data-source/shells.json', (err, json) => {
         res.json({
-            shells: json[symbol].shells
+            shells: json[symbol]
         });
     });
 });

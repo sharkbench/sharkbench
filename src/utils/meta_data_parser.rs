@@ -37,11 +37,6 @@ fn default_as_false() -> bool {
     false
 }
 
-enum BenchmarkType {
-    Computation(BenchmarkMetaData),
-    Web(WebBenchmarkMetaData),
-}
-
 impl BenchmarkMetaData {
     pub fn print_info(&self) {
         println!(" - Language: {}", self.language);

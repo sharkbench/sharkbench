@@ -1,6 +1,5 @@
 use std::time::Duration;
 use std::{fs, thread};
-use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use indexmap::IndexMap;
 use crate::utils::docker_runner::run_docker_compose;
@@ -47,7 +46,6 @@ pub struct IterationResult {
 #[derive(Clone)]
 pub enum AdditionalData {
     Int(i32),
-    Float(f64),
 }
 
 impl Debug for AdditionalData {
@@ -65,7 +63,7 @@ impl Display for AdditionalData {
 fn format_additional_data(data: &AdditionalData, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", match data {
         AdditionalData::Int(value) => value.to_string(),
-        AdditionalData::Float(value) => value.to_string(),
+        // AdditionalData::Float(value) => value.to_string(),
     })
 }
 
@@ -193,8 +191,8 @@ pub fn run_benchmark<F>(
             values.sort_by(|a, b| {
                 match (a, b) {
                     (AdditionalData::Int(a), AdditionalData::Int(b)) => a.cmp(b),
-                    (AdditionalData::Float(a), AdditionalData::Float(b)) => a.partial_cmp(b).unwrap_or(Ordering::Equal),
-                    _ => panic!("Invalid type"),
+                    // (AdditionalData::Float(a), AdditionalData::Float(b)) => a.partial_cmp(b).unwrap_or(Ordering::Equal),
+                    // _ => panic!("Invalid type"),
                 }
             });
             map.insert(key, values[values.len() / 2].clone());

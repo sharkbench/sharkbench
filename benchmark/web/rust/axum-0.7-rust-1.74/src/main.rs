@@ -17,10 +17,6 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn fetch_data(url: &str, client: Arc<Client>) -> reqwest::Result<HashMap<String, DataSourceElement>> {
-    return client.get(url).send().await?.json::<HashMap<String, DataSourceElement>>().await;
-}
-
 #[derive(Deserialize)]
 struct SymbolQuery {
     symbol: String,
@@ -30,7 +26,7 @@ async fn get_element(
     Extension(client): Extension<Arc<Client>>,
     query: Query<SymbolQuery>,
 ) -> Json<ElementResponse> {
-    let json: HashMap<String, DataSourceElement> = fetch_data("http://web-data-source/data.json", client).await.unwrap();
+    let json: HashMap<String, DataSourceElement> = client.get("http://web-data-source/element.json").send().await.unwrap().json().await.unwrap();
     let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
     Json(ElementResponse {
         name: entry.name.clone(),
@@ -43,29 +39,27 @@ async fn get_shells(
     Extension(client): Extension<Arc<Client>>,
     query: Query<SymbolQuery>,
 ) -> Json<ShellsResponse> {
-    let json: HashMap<String, DataSourceElement> = fetch_data("http://web-data-source/data.json", client).await.unwrap();
-    let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
+    let json: HashMap<String, Vec<u8>> = client.get("http://web-data-source/shells.json").send().await.unwrap().json().await.unwrap();
     Json(ShellsResponse {
-        shells: entry.shells.clone(),
+        shells: json.get(&query.symbol).unwrap().clone(),
     })
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Serialize)]
 struct ElementResponse {
     name: String,
     number: u8,
     group: u8,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Serialize)]
 struct ShellsResponse {
     shells: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 struct DataSourceElement {
     name: String,
     number: u8,
     group: u8,
-    shells: Vec<u8>,
 }

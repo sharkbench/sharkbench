@@ -4,6 +4,7 @@ use tokio;
 use std::time::Duration;
 use tokio::{task, time};
 use rand::seq::SliceRandom;
+use reqwest::StatusCode;
 use tokio::task::JoinHandle;
 use crate::utils::percentile;
 use crate::utils::serialization::SerializedValue;
@@ -65,9 +66,10 @@ async fn run_load_test(
                     let request_start = std::time::Instant::now();
                     match client.get(uri).send().await {
                         Ok(response) => {
+                            let status = &response.status();
                             let body = response.text().await.unwrap();
                             let latency_us = request_start.elapsed().as_micros() as u64;
-                            if request_validator(&body, &expected_response) {
+                            if *status == StatusCode::OK && request_validator(&body, &expected_response) {
                                 local_success_count += 1;
                                 local_latency_us.push(latency_us);
                             } else {

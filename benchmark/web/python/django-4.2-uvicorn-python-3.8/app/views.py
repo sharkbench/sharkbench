@@ -6,7 +6,7 @@ async_client = httpx.AsyncClient()
 
 async def get_element(request):
     symbol = request.GET.get('symbol')
-    response = await async_client.get('http://web-data-source/data.json')
+    response = await async_client.get('http://web-data-source/element.json')
     json_data = response.json()
     entry = json_data[symbol]
 
@@ -19,9 +19,9 @@ async def get_element(request):
 
 async def get_shells(request):
     symbol = request.GET.get('symbol')
-    response = await async_client.get('http://web-data-source/data.json')
+    response = await async_client.get('http://web-data-source/shells.json')
     json_data = response.json()
 
     return JsonResponse({
-        'shells': json_data[symbol]['shells'],
+        'shells': json_data[symbol],
     })

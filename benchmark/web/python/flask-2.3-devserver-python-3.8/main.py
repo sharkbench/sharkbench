@@ -10,14 +10,11 @@ log.disabled = True
 
 session = requests.Session()
 
-def fetchData(url):
-    response = session.get(url)
-    return response.json()
 
 @app.route('/api/v1/periodic-table/element', methods=['GET'])
 def get_element():
     symbol = request.args.get('symbol')
-    json_data = fetchData('http://web-data-source/data.json')
+    json_data = session.get('http://web-data-source/element.json').json()
     entry = json_data[symbol]
 
     return {
@@ -26,14 +23,16 @@ def get_element():
         'group': entry['group'],
     }
 
+
 @app.route('/api/v1/periodic-table/shells', methods=['GET'])
 def get_shells():
     symbol = request.args.get('symbol')
-    json_data = fetchData('http://web-data-source/data.json')
+    json_data = session.get('http://web-data-source/shells.json').json()
 
     return {
-        'shells': json_data[symbol]['shells'],
+        'shells': json_data[symbol],
     }
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=False)

@@ -10,9 +10,6 @@ use crate::utils::meta_data_parser::{WebBenchmarkMetaData};
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::serialization::SerializedValue;
 
-const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
-const EXPECTED_RESPONSE: &str = "3.1415926525880504";
-
 pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
     println!(" -> Benchmarking {}", dir);
 
@@ -68,10 +65,10 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     additional_data.insert("rps_p99".to_string(), AdditionalData::Int(result.rps_p99));
                     additional_data.insert("latency_median".to_string(), AdditionalData::Int(result.latency_median.as_micros() as i32));
                     additional_data.insert("latency_p99".to_string(), AdditionalData::Int(result.latency_p99.as_micros() as i32));
+                    additional_data.insert("errors".to_string(), AdditionalData::Int(result.fail_count));
 
                     let mut debugging_data: IndexMap<String, AdditionalData> = IndexMap::new();
                     debugging_data.insert("success".to_string(), AdditionalData::Int(result.success_count));
-                    debugging_data.insert("fail".to_string(), AdditionalData::Int(result.fail_count));
                     debugging_data.insert("time".to_string(), AdditionalData::Int(result.total_time.as_millis() as i32));
 
                     Ok(IterationResult {
@@ -99,6 +96,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     ("latency_p99", result.additional_data.get("latency_p99").unwrap().to_string().as_str()),
                     ("memory_median", result.memory_median.to_string().as_str()),
                     ("memory_p99", result.memory_p99.to_string().as_str()),
+                    ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
                 ]),
             ).expect("Failed to write result to file");
         }
@@ -128,7 +126,12 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
 }
 
 fn response_validator(body: &str, expected_response: &HashMap<String, SerializedValue>) -> bool {
-    let json: serde_json::Value = serde_json::from_str(body).unwrap();
+    let json: serde_json::Value = {
+        match serde_json::from_str::<serde_json::Value>(body) {
+            Ok(json) => json,
+            Err(_) => return false,
+        }
+    };
 
     for (key, value) in expected_response {
         let actual_value = json.get(key).unwrap();

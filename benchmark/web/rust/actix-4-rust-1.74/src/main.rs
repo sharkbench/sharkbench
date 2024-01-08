@@ -1,6 +1,5 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use serde::Deserialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use reqwest::Client;
 
@@ -9,22 +8,16 @@ struct SymbolQuery {
     symbol: String,
 }
 
-async fn fetch_data(url: &str, client: web::Data<Client>) -> Result<Value, reqwest::Error> {
-    client.get(url).send().await?.json::<Value>().await
-}
-
 async fn get_element(
     client: web::Data<Client>,
     query: web::Query<SymbolQuery>,
 ) -> impl Responder {
-    let json = fetch_data("http://web-data-source/data.json", client).await.unwrap();
-    let entry = json.get(&query.symbol).unwrap();
-    HttpResponse::Ok().json({
-        let mut response = HashMap::new();
-        response.insert("name", entry["name"].clone());
-        response.insert("number", entry["number"].clone());
-        response.insert("group", entry["group"].clone());
-        response
+    let json: HashMap<String, DataSourceElement> = client.get("http://web-data-source/element.json").send().await.unwrap().json().await.unwrap();
+    let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
+    HttpResponse::Ok().json(ElementResponse {
+        name: entry.name.clone(),
+        number: entry.number,
+        group: entry.group,
     })
 }
 
@@ -32,12 +25,9 @@ async fn get_shells(
     client: web::Data<Client>,
     query: web::Query<SymbolQuery>,
 ) -> impl Responder {
-    let json = fetch_data("http://web-data-source/data.json", client).await.unwrap();
-    let entry = json.get(&query.symbol).unwrap();
-    HttpResponse::Ok().json({
-        let mut response = HashMap::new();
-        response.insert("shells", entry["shells"].clone());
-        response
+    let json: HashMap<String, Vec<u8>> = client.get("http://web-data-source/shells.json").send().await.unwrap().json().await.unwrap();
+    HttpResponse::Ok().json(ShellsResponse {
+        shells: json.get(&query.symbol).unwrap().clone(),
     })
 }
 
@@ -53,4 +43,23 @@ async fn main() -> std::io::Result<()> {
         .bind("0.0.0.0:3000")?
         .run()
         .await
+}
+
+#[derive(Serialize)]
+struct ElementResponse {
+    name: String,
+    number: u8,
+    group: u8,
+}
+
+#[derive(Serialize)]
+struct ShellsResponse {
+    shells: Vec<u8>,
+}
+
+#[derive(Deserialize, Debug)]
+struct DataSourceElement {
+    name: String,
+    number: u8,
+    group: u8,
 }

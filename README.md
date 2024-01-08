@@ -64,6 +64,30 @@ To run all benchmarks, run:
 cargo run --release
 ```
 
+### ➤ Specific benchmark type
+
+To run only one benchmark type, add `--web`, `--computation`, or `--memory`:
+
+```bash
+cargo run --release -- --web
+```
+
+### ➤ Specific benchmark programming language
+
+Limit the programming languages to run by adding `--lang <language>`:
+
+```bash
+cargo run --release -- --web --lang java
+```
+
+### ➤ Specific benchmark
+
+Only run a specific benchmark by adding `--only <benchmark>`:
+
+```bash
+cargo run --release -- --web --only javascript/express-4-nodejs-12
+```
+
 ## Contributing
 
 ### ➤ File structure
@@ -100,4 +124,5 @@ framework_version:
 
 # optional
 extended_warmup: true # set to true if the benchmark needs a longer warmup
+concurrency: 4 # override the default concurrency
 ```

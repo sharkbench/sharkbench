@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use indexmap::IndexMap;
 use crate::utils::docker_runner::run_docker_compose;
+use crate::utils::percentile;
 
 const COMPOSE_FILE: &str = r#"
 version: "3"
@@ -34,6 +35,7 @@ pub struct DockerFileManipulation {
 pub struct BenchmarkResult {
     pub time_median: i64,
     pub memory_median: i64,
+    pub memory_p99: i64,
     pub additional_data: IndexMap<String, AdditionalData>,
 }
 
@@ -88,7 +90,8 @@ pub fn run_benchmark<F>(
     };
 
     let mut execution_times: Vec<i64> = Vec::new();
-    let mut memory_usages: Vec<i64> = Vec::new();
+    let mut memory_median: Vec<i64> = Vec::new();
+    let mut memory_p99: Vec<i64> = Vec::new();
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
     run_docker_compose(
@@ -125,14 +128,14 @@ pub fn run_benchmark<F>(
                 stats_reader.stop();
 
                 let elapsed = start.elapsed().as_millis() as i64;
-                let memory_usage = stats_reader.median_memory();
+                let memory_usage = stats_reader.get_memory_usage();
 
                 if warmup_counter < warmup_rounds {
                     warmup_counter += 1;
                     println!(
                         " -> [Warmup]: t = {} ms, RAM = {}, {:?}, {:?}",
                         elapsed,
-                        memory_usage.bytes_to_string(),
+                        memory_usage.median.bytes_to_string(),
                         result.additional_data,
                         result.debugging_data,
                     );
@@ -143,12 +146,13 @@ pub fn run_benchmark<F>(
                     " -> [Run #{}]: t = {} ms, RAM = {}, {:?}, {:?}",
                     execution_times.len() + 1,
                     elapsed,
-                    memory_usage.bytes_to_string(),
+                    memory_usage.median.bytes_to_string(),
                     result.additional_data,
                     result.debugging_data,
                 );
                 execution_times.push(elapsed);
-                memory_usages.push(memory_usage);
+                memory_median.push(memory_usage.median);
+                memory_p99.push(memory_usage.p99);
                 additional_data.push(result.additional_data);
 
                 // Wait for 2 seconds to let the container cool down
@@ -164,9 +168,7 @@ pub fn run_benchmark<F>(
 
     // Calculate medians
     execution_times.sort();
-    memory_usages.sort();
     let time_median = execution_times[execution_times.len() / 2];
-    let memory_median = memory_usages[memory_usages.len() / 2];
     let additional_data_median = {
         // find total unique keys
         let mut keys: Vec<String> = Vec::new();
@@ -201,9 +203,12 @@ pub fn run_benchmark<F>(
         map
     };
 
+    memory_median.sort();
+    memory_p99.sort();
     return BenchmarkResult {
         time_median,
-        memory_median,
+        memory_median: percentile::p50(&memory_median),
+        memory_p99: percentile::p99(&memory_p99),
         additional_data: additional_data_median,
     };
 }

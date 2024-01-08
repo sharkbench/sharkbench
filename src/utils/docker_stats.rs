@@ -3,6 +3,7 @@ use std::io::{BufReader, BufRead};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{self, Receiver};
 use regex::Regex;
+use crate::utils::percentile;
 
 // The start of a stats line is marked by the following bytes.
 // We ignore them because they are not valid JSON.
@@ -13,6 +14,11 @@ pub struct DockerStatsReader {
     is_tracking: Arc<Mutex<bool>>,
     process: Option<Child>,
     ram_usage: Arc<Mutex<Vec<i64>>>,
+}
+
+pub struct MemoryUsage {
+    pub median: i64,
+    pub p99: i64,
 }
 
 impl DockerStatsReader {
@@ -96,13 +102,19 @@ impl DockerStatsReader {
         }
     }
 
-    pub fn median_memory(&self) -> i64 {
+    pub fn get_memory_usage(&self) -> MemoryUsage {
         let mut ram_usage = self.ram_usage.lock().unwrap();
         ram_usage.sort();
         if ram_usage.len() == 0 {
-            return 0;
+            return MemoryUsage {
+                median: 0,
+                p99: 0,
+            };
         }
-        ram_usage[ram_usage.len() / 2]
+        MemoryUsage {
+            median: percentile::p50(&ram_usage),
+            p99: percentile::p99(&ram_usage),
+        }
     }
 }
 

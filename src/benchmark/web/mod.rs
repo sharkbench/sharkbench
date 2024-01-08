@@ -64,8 +64,10 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     );
 
                     let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
-                    additional_data.insert("requests_per_second".to_string(), AdditionalData::Int(result.requests_per_second));
+                    additional_data.insert("rps_median".to_string(), AdditionalData::Int(result.rps_median));
+                    additional_data.insert("rps_p99".to_string(), AdditionalData::Int(result.rps_p99));
                     additional_data.insert("latency_median".to_string(), AdditionalData::Int(result.latency_median.as_micros() as i32));
+                    additional_data.insert("latency_p99".to_string(), AdditionalData::Int(result.latency_p99.as_micros() as i32));
 
                     let mut debugging_data: IndexMap<String, AdditionalData> = IndexMap::new();
                     debugging_data.insert("success".to_string(), AdditionalData::Int(result.success_count));
@@ -91,9 +93,12 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                     ("path", dir.replace("benchmark/web/", "").as_str()),
                 ]),
                 &Vec::from([
-                    ("requests_per_second_median", result.additional_data.get("requests_per_second").unwrap().to_string().as_str()),
+                    ("rps_median", result.additional_data.get("rps_median").unwrap().to_string().as_str()),
+                    ("rps_p99", result.additional_data.get("rps_p99").unwrap().to_string().as_str()),
                     ("latency_median", result.additional_data.get("latency_median").unwrap().to_string().as_str()),
+                    ("latency_p99", result.additional_data.get("latency_p99").unwrap().to_string().as_str()),
                     ("memory_median", result.memory_median.to_string().as_str()),
+                    ("memory_p99", result.memory_p99.to_string().as_str()),
                 ]),
             ).expect("Failed to write result to file");
         }

@@ -1,0 +1,8 @@
+language: Dart
+mode: AOT
+version:
+  - "3.2"
+framework: Dart Frog
+framework_flavor: Default
+framework_version:
+  - "1"

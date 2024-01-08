@@ -26,6 +26,7 @@ JavaScript,Node.js,16,Express,Default,4,32,javascript/express-4-nodejs-12,3947,3
 JavaScript,Node.js,18,Express,Default,4,32,javascript/express-4-nodejs-12,4039,3959,6427,29179,71355596,84431339,0
 JavaScript,Node.js,20,Express,Default,4,32,javascript/express-4-nodejs-12,7151,6712,4298,9666,68136468,79073116,0
 Kotlin,Temurin,21,Ktor,Netty,2,4,kotlin/ktor-2-netty-temurin-21,334,298,2898,72245,153930956,157076684,0
+PHP,Default,8.3,Symfony,Default,6.4,2,php/symfony-6.4-php-8.3,70,67,15064,68593,33072087,33533460,0
 Python,Default,3.8,Django,Development Server,4.2,32,python/django-4.2-devserver-python-3.8,779,724,30601,107509,83634421,84567654,0
 Python,Default,3.8,Django,Gunicorn,4.2,32,python/django-4.2-gunicorn-python-3.8,349,123,14415,332728,147954073,148897792,0
 Python,Default,3.8,Django,Uvicorn,4.2,32,python/django-4.2-uvicorn-python-3.8,270,265,107429,256233,55595499,56014929,0

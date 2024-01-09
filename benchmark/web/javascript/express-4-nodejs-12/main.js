@@ -4,6 +4,9 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+// fetch() is not available prior Node.js 18, and it is slower than http.get()
+// TODO: Use fetch() as soon as the following issue is resolved:
+// https://github.com/nodejs/undici/issues/1203
 function fetchData(url, callback) {
     http.get(url, (res) => {
         let data = '';

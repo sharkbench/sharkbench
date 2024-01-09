@@ -26,6 +26,7 @@ pub fn run_http_load_test(
     duration: Duration,
     requests: &Vec<(String, HashMap<String, SerializedValue>)>,
     request_validator: RequestValidatorFn,
+    verbose: bool,
 ) -> HttpLoadResult {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let result = rt.block_on(run_load_test(
@@ -33,6 +34,7 @@ pub fn run_http_load_test(
         duration,
         requests,
         request_validator,
+        verbose,
     ));
     result
 }
@@ -42,6 +44,7 @@ async fn run_load_test(
     duration: Duration,
     requests: &Vec<(String, HashMap<String, SerializedValue>)>,
     request_validator: RequestValidatorFn,
+    verbose: bool,
 ) -> HttpLoadResult {
     let mut handles: Vec<JoinHandle<ThreadResult>> = Vec::new();
 
@@ -74,11 +77,15 @@ async fn run_load_test(
                                 local_latency_us.push(latency_us);
                             } else {
                                 local_fail_count += 1;
-                                println!("Unexpected response for {}: {}, expected: {:?}", uri, body, expected_response);
+                                if verbose {
+                                    println!("Unexpected response for {}: {}, expected: {:?}", uri, body, expected_response);
+                                }
                             }
                         }
                         Err(e) => {
-                            println!("Request to {} failed: {}", uri, e);
+                            if verbose {
+                                println!("Request to {} failed: {}", uri, e);
+                            }
                             local_fail_count += 1;
                         },
                     }

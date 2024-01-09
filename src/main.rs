@@ -49,6 +49,10 @@ struct Args {
     /// Must be used with `--web` or `--computing`
     #[arg(long, value_name = "DIR")]
     only: Option<String>,
+
+    /// Print more information
+    #[arg(short, long)]
+    verbose: bool,
 }
 
 const CONTAINER_NAME: &str = "benchmark";
@@ -69,7 +73,7 @@ fn main() {
             let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
             run_docker_compose(WEB_DATASOURCE_DIR, None, || {
-                benchmark_web(full_dir.as_str(), &mut reader);
+                benchmark_web(full_dir.as_str(), &mut reader, args.verbose);
             });
         } else {
             panic!("No benchmark selected");
@@ -87,7 +91,11 @@ fn main() {
             let full_dir = format!("benchmark/web/{}", language);
             println!(" -> Running only {}", full_dir);
             run_docker_compose(WEB_DATASOURCE_DIR, None, || {
-                run_one_language(full_dir.as_str(), &mut reader, benchmark_web);
+                run_one_language(
+                    full_dir.as_str(),
+                    &mut reader,
+                    |dir: &str, reader: &mut DockerStatsReader| benchmark_web(dir, reader, args.verbose),
+                );
             });
         } else {
             panic!("No benchmark selected");
@@ -110,7 +118,11 @@ fn main() {
     } else if args.web {
         println!(" -> Running web benchmarks");
         run_docker_compose(WEB_DATASOURCE_DIR, None, || {
-            run_all_languages("benchmark/web", &mut reader, benchmark_web);
+            run_all_languages(
+                "benchmark/web",
+                &mut reader,
+                |dir: &str, reader: &mut DockerStatsReader| benchmark_web(dir, reader, args.verbose),
+            );
         });
     } else {
         panic!("No benchmark selected");

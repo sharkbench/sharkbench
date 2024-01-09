@@ -12,7 +12,11 @@ use crate::utils::serialization::SerializedValue;
 
 const DEFAULT_CONCURRENCY: usize = 32;
 
-pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
+pub fn benchmark_web(
+    dir: &str,
+    stats_reader: &mut DockerStatsReader,
+    verbose: bool,
+) {
     println!(" -> Benchmarking {}", dir);
 
     let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir).expect("Failed to read meta data");
@@ -68,6 +72,7 @@ pub fn benchmark_web(dir: &str, stats_reader: &mut DockerStatsReader) {
                         Duration::from_secs(15),
                         &requests,
                         response_validator,
+                        verbose,
                     );
 
                     let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();

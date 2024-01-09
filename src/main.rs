@@ -19,6 +19,7 @@ mod utils {
     pub mod docker_stats;
     pub mod http_load_tester;
     pub mod meta_data_parser;
+    pub mod panic;
     pub mod percentile;
     pub mod result_writer;
     pub mod serialization;

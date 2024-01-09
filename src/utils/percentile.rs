@@ -1,3 +1,5 @@
+use crate::utils::panic::panic_with_stacktrace;
+
 /// Returns the 1st percentile of the given values.
 /// Avoids MIN if possible.
 pub fn p1<T: Copy>(values: &Vec<T>) -> T {
@@ -17,6 +19,10 @@ pub fn p99<T: Copy>(values: &Vec<T>) -> T {
 }
 
 fn p_lower<T: Copy>(values: &Vec<T>, percentile: f64) -> T {
+    if values.is_empty() {
+        panic_with_stacktrace("Cannot calculate percentile of empty vector");
+    }
+
     let index = match (values.len() as f64 * percentile) as usize {
         0 => 0,
         index => index - 1,
@@ -25,6 +31,10 @@ fn p_lower<T: Copy>(values: &Vec<T>, percentile: f64) -> T {
 }
 
 fn p_higher<T: Copy>(values: &Vec<T>, percentile: f64) -> T {
+    if values.is_empty() {
+        panic_with_stacktrace("Cannot calculate percentile of empty vector");
+    }
+
     let index = match (values.len() as f64 * percentile) as usize {
         0 => if values.len() == 1 { 0 } else { 1 },
         index => index,

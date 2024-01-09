@@ -132,6 +132,11 @@ async fn run_load_test(
 
     let success_count = handle_results.iter().fold(0, |acc, x| acc + x.success_count);
     let fail_count = handle_results.iter().fold(0, |acc, x| acc + x.fail_count);
+
+    if success_count == 0 {
+        panic!("No successful requests. Something is wrong.")
+    }
+
     let rps_per_second: Vec<i32> = {
         let all_vectors: Vec<Vec<i32>> = handle_results.iter().map(|x| x.rps_per_second.clone()).collect();
         let mut rps_per_second: Vec<i32> = Vec::new();

@@ -79,12 +79,14 @@ async fn run_load_test(
                                 local_fail_count += 1;
                                 if verbose {
                                     println!("Unexpected response for {}: {}, expected: {:?}", uri, body, expected_response);
+                                    println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
                                 }
                             }
                         }
                         Err(e) => {
                             if verbose {
                                 println!("Request to {} failed: {}", uri, e);
+                                println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
                             }
                             local_fail_count += 1;
                         },

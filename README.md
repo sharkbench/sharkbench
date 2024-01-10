@@ -43,6 +43,12 @@ Response:
 
 ## Run benchmarks
 
+To view all available options, run:
+
+```bash
+cargo run --release -- -h
+```
+
 ### ➤ Prerequisites
 
 - [Rust](https://www.rust-lang.org/)
@@ -54,7 +60,7 @@ Create Docker network:
 docker network create sharkbench-benchmark-network
 ```
 
-### ➤ Batch
+### ➤ Run all benchmarks
 
 To run all benchmarks, run:
 

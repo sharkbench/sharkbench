@@ -42,7 +42,6 @@ fn p_higher<T: Copy>(values: &Vec<T>, percentile: f64) -> T {
     values[index]
 }
 
-// tests
 #[cfg(test)]
 mod tests {
     use super::*;

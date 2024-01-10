@@ -54,6 +54,10 @@ struct Args {
     /// Print more information
     #[arg(short, long)]
     verbose: bool,
+
+    /// Only run missing benchmarks
+    #[arg(long)]
+    missing: bool,
 }
 
 const CONTAINER_NAME: &str = "benchmark";
@@ -116,7 +120,9 @@ fn main() {
     if args.computing {
         println!(" -> Running computation benchmarks");
         run_all_languages("benchmark/computation", &mut reader, benchmark_computation);
-    } else if args.web {
+    }
+
+    if args.web {
         println!(" -> Running web benchmarks");
         run_docker_compose(WEB_DATASOURCE_DIR, None, || {
             run_all_languages(
@@ -125,8 +131,6 @@ fn main() {
                 |dir: &str, reader: &mut DockerStatsReader| benchmark_web(dir, reader, args.verbose),
             );
         });
-    } else {
-        panic!("No benchmark selected");
     }
 }
 

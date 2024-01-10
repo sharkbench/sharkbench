@@ -16,6 +16,7 @@ COPY . .
 # Install PHP dependencies
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer update && composer install --no-dev --optimize-autoloader
 
+RUN mkdir var
 RUN chown -R www-data:www-data var
 
 COPY nginx.conf /etc/nginx/conf.d/custom.conf

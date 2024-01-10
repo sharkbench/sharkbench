@@ -3,6 +3,7 @@ mode: Default
 version:
   - "8.3"
 framework: Symfony
+framework_website: https://symfony.com
 framework_flavor: Default
 framework_version:
   - "6.4"

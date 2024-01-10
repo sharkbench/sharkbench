@@ -7,6 +7,7 @@ version:
   - "3.11"
   - "3.12"
 framework: Django
+framework_website: https://www.djangoproject.com
 framework_flavor: Development Server
 framework_version:
   - "4.2"

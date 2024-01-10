@@ -3,6 +3,7 @@ mode: Default
 version:
   - "3.8"
 framework: Flask
+framework_website: https://flask.palletsprojects.com
 framework_flavor: Development Server
 framework_version:
   - "2.3"

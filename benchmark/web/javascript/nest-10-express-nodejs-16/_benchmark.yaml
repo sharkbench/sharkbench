@@ -5,6 +5,7 @@ version:
   - "18"
   - "20"
 framework: Nest
+framework_website: https://nestjs.com
 framework_flavor: Express
 framework_version:
   - "10"

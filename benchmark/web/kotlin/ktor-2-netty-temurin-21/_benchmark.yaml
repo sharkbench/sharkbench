@@ -3,6 +3,7 @@ mode: Temurin
 version:
   - "21"
 framework: Ktor
+framework_website: https://ktor.io
 framework_flavor: Netty
 framework_version:
   - "2"

@@ -3,6 +3,7 @@ mode: Default
 version:
   - "1.21"
 framework: Gin
+framework_website: https://gin-gonic.com
 framework_flavor: Default
 framework_version:
   - "1"

@@ -3,6 +3,7 @@ mode: Bun
 version:
   - "1"
 framework: Express
+framework_website: https://expressjs.com
 framework_flavor: Default
 framework_version:
   - "4"

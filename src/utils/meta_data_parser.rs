@@ -25,6 +25,8 @@ pub struct WebBenchmarkMetaData {
 
     pub framework: String,
 
+    pub framework_website: String,
+
     pub framework_flavor: String,
 
     pub framework_version: Vec<String>,
@@ -59,6 +61,7 @@ impl WebBenchmarkMetaData {
         println!(" - Mode: {}", self.mode);
         println!(" - Language version: {:?}", self.language_version);
         println!(" - Framework: {}", self.framework);
+        println!(" - Framework website: {}", self.framework_website);
         println!(" - Framework flavor: {}", self.framework_flavor);
         println!(" - Framework version: {:?}", self.framework_version);
         println!();

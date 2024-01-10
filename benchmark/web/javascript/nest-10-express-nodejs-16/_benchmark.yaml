@@ -1,0 +1,10 @@
+language: JavaScript
+mode: Node.js
+version:
+  - "16"
+  - "18"
+  - "20"
+framework: Nest
+framework_flavor: Express
+framework_version:
+  - "10"

@@ -1,0 +1,11 @@
+language: JavaScript
+mode: Node.js
+version:
+  - "14"
+  - "16"
+  - "18"
+  - "20"
+framework: Fastify
+framework_flavor: Default
+framework_version:
+  - "4"

@@ -1,0 +1,8 @@
+language: JavaScript
+mode: Bun
+version:
+  - "1"
+framework: Fastify
+framework_flavor: Default
+framework_version:
+  - "4"

@@ -8,4 +8,4 @@ framework_flavor: Default
 framework_version:
   - "1"
 
-concurrency: 4
+concurrency: 6

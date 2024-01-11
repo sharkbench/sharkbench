@@ -25,7 +25,7 @@ pub fn read_existing_result_map() -> ResultMap {
     };
 
     read_from_csv("result/computation_result.csv", 3, &mut result_map.computation);
-    read_from_csv("result/web_result.csv", 7, &mut result_map.web);
+    read_from_csv("result/web_result.csv", 8, &mut result_map.web);
 
     result_map
 }

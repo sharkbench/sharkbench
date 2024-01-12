@@ -29,13 +29,15 @@ public class Main {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             String iterations = req.getParameter("iterations");
-            double pi = pi(Integer.parseInt(iterations));
-            resp.getWriter().print(pi);
+            double[] result = pi(Integer.parseInt(iterations));
+            resp.getWriter().print(result[0] + ";" + String.format("%.7f", result[1]) + ";" + result[2]);
         }
 
-        private double pi(int iterations) {
+        private double[] pi(int iterations) {
             double pi = 0.0;
             double denominator = 1.0;
+            double sum = 0.0;
+            double customNumber = 0.0;
             for (int x = 0; x < iterations; x++) {
                 if (x % 2 == 0) {
                     pi = pi + (1 / denominator);
@@ -43,9 +45,23 @@ public class Main {
                     pi = pi - (1 / denominator);
                 }
                 denominator = denominator + 2;
+
+                // custom
+                sum += pi;
+                switch (x % 3) {
+                    case 0:
+                        customNumber += pi;
+                        break;
+                    case 1:
+                        customNumber -= pi;
+                        break;
+                    case 2:
+                        customNumber /= 2;
+                        break;
+                }
             }
             pi = pi * 4;
-            return pi;
+            return new double[]{pi, sum, customNumber};
         }
     }
 }

@@ -12,6 +12,8 @@ pub struct BenchmarkMetaData {
 
     #[serde(default="default_as_false")]
     pub extended_warmup: bool,
+
+    pub runs: Option<usize>,
 }
 
 #[derive(Serialize, Deserialize)]

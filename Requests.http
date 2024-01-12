@@ -1,3 +1,8 @@
+### Computation Benchmark
+### Expected: 3.1415926525880504;785398157.7092886;5.2789948845025485
+GET http://localhost:3000/?iterations=1000000000
+Accept: application/json
+
 ### Fetch general element info
 GET http://localhost:3000/api/v1/periodic-table/element?symbol=He
 Accept: application/json

@@ -1,3 +1,4 @@
+use std::time::Duration;
 use indexmap::IndexMap;
 use crate::benchmark::benchmark::{DockerFileManipulation, IterationResult, run_benchmark};
 use crate::utils::docker_stats::DockerStatsReader;
@@ -5,13 +6,22 @@ use crate::utils::meta_data_parser::BenchmarkMetaData;
 use crate::utils::result_writer::write_result_to_file;
 
 const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
-const EXPECTED_RESPONSE: &str = "3.1415926525880504";
+const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.7853981633136793";
+const DEFAULT_RUNS: usize = 5;
 
 pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
     println!(" -> Benchmarking {}", dir);
 
     let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir).expect("Failed to read meta data");
     meta_data.print_info();
+
+    let runs = match meta_data.runs {
+        Some(runs) => {
+            println!(" -> Running {} times instead of default = {}", runs, DEFAULT_RUNS);
+            runs
+        },
+        None => DEFAULT_RUNS,
+    };
 
     for language_version in &meta_data.language_version {
         let docker_file_manipulation: Option<DockerFileManipulation> = match meta_data.language_version.len() {
@@ -29,10 +39,13 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                 true => 3,
                 false => 1,
             },
-            3,
+            runs,
             || {
                 let client = reqwest::blocking::Client::new();
-                let response = match client.get("http://localhost:3000").query(&QUERY).send() {
+                let response = match client.get("http://localhost:3000")
+                    .query(&QUERY)
+                    .timeout(Duration::from_secs(600))
+                    .send() {
                     Ok(response) => Ok(response),
                     Err(e) => Err(e.to_string()),
                 }?;

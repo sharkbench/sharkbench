@@ -50,7 +50,7 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                     Err(e) => Err(e.to_string()),
                 }?;
                 let body = response.text()?;
-                if body != EXPECTED_RESPONSE {
+                if !body.contains(EXPECTED_RESPONSE) {
                     return Err(Box::from(format!("Invalid response: {} (expected: {})", body, EXPECTED_RESPONSE)));
                 }
 

@@ -121,6 +121,7 @@ version:
 
 # only for web benchmarks
 framework: Spring Boot
+framework_stdlib: false # OPTIONAL: set to true if the framework is part of the standard library
 framework_website: https://spring.io/projects/spring-boot
 framework_flavor: MVC # or set "Default" if there is only one flavor
 framework_version:

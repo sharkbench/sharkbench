@@ -3,6 +3,7 @@ mode: Bun
 version:
   - "1"
 framework: Bun.serve
+framework_stdlib: true
 framework_website: https://bun.sh/docs/api/http
 framework_flavor: Default
 framework_version:

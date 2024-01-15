@@ -27,6 +27,9 @@ pub struct WebBenchmarkMetaData {
 
     pub framework: String,
 
+    #[serde(default="default_as_false")]
+    pub framework_stdlib: bool,
+
     pub framework_website: String,
 
     pub framework_flavor: String,
@@ -63,6 +66,7 @@ impl WebBenchmarkMetaData {
         println!(" - Mode: {}", self.mode);
         println!(" - Language version: {:?}", self.language_version);
         println!(" - Framework: {}", self.framework);
+        println!(" - Framework stdlib: {}", self.framework_stdlib);
         println!(" - Framework website: {}", self.framework_website);
         println!(" - Framework flavor: {}", self.framework_flavor);
         println!(" - Framework version: {:?}", self.framework_version);

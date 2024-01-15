@@ -100,6 +100,7 @@ pub fn benchmark_web(
                     ("mode", meta_data.mode.as_str()),
                     ("version", language_version.as_str()),
                     ("framework", meta_data.framework.as_str()),
+                    ("framework_stdlib", meta_data.framework_stdlib.to_string().as_str()),
                     ("framework_website", meta_data.framework_website.as_str()),
                     ("framework_flavor", meta_data.framework_flavor.as_str()),
                     ("framework_version", framework_version.as_str()),

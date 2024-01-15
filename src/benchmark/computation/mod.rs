@@ -1,9 +1,10 @@
 use std::time::Duration;
 use indexmap::IndexMap;
-use crate::benchmark::benchmark::{DockerFileManipulation, IterationResult, run_benchmark};
+use crate::benchmark::benchmark::{IterationResult, run_benchmark};
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::meta_data_parser::BenchmarkMetaData;
 use crate::utils::result_writer::write_result_to_file;
+use crate::utils::version_migrator::VersionMigrator;
 
 const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
 const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.7853981633136793";
@@ -24,17 +25,19 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
     };
 
     for language_version in &meta_data.language_version {
-        let docker_file_manipulation: Option<DockerFileManipulation> = match meta_data.language_version.len() {
-            1 => None,
-            _ => Some(DockerFileManipulation {
-                initial_from_version: meta_data.language_version[0].clone(),
-                new_from_version: language_version.clone(),
-            }),
+        let mut version_migrations: Vec<VersionMigrator> = match meta_data.language_version.len() {
+            1 => vec![],
+            _ => vec![VersionMigrator::new(
+                dir,
+                meta_data.language_version_regex.clone(),
+                meta_data.language_version[0].clone(),
+                language_version.clone(),
+            )],
         };
         let result = run_benchmark(
             dir,
             stats_reader,
-            &docker_file_manipulation,
+            version_migrations.iter_mut().collect(),
             match meta_data.extended_warmup {
                 true => 3,
                 false => 1,

@@ -1,9 +1,10 @@
 use std::time::Duration;
-use std::{fs, thread};
+use std::{thread};
 use std::fmt::{Debug, Display};
 use indexmap::IndexMap;
 use crate::utils::docker_runner::run_docker_compose;
 use crate::utils::percentile;
+use crate::utils::version_migrator::VersionMigrator;
 
 const COMPOSE_FILE: &str = r#"
 version: "3"
@@ -25,11 +26,6 @@ networks:
     name: "sharkbench-benchmark-network"
     external: true
 "#;
-
-pub struct DockerFileManipulation {
-    pub initial_from_version: String,
-    pub new_from_version: String,
-}
 
 pub struct BenchmarkResult {
     pub time_median: i64,
@@ -70,22 +66,16 @@ fn format_additional_data(data: &AdditionalData, f: &mut std::fmt::Formatter<'_>
 pub fn run_benchmark<F>(
     dir: &str,
     stats_reader: &mut crate::utils::docker_stats::DockerStatsReader,
-    docker_file_manipulation: &Option<DockerFileManipulation>,
+    mut version_migrations: Vec<&mut VersionMigrator>,
     warmup_rounds: usize,
     rounds: usize,
     on_iteration: F,
 ) -> BenchmarkResult
     where F: Fn() -> Result<IterationResult, Box<dyn std::error::Error>>
 {
-    let original_docker_file = match docker_file_manipulation {
-        Some(manipulation) => {
-            let docker_file_content: String = fs::read_to_string(format!("{}/Dockerfile", dir)).expect("Failed to read Dockerfile");
-            let new_docker_file_content = update_docker_file_with_version(&docker_file_content, &manipulation.initial_from_version, &manipulation.new_from_version);
-            fs::write(format!("{}/Dockerfile", dir), new_docker_file_content).expect("Failed to write new Dockerfile");
-            Some(docker_file_content)
-        }
-        None => None,
-    };
+    for version_migrator in &mut version_migrations {
+        version_migrator.migrate();
+    }
 
     let mut execution_times: Vec<i64> = Vec::new();
     let mut memory_median: Vec<i64> = Vec::new();
@@ -159,9 +149,8 @@ pub fn run_benchmark<F>(
         },
     );
 
-    // Reset Dockerfile
-    if let Some(original_docker_file) = original_docker_file {
-        fs::write(format!("{}/Dockerfile", dir), original_docker_file).expect("Failed to reset Dockerfile");
+    for version_migrator in &version_migrations {
+        version_migrator.restore();
     }
 
     // Calculate medians
@@ -228,19 +217,4 @@ impl SizeFormat for i64 {
         let gb = mb / 1024.0;
         format!("{:.2} GB", gb)
     }
-}
-
-fn update_docker_file_with_version(docker_file_content: &str, current_version: &str, new_version: &str) -> String {
-    docker_file_content
-        .lines()
-        .map(|line| {
-            if line.starts_with("FROM ") {
-                line.replacen(current_version, new_version, 1)
-            } else {
-                line.to_string()
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-        + "\n"
 }

@@ -3,12 +3,13 @@ use std::fs;
 use std::time::Duration;
 use indexmap::IndexMap;
 use serde::{Deserialize};
-use crate::benchmark::benchmark::{AdditionalData, DockerFileManipulation, IterationResult, run_benchmark};
+use crate::benchmark::benchmark::{AdditionalData, IterationResult, run_benchmark};
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::run_http_load_test;
 use crate::utils::meta_data_parser::{WebBenchmarkMetaData};
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::serialization::SerializedValue;
+use crate::utils::version_migrator::VersionMigrator;
 
 const DEFAULT_CONCURRENCY: usize = 32;
 
@@ -49,18 +50,31 @@ pub fn benchmark_web(
 
     for language_version in &meta_data.language_version {
         for framework_version in &meta_data.framework_version {
-            let docker_file_manipulation: Option<DockerFileManipulation> = match (meta_data.language_version.len(), meta_data.framework_version.len()) {
-                (1, 1) => None,
-                _ => Some(DockerFileManipulation {
-                    initial_from_version: meta_data.language_version[0].clone(),
-                    new_from_version: language_version.clone(),
-                }),
-            };
+            let mut version_migrations = Vec::with_capacity(2);
+
+            if meta_data.language_version.len() > 1 {
+                version_migrations.push(VersionMigrator::new(
+                    dir,
+                    meta_data.language_version_regex.clone(),
+                    meta_data.language_version[0].clone(),
+                    language_version.clone(),
+                ));
+            }
+
+            if meta_data.framework_version.len() > 1 {
+                // Also migrate the framework version
+                version_migrations.push(VersionMigrator::new(
+                    dir,
+                    meta_data.framework_version_regex.clone(),
+                    meta_data.framework_version[0].clone(),
+                    framework_version.clone(),
+                ));
+            }
 
             let result = run_benchmark(
                 dir,
                 stats_reader,
-                &docker_file_manipulation,
+                version_migrations.iter_mut().collect(),
                 match meta_data.extended_warmup {
                     true => 3,
                     false => 1,

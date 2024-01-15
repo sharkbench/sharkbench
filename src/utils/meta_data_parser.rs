@@ -1,4 +1,5 @@
 use std::fs;
+use indexmap::IndexMap;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
@@ -10,7 +11,10 @@ pub struct BenchmarkMetaData {
     #[serde(rename = "version")]
     pub language_version: Vec<String>,
 
-    #[serde(default="default_as_false")]
+    #[serde(rename = "version_regex")]
+    pub language_version_regex: Option<IndexMap<String, String>>,
+
+    #[serde(default = "default_as_false")]
     pub extended_warmup: bool,
 
     pub runs: Option<usize>,
@@ -25,9 +29,12 @@ pub struct WebBenchmarkMetaData {
     #[serde(rename = "version")]
     pub language_version: Vec<String>,
 
+    #[serde(rename = "version_regex")]
+    pub language_version_regex: Option<IndexMap<String, String>>,
+
     pub framework: String,
 
-    #[serde(default="default_as_false")]
+    #[serde(default = "default_as_false")]
     pub framework_stdlib: bool,
 
     pub framework_website: String,
@@ -36,7 +43,9 @@ pub struct WebBenchmarkMetaData {
 
     pub framework_version: Vec<String>,
 
-    #[serde(default="default_as_false")]
+    pub framework_version_regex: Option<IndexMap<String, String>>,
+
+    #[serde(default = "default_as_false")]
     pub extended_warmup: bool,
 
     pub concurrency: Option<usize>,
@@ -51,6 +60,7 @@ impl BenchmarkMetaData {
         println!(" - Language: {}", self.language);
         println!(" - Mode: {}", self.mode);
         println!(" - Language version: {:?}", self.language_version);
+        println!(" - Language version regex: {}", self.language_version_regex.debug_serialize());
         println!();
     }
 
@@ -65,16 +75,31 @@ impl WebBenchmarkMetaData {
         println!(" - Language: {}", self.language);
         println!(" - Mode: {}", self.mode);
         println!(" - Language version: {:?}", self.language_version);
+        println!(" - Language version regex: {}", self.language_version_regex.debug_serialize());
         println!(" - Framework: {}", self.framework);
         println!(" - Framework stdlib: {}", self.framework_stdlib);
         println!(" - Framework website: {}", self.framework_website);
         println!(" - Framework flavor: {}", self.framework_flavor);
         println!(" - Framework version: {:?}", self.framework_version);
+        println!(" - Framework version regex: {:?}", self.framework_version_regex.debug_serialize());
         println!();
     }
 
     pub fn read_from_directory(dir: &str) -> Result<WebBenchmarkMetaData, serde_yaml::Error> {
         let contents = fs::read_to_string(format!("{}/_benchmark.yaml", dir)).expect("Failed to read _benchmark.yaml");
         serde_yaml::from_str(&contents)
+    }
+}
+
+trait VersionRegexSerializer {
+    fn debug_serialize(&self) -> String;
+}
+
+impl VersionRegexSerializer for Option<IndexMap<String, String>> {
+    fn debug_serialize(&self) -> String {
+        match self {
+            Some(regex) => format!("{:?}", regex),
+            None => "Default".to_string(),
+        }
     }
 }

@@ -27,6 +27,7 @@ mod utils {
     pub mod result_writer;
     pub mod serialization;
     pub mod version;
+    pub mod version_migrator;
 }
 
 /// Benchmarking tool for Sharkbench written in Rust.

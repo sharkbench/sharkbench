@@ -1,8 +1,8 @@
 language: C#
 mode: .NET
 version:
-  - "6.0"
-  - "8.0"
+  - '6.0'
+  - '8.0'
 version_regex:
-  "Dockerfile": DEFAULT_DOCKER_REGEX
-  "web.csproj": "<TargetFramework>net(.+)<\/TargetFramework>"
+  Dockerfile: DEFAULT_DOCKER_REGEX
+  web.csproj: '<TargetFramework>net(.+)<\/TargetFramework>'

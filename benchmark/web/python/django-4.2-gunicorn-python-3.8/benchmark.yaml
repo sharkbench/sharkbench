@@ -1,9 +1,9 @@
 language: Python
 mode: Default
 version:
-  - "3.8"
+  - '3.8'
 framework: Django
 framework_website: https://www.djangoproject.com
 framework_flavor: Gunicorn
 framework_version:
-  - "4.2"
+  - '4.2'

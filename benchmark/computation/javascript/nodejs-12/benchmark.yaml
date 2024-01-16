@@ -1,8 +1,8 @@
 language: JavaScript
 mode: Node.js
 version:
-  - "12"
-  - "14"
-  - "16"
-  - "18"
-  - "20"
+  - '12'
+  - '14'
+  - '16'
+  - '18'
+  - '20'

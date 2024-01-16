@@ -1,9 +1,9 @@
 language: Dart
 mode: AOT
 version:
-  - "3.2"
+  - '3.2'
 framework: Dart Frog
 framework_website: https://dartfrog.vgv.dev
 framework_flavor: Default
 framework_version:
-  - "1"
+  - '1'

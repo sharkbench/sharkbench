@@ -1,12 +1,12 @@
 language: Kotlin
 mode: Temurin
 version:
-  - "21"
+  - '21'
 framework: Ktor
 framework_website: https://ktor.io
 framework_flavor: Netty
 framework_version:
-  - "2"
+  - '2'
 
 extended_warmup: true
 concurrency: 4

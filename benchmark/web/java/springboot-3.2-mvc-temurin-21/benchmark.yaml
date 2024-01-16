@@ -1,11 +1,11 @@
 language: Java
 mode: Temurin
 version:
-  - "21"
+  - '21'
 framework: Spring Boot
 framework_website: https://spring.io/projects/spring-boot
 framework_flavor: MVC
 framework_version:
-  - "3.2"
+  - '3.2'
 
 extended_warmup: true

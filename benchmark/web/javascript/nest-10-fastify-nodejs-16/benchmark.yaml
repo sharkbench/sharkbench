@@ -1,11 +1,11 @@
 language: JavaScript
 mode: Node.js
 version:
-  - "16"
-  - "18"
-  - "20"
+  - '16'
+  - '18'
+  - '20'
 framework: Nest
 framework_website: https://nestjs.com
 framework_flavor: Fastify
 framework_version:
-  - "10"
+  - '10'

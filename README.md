@@ -115,9 +115,9 @@ Each benchmark has a `benchmark.yaml` file that contains the configuration for t
 language: Java
 mode: Temurin # or set "Default" if there is only one mode / flavor
 version:
-  - "11" # first version should match the version in the source code
-  - "17"
-  - "21"
+  - '11' # first version should match the version in the source code
+  - '17'
+  - '21'
 
 # only for web benchmarks
 framework: Spring Boot
@@ -125,8 +125,8 @@ framework_stdlib: false # OPTIONAL: set to true if the framework is part of the 
 framework_website: https://spring.io/projects/spring-boot
 framework_flavor: MVC # or set "Default" if there is only one flavor
 framework_version:
-  - "2.5" # first version should match the version in the source code
-  - "3.2"
+  - '2.5' # first version should match the version in the source code
+  - '3.2'
 
 # optional
 extended_warmup: true # set to true if the benchmark needs a longer warmup

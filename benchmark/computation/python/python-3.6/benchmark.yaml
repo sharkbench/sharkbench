@@ -1,13 +1,13 @@
 language: Python
 mode: Default
 version:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
-  - "3.10"
-  - "3.11"
-  - "3.12"
+  - '3.6'
+  - '3.7'
+  - '3.8'
+  - '3.9'
+  - '3.10'
+  - '3.11'
+  - '3.12'
 
 # Python takes too long to run
 runs: 3

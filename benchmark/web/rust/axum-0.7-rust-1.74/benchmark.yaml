@@ -1,9 +1,9 @@
 language: Rust
 mode: Default
 version:
-  - "1.74"
+  - '1.74'
 framework: Axum
 framework_website: https://github.com/tokio-rs/axum
 framework_flavor: Default
 framework_version:
-  - "0.7"
+  - '0.7'

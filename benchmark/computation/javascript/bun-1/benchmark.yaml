@@ -1,4 +1,4 @@
 language: JavaScript
 mode: Bun
 version:
-  - "1"
+  - '1'

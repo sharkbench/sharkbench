@@ -1,12 +1,12 @@
 language: JavaScript
 mode: Node.js
 version:
-  - "14"
-  - "16"
-  - "18"
-  - "20"
+  - '14'
+  - '16'
+  - '18'
+  - '20'
 framework: Fastify
 framework_website: https://fastify.dev
 framework_flavor: Default
 framework_version:
-  - "4"
+  - '4'

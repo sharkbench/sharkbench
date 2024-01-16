@@ -1,4 +1,4 @@
 language: C
 mode: GCC
 version:
-  - "12"
+  - '12'

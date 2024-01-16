@@ -1,13 +1,13 @@
 language: Python
 mode: Default
 version:
-  - "3.8"
-  - "3.9"
-  - "3.10"
-  - "3.11"
-  - "3.12"
+  - '3.8'
+  - '3.9'
+  - '3.10'
+  - '3.11'
+  - '3.12'
 framework: Django
 framework_website: https://www.djangoproject.com
 framework_flavor: Development Server
 framework_version:
-  - "4.2"
+  - '4.2'

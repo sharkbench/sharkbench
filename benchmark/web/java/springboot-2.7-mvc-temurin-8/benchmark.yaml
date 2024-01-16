@@ -1,0 +1,16 @@
+language: Java
+mode: Temurin
+version:
+  - '8'
+  - '11'
+  - '17'
+version_regex:
+  Dockerfile: 'temurin[-:](\d+)'
+  pom.xml: '<java\.version>(\d+)<\/java\.version>'
+framework: Spring Boot
+framework_website: https://spring.io/projects/spring-boot
+framework_flavor: MVC
+framework_version:
+  - '2.7'
+
+extended_warmup: true

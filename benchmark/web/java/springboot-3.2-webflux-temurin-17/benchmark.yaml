@@ -1,10 +1,14 @@
 language: Java
 mode: Temurin
 version:
+  - '17'
   - '21'
+version_regex:
+  Dockerfile: 'temurin[-:](\d+)'
+  pom.xml: '<java\.version>(\d+)<\/java\.version>'
 framework: Spring Boot
 framework_website: https://spring.io/projects/spring-boot
-framework_flavor: MVC
+framework_flavor: WebFlux
 framework_version:
   - '3.2'
 

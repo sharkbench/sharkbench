@@ -109,7 +109,7 @@ In general, each benchmark is located in a separate folder.
 
 ### ➤ Config
 
-Each benchmark has a `_benchmark.yaml` file that contains the configuration for the benchmark.
+Each benchmark has a `benchmark.yaml` file that contains the configuration for the benchmark.
 
 ```yaml
 language: Java

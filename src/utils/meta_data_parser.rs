@@ -65,7 +65,7 @@ impl BenchmarkMetaData {
     }
 
     pub fn read_from_directory(dir: &str) -> Result<BenchmarkMetaData, serde_yaml::Error> {
-        let contents = fs::read_to_string(format!("{}/_benchmark.yaml", dir)).expect("Failed to read _benchmark.yaml");
+        let contents = fs::read_to_string(format!("{}/benchmark.yaml", dir)).expect("Failed to read benchmark.yaml");
         serde_yaml::from_str(&contents)
     }
 }
@@ -86,7 +86,7 @@ impl WebBenchmarkMetaData {
     }
 
     pub fn read_from_directory(dir: &str) -> Result<WebBenchmarkMetaData, serde_yaml::Error> {
-        let contents = fs::read_to_string(format!("{}/_benchmark.yaml", dir)).expect("Failed to read _benchmark.yaml");
+        let contents = fs::read_to_string(format!("{}/benchmark.yaml", dir)).expect("Failed to read benchmark.yaml");
         serde_yaml::from_str(&contents)
     }
 }

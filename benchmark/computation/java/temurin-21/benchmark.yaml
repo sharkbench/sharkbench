@@ -1,6 +1,0 @@
-language: Java
-mode: Temurin
-version:
-  - "21"
-
-extended_warmup: true

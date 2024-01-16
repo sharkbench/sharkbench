@@ -1,0 +1,11 @@
+language: Java
+mode: Temurin
+version:
+  - "8"
+  - "11"
+  - "17"
+  - "21"
+version_regex:
+  "Dockerfile": "temurin[-:](\\d+)"
+
+extended_warmup: true

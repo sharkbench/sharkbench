@@ -1,0 +1,6 @@
+language: Julia
+mode: Default
+version:
+  - '1.10'
+
+extended_warmup: true

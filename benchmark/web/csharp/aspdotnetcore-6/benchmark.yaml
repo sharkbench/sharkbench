@@ -1,0 +1,15 @@
+language: C#
+mode: .NET
+version:
+  - '6.0'
+  - '8.0'
+version_regex:
+  Dockerfile: DEFAULT_DOCKER_REGEX
+  web.csproj: '<TargetFramework>net(.+)<\/TargetFramework>'
+framework: ASP.NET Core
+framework_website: https://github.com/dotnet/aspnetcore
+framework_flavor: Default
+framework_version:
+  - '1'
+
+extended_warmup: true

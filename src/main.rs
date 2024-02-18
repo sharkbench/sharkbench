@@ -10,25 +10,8 @@ use crate::utils::docker_runner::run_docker_compose;
 use crate::utils::docker_stats;
 use crate::utils::result_reader::ResultMap;
 
-mod benchmark {
-    pub mod computation;
-    pub mod web;
-    pub mod benchmark;
-}
-
-mod utils {
-    pub mod docker_runner;
-    pub mod docker_stats;
-    pub mod http_load_tester;
-    pub mod meta_data_parser;
-    pub mod panic;
-    pub mod percentile;
-    pub mod result_reader;
-    pub mod result_writer;
-    pub mod serialization;
-    pub mod version;
-    pub mod version_migrator;
-}
+mod benchmark;
+mod utils;
 
 /// Benchmarking tool for Sharkbench written in Rust.
 ///

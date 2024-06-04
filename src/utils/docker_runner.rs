@@ -44,7 +44,7 @@ fn run_shell(cmd: &[&str], working_dir: &str) {
     let mut command = Command::new(cmd[0]);
     command.args(&cmd[1..]);
     command.current_dir(Path::new(working_dir));
-    let status = command.status().expect("failed to execute command");
+    let status = command.status().expect(&format!("failed to execute command: {:?}", cmd));
     if !status.success() {
         panic!("Command failed: {:?}", cmd);
     }

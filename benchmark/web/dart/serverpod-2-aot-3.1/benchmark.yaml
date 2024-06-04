@@ -1,0 +1,10 @@
+language: Dart
+mode: AOT
+version:
+  - '3.1'
+  - '3.2'
+framework: Serverpod
+framework_website: https://serverpod.dev
+framework_flavor: Relic
+framework_version:
+  - '2'

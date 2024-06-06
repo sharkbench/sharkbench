@@ -7,3 +7,4 @@ version: # only even versions and last minor
   - '2.19'
   - '3.0'
   - '3.2'
+  - '3.4'

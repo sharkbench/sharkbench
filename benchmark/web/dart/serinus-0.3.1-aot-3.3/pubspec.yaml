@@ -1,0 +1,10 @@
+name: app
+description: "A new Serinus application"
+
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  serinus: 0.3.1
+  

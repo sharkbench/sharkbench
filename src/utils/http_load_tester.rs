@@ -61,7 +61,9 @@ async fn run_load_test(
             let mut rps_per_second: Vec<i32> = Vec::new();
             rps_per_second.reserve(100000);
 
-            let client = reqwest::Client::builder().build().unwrap();
+            let client = reqwest::Client::builder()
+                .timeout(Duration::from_secs(5))
+                .build().unwrap();
             let start = std::time::Instant::now();
             let mut second = 1;
             'outer: loop {

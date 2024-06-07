@@ -1,0 +1,15 @@
+language: Java
+mode: OpenJDK
+version:
+  - '17'
+  - '21'
+version_regex:
+  Dockerfile: 'ARG JDK_VERSION=(\d+)'
+  pom.xml: '<maven\.compiler\.release>(\d+)<\/maven\.compiler\.release>'
+framework: Quarkus
+framework_website: https://quarkus.io
+framework_flavor: Reactive
+framework_version:
+  - '3'
+
+extended_warmup: true

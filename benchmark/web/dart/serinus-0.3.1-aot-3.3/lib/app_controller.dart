@@ -5,9 +5,9 @@ import 'app_provider.dart';
 
 class AppController extends Controller {
 
-  AppController({super.path = '/api/v1/periodic-table/'}){
-    on(BenchRoute(path: '/element'), _handleElement);
-    on(BenchRoute(path: '/shells'), _handleShells);
+  AppController({super.path = '/'}){
+    on(BenchRoute(path: '/api/v1/periodic-table/element'), _handleElement);
+    on(BenchRoute(path: '/api/v1/periodic-table/shells'), _handleShells);
   }
 
   Future<Response> _handleElement(RequestContext context) async {

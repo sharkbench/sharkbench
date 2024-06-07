@@ -1,0 +1,6 @@
+name: app
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  serinus: ^0.3.0

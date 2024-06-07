@@ -1,0 +1,10 @@
+language: Dart
+mode: AOT
+version:
+  - '3.3'
+  - '3.4'
+framework: Serinus
+framework_website: https://docs.serinus.app
+framework_flavor: Default
+framework_version:
+  - '0.3'

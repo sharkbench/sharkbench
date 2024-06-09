@@ -1,0 +1,10 @@
+language: Go
+mode: Default
+version:
+  - '1.20'
+  - '1.22'
+framework: FastHTTP
+framework_website: https://github.com/valyala/fasthttp
+framework_flavor: Default
+framework_version:
+  - '1'

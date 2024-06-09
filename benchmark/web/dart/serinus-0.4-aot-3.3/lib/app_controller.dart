@@ -1,13 +1,11 @@
 import 'package:serinus/serinus.dart';
 
-import 'app_routes.dart';
 import 'app_provider.dart';
 
 class AppController extends Controller {
-
-  AppController({super.path = '/'}){
-    on(BenchRoute(path: '/api/v1/periodic-table/element'), _handleElement);
-    on(BenchRoute(path: '/api/v1/periodic-table/shells'), _handleShells);
+  AppController({super.path = '/api/v1/periodic-table'}) {
+    on(Route.get('/element'), _handleElement);
+    on(Route.get('/shells'), _handleShells);
   }
 
   Future<Response> _handleElement(RequestContext context) async {
@@ -22,5 +20,4 @@ class AppController extends Controller {
     final Map<String, dynamic> shells = await context.use<AppProvider>().getShells(symbol);
     return Response.json(shells);
   }
-
 }

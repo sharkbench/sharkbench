@@ -1,0 +1,9 @@
+name: vania_bench
+description: Sample Vania backend web application framework
+version: 1.0.0
+
+environment:
+  sdk: ^3.2.3
+
+dependencies:
+  vania: ^0.2.7

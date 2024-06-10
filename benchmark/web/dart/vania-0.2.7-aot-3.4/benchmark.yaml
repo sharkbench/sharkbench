@@ -1,0 +1,9 @@
+language: Dart
+mode: AOT
+version:
+  - '3.4'
+framework: Vania
+framework_website: https://vdart.dev
+framework_flavor: Default
+framework_version:
+  - '0.2.7'

@@ -9,4 +9,3 @@ framework_version:
   - '2'
 
 extended_warmup: true
-concurrency: 4

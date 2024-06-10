@@ -1,7 +1,7 @@
 package com.example.plugins
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.application.*
@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
-    val client = HttpClient(CIO)
+    val client = HttpClient(OkHttp)
 
     routing {
         get("/api/v1/periodic-table/element") {
@@ -40,20 +40,20 @@ fun Application.configureRouting() {
 }
 
 @Serializable
-data class DataSourceElement(
+class DataSourceElement(
     val name: String,
     val number: Int,
     val group: Int,
 )
 
 @Serializable
-data class ElementResponse(
+class ElementResponse(
     val name: String,
     val number: Int,
     val group: Int,
 )
 
 @Serializable
-data class ShellsResponse(
+class ShellsResponse(
     val shells: List<Int>
 )

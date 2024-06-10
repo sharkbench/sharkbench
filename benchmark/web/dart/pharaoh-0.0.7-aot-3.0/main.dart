@@ -12,10 +12,6 @@ void main() async {
 
   final app = Pharaoh();
 
-  app.onError((error, req, res) {
-    return res.internalServerError(error.exception.toString());
-  });
-
   app.get('/api/v1/periodic-table/element', (
     Request request,
     Response response,

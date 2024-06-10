@@ -1,8 +1,9 @@
 language: Dart
 mode: AOT
 version:
-  - '0.0.7'
-  - '0.0.7+1'
+  - '3.0'
+  - '3.3'
+  - '3.4'
 framework: Pharaoh
 framework_website: https://pub.dev/packages/pharaoh
 framework_flavor: Default

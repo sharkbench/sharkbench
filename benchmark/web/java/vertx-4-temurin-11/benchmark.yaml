@@ -1,0 +1,16 @@
+language: Java
+mode: Temurin
+version:
+  - '11'
+  - '17'
+  - '21'
+version_regex:
+  Dockerfile: 'temurin[-:](\d+)'
+  pom.xml: '<release>(\d+)<\/release>'
+framework: Vert.x
+framework_website: https://vertx.io
+framework_flavor: Default
+framework_version:
+  - '4'
+
+extended_warmup: true

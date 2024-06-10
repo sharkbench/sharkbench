@@ -21,30 +21,38 @@ func main() {
 	router.Run(":3000")
 }
 
+type Element struct {
+	Name   string `json:"name"`
+	Number int    `json:"number"`
+	Group  int    `json:"group"`
+}
+
+type ShellsResponse struct {
+	Shells []int `json:"shells"`
+}
+
+type ElementsData map[string]Element
+type ShellsData map[string][]int
+
 func getElement(c *gin.Context) {
 	symbol := c.Query("symbol")
 
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req) // Release request instance back to pool
-	defer fasthttp.ReleaseResponse(resp) // Release response instance back to pool
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
 
 	req.SetRequestURI("http://web-data-source/element.json")
 
 	client.Do(req, resp)
-
 	body := resp.Body()
 
-	var json_data map[string]interface{}
-	json.Unmarshal(body, &json_data)
+	var elements ElementsData
+	json.Unmarshal(body, &elements)
 
-	entry, _ := json_data[symbol].(map[string]interface{})
+	element := elements[symbol]
 
-	c.JSON(200, gin.H{
-		"name":   entry["name"],
-		"number": entry["number"],
-		"group":  entry["group"],
-	})
+	c.JSON(200, element)
 }
 
 func getShells(c *gin.Context) {
@@ -52,19 +60,18 @@ func getShells(c *gin.Context) {
 
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req) // Release request instance back to pool
-	defer fasthttp.ReleaseResponse(resp) // Release response instance back to pool
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
 
 	req.SetRequestURI("http://web-data-source/shells.json")
 
 	client.Do(req, resp)
-
 	body := resp.Body()
 
-	var json_data map[string]interface{}
-	json.Unmarshal(body, &json_data)
+	var shellsData ShellsData
+	json.Unmarshal(body, &shellsData)
 
-	shells, _ := json_data[symbol].([]interface{})
+	shells := shellsData[symbol]
 
-	c.JSON(200, gin.H{"shells": shells})
+	c.JSON(200, ShellsResponse{Shells: shells})
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"github.com/valyala/fasthttp"
 )
 
@@ -25,62 +25,66 @@ func main() {
 	fasthttp.ListenAndServe(":3000", router)
 }
 
+type Element struct {
+	Name   string `json:"name"`
+	Number int    `json:"number"`
+	Group  int    `json:"group"`
+}
+
+type ShellsResponse struct {
+	Shells []int `json:"shells"`
+}
+
+type ElementsData map[string]Element
+
+type ShellsData map[string][]int
+
 func getElement(ctx *fasthttp.RequestCtx) {
-	symbol := string(ctx.QueryArgs().Peek("symbol"))
+    symbol := string(ctx.QueryArgs().Peek("symbol"))
 
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
+    req := fasthttp.AcquireRequest()
+    resp := fasthttp.AcquireResponse()
+    defer fasthttp.ReleaseRequest(req)
+    defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI("http://web-data-source/element.json")
+    req.SetRequestURI("http://web-data-source/element.json")
 
-	client.Do(req, resp)
+    client.Do(req, resp)
+    body := resp.Body()
 
-	body := resp.Body()
+    var elements ElementsData
+    json.Unmarshal(body, &elements)
 
-	var json_data map[string]interface{}
-	json.Unmarshal(body, &json_data)
+    element := elements[symbol]
 
-	entry, _ := json_data[symbol].(map[string]interface{})
+    response, _ := json.Marshal(element)
 
-	// Prepare response in JSON format
-	response, _ := json.Marshal(map[string]interface{}{
-		"name":   entry["name"],
-		"number": entry["number"],
-		"group":  entry["group"],
-	})
-
-	ctx.SetContentType("application/json")
-	ctx.SetStatusCode(fasthttp.StatusOK)
-	ctx.Write(response)
+    ctx.SetContentType("application/json")
+    ctx.SetStatusCode(fasthttp.StatusOK)
+    ctx.Write(response)
 }
 
 func getShells(ctx *fasthttp.RequestCtx) {
-	symbol := string(ctx.QueryArgs().Peek("symbol"))
+    symbol := string(ctx.QueryArgs().Peek("symbol"))
 
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
+    req := fasthttp.AcquireRequest()
+    resp := fasthttp.AcquireResponse()
+    defer fasthttp.ReleaseRequest(req)
+    defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI("http://web-data-source/shells.json")
+    req.SetRequestURI("http://web-data-source/shells.json")
 
-	client.Do(req, resp)
+    client.Do(req, resp)
+    body := resp.Body()
 
-	body := resp.Body()
+    var shellsData ShellsData
+    json.Unmarshal(body, &shellsData)
 
-	var json_data map[string]interface{}
-	json.Unmarshal(body, &json_data)
+    shells := shellsData[symbol]
 
-	shells, _ := json_data[symbol].([]interface{})
+    response, _ := json.Marshal(ShellsResponse{Shells: shells})
 
-	// Prepare response in JSON format
-	response, _ := json.Marshal(map[string]interface{}{
-		"shells": shells,
-	})
-
-	ctx.SetContentType("application/json")
-	ctx.SetStatusCode(fasthttp.StatusOK)
-	ctx.Write(response)
+    ctx.SetContentType("application/json")
+    ctx.SetStatusCode(fasthttp.StatusOK)
+    ctx.Write(response)
 }

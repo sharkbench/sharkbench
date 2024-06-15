@@ -1,0 +1,12 @@
+language: PHP
+mode: Default
+version:
+  - '8.3'
+framework: Laravel
+framework_website: https://laravel.com
+framework_flavor: Default
+framework_version:
+  - '11.10'
+
+
+concurrency: 2

@@ -16,5 +16,5 @@ Route::get('/api/v1/periodic-table/shells', function () {
     $symbol = $_GET['symbol'];
     $response = Http::get('http://web-data-source/shells.json');
     $data = $response->json($symbol);
-    return response()->json($data);
+    return response()->json(["shells" => $data]);
 });

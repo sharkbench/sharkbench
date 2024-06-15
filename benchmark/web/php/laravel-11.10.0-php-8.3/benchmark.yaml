@@ -9,3 +9,4 @@ framework_version:
   - '11.10'
 
 
+concurrency: 2

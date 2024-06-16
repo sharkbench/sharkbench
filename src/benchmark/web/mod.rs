@@ -165,26 +165,26 @@ fn response_validator(body: &str, expected_response: &HashMap<String, Serialized
         }
     };
 
-    for (key, value) in expected_response {
-        let actual_value = json.get(key).unwrap();
-        match value {
+    for (key, expected_value) in expected_response {
+        let actual_value = json.get(key).expect(&format!(r#"Expected "{}": {} but this key does not exist"#, key, expected_value));
+        match expected_value {
             SerializedValue::StringValue(v) => {
-                if actual_value.as_str().expect(&format!(r#"Expected "{}": <{:?}> but got <{:?}>"#, key, value, actual_value)) != v {
+                if actual_value.as_str().expect(&format!(r#"Expected "{}": {} but got <{:?}>"#, key, expected_value, actual_value)) != v {
                     return false;
                 }
             }
             SerializedValue::IntValue(v) => {
-                if actual_value.as_i64().expect(&format!(r#"Expected "{}": <{:?}> but got <{:?}>"#, key, value, actual_value)) != *v as i64 {
+                if actual_value.as_i64().expect(&format!(r#"Expected "{}": {} but got <{:?}>"#, key, expected_value, actual_value)) != *v as i64 {
                     return false;
                 }
             }
             SerializedValue::IntListValue(v) => {
-                let actual_list = actual_value.as_array().expect(&format!(r#"Expected "{}": <{:?}> but got <{:?}>"#, key, value, actual_value));
+                let actual_list = actual_value.as_array().expect(&format!(r#"Expected "{}": {} but got <{:?}>"#, key, expected_value, actual_value));
                 if actual_list.len() != v.len() {
                     return false;
                 }
                 for (i, actual_value) in actual_list.iter().enumerate() {
-                    if actual_value.as_i64().expect(&format!(r#"Expected "{}": <{:?}> but got <{:?}>"#, key, value, actual_value)) != v[i] as i64 {
+                    if actual_value.as_i64().expect(&format!(r#"Expected "{}": {} but got <{:?}>"#, key, expected_value, actual_value)) != v[i] as i64 {
                         return false;
                     }
                 }

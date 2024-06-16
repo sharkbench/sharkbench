@@ -20,9 +20,5 @@ Future<Response> onRequest(RequestContext context) async {
   final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
   final entry = json[symbol] as Map<String, dynamic>;
 
-  return Response(body: jsonEncode({
-    'name': entry['name'],
-    'number': entry['number'],
-    'group': entry['group'],
-  }));
+  return Response(body: jsonEncode(entry));
 }

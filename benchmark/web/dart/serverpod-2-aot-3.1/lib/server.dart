@@ -51,11 +51,7 @@ class ElementRoute extends WidgetRoute {
     final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
     final entry = json[symbol] as Map<String, dynamic>;
 
-    return WidgetJson(object: {
-      'name': entry['name'],
-      'number': entry['number'],
-      'group': entry['group'],
-    });
+    return WidgetJson(object: entry);
   }
 }
 

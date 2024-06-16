@@ -24,11 +24,7 @@ void main() async {
         as Map<String, dynamic>;
     final entry = json[symbol] as Map<String, dynamic>;
 
-    return response.json({
-      'name': entry['name'],
-      'number': entry['number'],
-      'group': entry['group'],
-    });
+    return response.json(entry);
   });
 
   app.get('/api/v1/periodic-table/shells', (

@@ -26,11 +26,7 @@ void main() async {
         final json = jsonDecode(await tmpRes.transform(utf8.decoder).join()) as Map<String, dynamic>;
 
         final entry = json[symbol] as Map<String, dynamic>;
-        request.response.write(jsonEncode({
-          'name': entry['name'],
-          'number': entry['number'],
-          'group': entry['group'],
-        }));
+        request.response.write(jsonEncode(entry));
         break;
       case '/api/v1/periodic-table/shells':
         final tmpReq = await httpClient.getUrl(shellsUrl);

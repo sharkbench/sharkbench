@@ -12,12 +12,7 @@ class AppProvider extends Provider {
     final tmpReq = await httpClient.getUrl(elementUrl);
     final tmpRes = await tmpReq.close();
     final json = jsonDecode(await tmpRes.transform(utf8.decoder).join());
-    final entry = Map<String, dynamic>.from(json[symbol]);
-    return {
-      'name': entry['name'],
-      'number': entry['number'],
-      'group': entry['group'],
-    };
+    return json[symbol];
   }
 
   Future<Map<String, dynamic>> getShells(String symbol) async {

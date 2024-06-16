@@ -19,7 +19,7 @@ pub struct BenchmarkMetaData {
 
     pub runs: Option<usize>,
 
-    pub copy: Option<IndexMap<String, String>>,
+    pub copy: Option<Vec<CopyValue>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -52,7 +52,14 @@ pub struct WebBenchmarkMetaData {
 
     pub concurrency: Option<usize>,
 
-    pub copy: Option<IndexMap<String, String>>,
+    pub copy: Option<Vec<CopyValue>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub(crate) enum CopyValue {
+    Primitive(String),
+    Map(IndexMap<String, String>),
 }
 
 fn default_as_false() -> bool {

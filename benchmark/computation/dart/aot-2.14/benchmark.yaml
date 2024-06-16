@@ -8,3 +8,7 @@ version: # only even versions and last minor
   - '3.0'
   - '3.2'
   - '3.4'
+
+copy:
+  - 'main.dart'
+  - 'pubspec.yaml'

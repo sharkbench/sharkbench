@@ -9,5 +9,5 @@ framework_version:
   - '11'
 
 copy:
-  'nginx.conf': 'nginx.conf'
-  'www.conf': 'www.conf'
+  - 'nginx.conf'
+  - 'www.conf'

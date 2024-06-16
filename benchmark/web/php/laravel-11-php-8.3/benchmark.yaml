@@ -7,3 +7,7 @@ framework_website: https://laravel.com
 framework_flavor: Default
 framework_version:
   - '11'
+
+copy:
+  'nginx.conf': 'nginx.conf'
+  'www.conf': 'www.conf'

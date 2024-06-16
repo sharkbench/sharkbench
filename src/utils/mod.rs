@@ -1,3 +1,4 @@
+pub mod copy_files;
 pub mod docker_runner;
 pub mod docker_stats;
 pub mod http_load_tester;

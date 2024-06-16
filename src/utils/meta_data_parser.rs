@@ -18,6 +18,8 @@ pub struct BenchmarkMetaData {
     pub extended_warmup: bool,
 
     pub runs: Option<usize>,
+
+    pub copy: Option<IndexMap<String, String>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -49,6 +51,8 @@ pub struct WebBenchmarkMetaData {
     pub extended_warmup: bool,
 
     pub concurrency: Option<usize>,
+
+    pub copy: Option<IndexMap<String, String>>,
 }
 
 fn default_as_false() -> bool {
@@ -82,6 +86,8 @@ impl WebBenchmarkMetaData {
         println!(" - Framework flavor: {}", self.framework_flavor);
         println!(" - Framework version: {:?}", self.framework_version);
         println!(" - Framework version regex: {:?}", self.framework_version_regex.debug_serialize());
+        println!(" - Concurrency: {:?}", self.concurrency);
+        println!(" - Copy: {:?}", self.copy);
         println!();
     }
 

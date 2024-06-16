@@ -32,8 +32,6 @@ RUN mkdir -p var
 RUN chown -R www-data:www-data var
 
 COPY nginx.conf /etc/nginx/conf.d/custom.conf
-
-# Modify PHP-FPM settings
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Start Nginx and PHP-FPM

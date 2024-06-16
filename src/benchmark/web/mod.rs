@@ -4,6 +4,7 @@ use std::time::Duration;
 use indexmap::IndexMap;
 use serde::{Deserialize};
 use crate::benchmark::benchmark::{AdditionalData, IterationResult, run_benchmark};
+use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::run_http_load_test;
 use crate::utils::meta_data_parser::{WebBenchmarkMetaData};
@@ -50,6 +51,10 @@ pub fn benchmark_web(
 
     for language_version in &meta_data.language_version {
         for framework_version in &meta_data.framework_version {
+            if let Some(copy_files) = &meta_data.copy {
+                copy_files::copy_files(dir, &copy_files);
+            }
+
             let mut version_migrations = Vec::with_capacity(2);
 
             if meta_data.language_version.len() > 1 {
@@ -106,6 +111,10 @@ pub fn benchmark_web(
                     })
                 },
             );
+
+            if let Some(copy_files) = &meta_data.copy {
+                copy_files::delete_copied_files(dir, &copy_files);
+            }
 
             write_result_to_file(
                 "result/web_result.csv",

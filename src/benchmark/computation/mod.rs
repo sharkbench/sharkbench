@@ -1,6 +1,7 @@
 use std::time::Duration;
 use indexmap::IndexMap;
 use crate::benchmark::benchmark::{IterationResult, run_benchmark};
+use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::meta_data_parser::BenchmarkMetaData;
 use crate::utils::result_writer::write_result_to_file;
@@ -25,6 +26,10 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
     };
 
     for language_version in &meta_data.language_version {
+        if let Some(copy_files) = &meta_data.copy {
+            copy_files::copy_files(dir, &copy_files);
+        }
+
         let mut version_migrations: Vec<VersionMigrator> = match meta_data.language_version.len() {
             1 => vec![],
             _ => vec![VersionMigrator::new(
@@ -63,6 +68,10 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                 })
             },
         );
+
+        if let Some(copy_files) = &meta_data.copy {
+            copy_files::delete_copied_files(dir, &copy_files);
+        }
 
         write_result_to_file(
             "result/computation_result.csv",

@@ -8,3 +8,6 @@ version:
 
 # Ruby takes too long to run
 runs: 3
+
+copy:
+  - 'main.rb'

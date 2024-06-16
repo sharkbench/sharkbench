@@ -6,4 +6,4 @@ environment:
   sdk: ^3.2.3
 
 dependencies:
-  vania: ^0.2.7
+  vania: ^0.3.0

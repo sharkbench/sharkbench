@@ -46,13 +46,7 @@ class ApiController extends Controller {
     final json = jsonDecode(await tmpRes.transform(utf8.decoder).join())
         as Map<String, dynamic>;
     String symbol = request.query('symbol');
-
-    final entry = json[symbol] as Map<String, dynamic>;
-    return Response.json({
-      'name': entry['name'],
-      'number': entry['number'],
-      'group': entry['group'],
-    });
+    return Response.json(json[symbol]);
   }
 
   Future shells(Request request) async {

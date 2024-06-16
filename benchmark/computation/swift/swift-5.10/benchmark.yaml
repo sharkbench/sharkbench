@@ -1,0 +1,4 @@
+language: Swift
+mode: Default
+version:
+  - '5.10'

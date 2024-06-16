@@ -1,15 +1,13 @@
-use axum::{extract::{Query}, response::Html, routing::get, Router};
+use axum::{extract::{Query}, routing::get, Router};
 use serde::{Deserialize};
-use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/", get(handler));
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let app = Router::new()
+        .route("/", get(handler));
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
 #[derive(Deserialize)]
@@ -18,10 +16,10 @@ struct BenchmarkQuery {
 }
 
 async fn handler(
-    pagination: Query<BenchmarkQuery>,
-) -> Html<String> {
-    let result = calc_pi(pagination.iterations);
-    Html(format!("{};{};{}", result.0, result.1, result.2))
+    query: Query<BenchmarkQuery>,
+) -> String {
+    let result = calc_pi(query.iterations);
+    format!("{};{};{}", result.0, result.1, result.2)
 }
 
 fn calc_pi(iterations: usize) -> (f64, f64, f64) {

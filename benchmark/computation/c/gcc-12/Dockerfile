@@ -1,20 +1,12 @@
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    libssl-dev \
-    git
+    apt-get install -y gcc
 
-RUN git clone https://github.com/jorisvink/kore
-RUN cd kore && git checkout 4.3.0-rc2 && make && make install
+COPY . .
 
-COPY src/ ./src/
-COPY conf/ ./conf/
+RUN gcc -o server main.c -O3 -march=native -flto
 
-RUN kodev build
-
-EXPOSE 3000
-CMD ["kodev", "run"]
+CMD ["./server"]

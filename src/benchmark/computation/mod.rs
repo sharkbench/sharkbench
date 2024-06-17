@@ -85,6 +85,11 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                 ("time_median", result.time_median.to_string().as_str()),
                 ("memory_median", result.memory_median.to_string().as_str()),
             ]),
+            take_new_line,
         ).expect("Failed to write result to file");
     }
+}
+
+fn take_new_line(_: Vec<String>, new_values: &Vec<&str>) -> Vec<String> {
+    new_values.iter().map(|v| v.to_string()).collect()
 }

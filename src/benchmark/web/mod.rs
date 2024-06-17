@@ -139,6 +139,7 @@ pub fn benchmark_web(
                     ("memory_p99", result.memory_p99.to_string().as_str()),
                     ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
                 ]),
+                take_new_line,
             ).expect("Failed to write result to file");
         }
     }
@@ -202,4 +203,8 @@ fn response_validator(body: &str, expected_response: &HashMap<String, Serialized
     }
 
     true
+}
+
+fn take_new_line(_: Vec<String>, new_values: &Vec<&str>) -> Vec<String> {
+    new_values.iter().map(|v| v.to_string()).collect()
 }

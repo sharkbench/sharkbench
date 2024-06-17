@@ -85,11 +85,16 @@ pub fn benchmark_computation(dir: &str, stats_reader: &mut DockerStatsReader) {
                 ("time_median", result.time_median.to_string().as_str()),
                 ("memory_median", result.memory_median.to_string().as_str()),
             ]),
-            take_new_line,
+            take_lower_time_median,
         ).expect("Failed to write result to file");
     }
 }
 
-fn take_new_line(_: Vec<String>, new_values: &Vec<&str>) -> Vec<String> {
-    new_values.iter().map(|v| v.to_string()).collect()
+fn take_lower_time_median<'a>(old_values: &'a [&'a str], new_values: &'a [&'a str]) -> &'a [&'a str] {
+    if old_values[0].parse::<i32>().unwrap() < new_values[0].parse::<i32>().unwrap() {
+        println!(" -> Keeping old values (time_median: {} < {})", old_values[0], new_values[0]);
+        old_values
+    } else {
+        new_values
+    }
 }

@@ -19,7 +19,7 @@ pub fn write_result_to_file(
     file_path: &str,
     descriptors: &Vec<(&str, &str)>,
     values: &Vec<(&str, &str)>,
-    on_conflict: fn(Vec<String>, &Vec<&str>) -> Vec<String>,
+    on_conflict: for<'a> fn(&'a [&'a str], &'a [&'a str]) -> &'a [&'a str],
 ) -> io::Result<()> {
     println!(" -> Writing result:");
     for (key, value) in descriptors {
@@ -35,16 +35,16 @@ pub fn write_result_to_file(
         format!("{},{}", descriptor_keys, values_keys)
     };
 
-    let original_contents = fs::read_to_string(file_path).unwrap_or(String::new());
+    let old_contents = fs::read_to_string(file_path).unwrap_or(String::new());
 
     let descriptor_values: Vec<&str> = descriptors.iter().map(|(_, v)| *v).collect::<Vec<&str>>();
     let value_values: Vec<&str> = values.iter().map(|(_, v)| *v).collect::<Vec<&str>>();
 
     let contents: Vec<String> = {
-        if original_contents.is_empty() {
+        if old_contents.is_empty() {
             vec!(format!("{},{}", descriptor_values.join(","), value_values.join(",")))
         } else {
-            get_updated_contents(original_contents, descriptor_values, value_values, on_conflict)
+            get_updated_contents(&old_contents, descriptor_values.as_slice(), value_values.as_slice(), on_conflict)
         }
     };
 
@@ -54,57 +54,52 @@ pub fn write_result_to_file(
 }
 
 fn get_updated_contents(
-    original_contents: String,
-    descriptor_values: Vec<&str>,
-    value_values: Vec<&str>,
-    on_conflict: fn(Vec<String>, &Vec<&str>) -> Vec<String>,
+    old_contents: &str,
+    descriptor_values: &[&str],
+    value_values: &[&str],
+    on_conflict: for<'a> fn(&'a [&'a str], &'a [&'a str]) -> &'a [&'a str],
 ) -> Vec<String> {
-    let lines = original_contents.lines().skip(1);
+    let old_lines: Vec<Vec<&str>> = old_contents
+        .lines()
+        .skip(1)
+        .map(|line| line.split(",").collect())
+        .collect();
 
-    let temp_lines: Vec<Vec<String>> = {
-        let mut temp_lines = Vec::new();
+    let new_lines: Vec<Vec<&str>> = {
+        let mut temp_lines: Vec<Vec<&str>> = Vec::new();
         let mut found = false;
 
-        for line in lines {
-            let columns: Vec<String> = line.split(",").collect::<Vec<&str>>().iter().map(|v| v.to_string()).collect();
-            if starts_with(&columns, &descriptor_values) {
+        for columns in &old_lines {
+            if columns.starts_with(descriptor_values) {
                 found = true;
-                let mut new_line = Vec::new();
+                let mut new_line: Vec<&str> = Vec::new();
                 for i in 0..descriptor_values.len() {
-                    new_line.push(descriptor_values[i].to_string());
+                    new_line.push(descriptor_values[i]);
                 }
 
-                let result = on_conflict(columns[descriptor_values.len()..columns.len()].to_vec(), &value_values);
+                let old_values: &[&str] = &columns[descriptor_values.len()..columns.len()];
+                let result: &[&str] = on_conflict(old_values, value_values);
                 for value in result {
-                    new_line.push(value);
+                    new_line.push(&value);
                 }
                 temp_lines.push(new_line);
             } else {
-                temp_lines.push(columns);
+                temp_lines.push(columns.clone());
             }
         }
 
         if !found {
             let mut new_line = Vec::new();
-            for value in descriptor_values {
-                new_line.push(value.to_string());
-            }
-            for value in value_values {
-                new_line.push(value.to_string());
-            }
+            new_line.extend_from_slice(descriptor_values);
+            new_line.extend_from_slice(value_values);
             temp_lines.push(new_line);
         }
 
-        let mut borrowed_vec = temp_lines
-            .iter().map(|line| line.iter().map(|value| value.as_ref()).collect::<Vec<&str>>())
-            .collect::<Vec<Vec<&str>>>();
-
-        borrowed_vec.sort_by(compare_lines);
-
-        borrowed_vec.into_iter().map(|line| line.iter().map(|v| v.to_string()).collect()).collect()
+        temp_lines.sort_by(compare_lines);
+        temp_lines
     };
 
-    temp_lines
+    new_lines
         .iter()
         .map(|line| line.join(","))
         .collect()
@@ -204,8 +199,16 @@ mod tests {
     mod get_updated_contents {
         use super::*;
 
-        fn take_new_line(_: Vec<String>, new_values: &Vec<&str>) -> Vec<String> {
-            new_values.iter().map(|v| v.to_string()).collect()
+        fn take_new_line<'a>(_: &[&'a str], new_values: &'a [&'a str]) -> &'a [&'a str] {
+            new_values
+        }
+
+        fn take_bigger_number<'a>(old_values: &'a [&'a str], new_values: &'a [&'a str]) -> &'a [&'a str] {
+            if old_values[0].parse::<i32>().unwrap() < new_values[0].parse::<i32>().unwrap() {
+                new_values
+            } else {
+                old_values
+            }
         }
 
         #[test]
@@ -215,7 +218,21 @@ mod tests {
             let value_values = vec!["0", "0", "0"];
 
             let expected_contents = vec!["1,2,3,0,0,0"];
-            assert_eq!(get_updated_contents(original_contents.to_owned(), descriptor_values, value_values, take_new_line), expected_contents);
+            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_new_line), expected_contents);
+        }
+
+        #[test]
+        fn should_take_bigger_number() {
+            let original_contents = "a,b,c\n1,2,3,10,20\n";
+            let descriptor_values = vec!["1", "2", "3"];
+
+            let value_values = vec!["5", "20"];
+            let expected_contents = vec!["1,2,3,10,20"];
+            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_bigger_number), expected_contents);
+
+            let value_values = vec!["15", "20"];
+            let expected_contents = vec!["1,2,3,15,20"];
+            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_bigger_number), expected_contents);
         }
 
         #[test]
@@ -225,7 +242,7 @@ mod tests {
             let value_values = vec!["0", "0", "0"];
 
             let expected_contents = vec!["1,2,3,4,5,6", "1,2,4,0,0,0"];
-            assert_eq!(get_updated_contents(original_contents.to_owned(), descriptor_values, value_values, take_new_line), expected_contents);
+            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_new_line), expected_contents);
         }
 
         #[test]
@@ -239,24 +256,7 @@ mod tests {
             let value_values = vec!["_", "_", "_"];
 
             let expected_contents = vec!["1,1,2,_,_,_", "1,2,3,_,_,_", "1,2,4,_,_,_"];
-            assert_eq!(get_updated_contents(original_contents.to_owned(), descriptor_values, value_values, take_new_line), expected_contents);
+            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_new_line), expected_contents);
         }
     }
-}
-
-fn starts_with(vec_strings: &Vec<String>, vec_strs: &Vec<&str>) -> bool {
-    // Check if the second vector is longer than the first; if so, return false immediately
-    if vec_strs.len() > vec_strings.len() {
-        return false;
-    }
-
-    // Iterate over the elements of vec_strs with their indices
-    for (i, &item) in vec_strs.iter().enumerate() {
-        // Compare the current item from vec_strs with the item at the same index in vec_strings
-        if vec_strings[i] != item {
-            return false;
-        }
-    }
-
-    true
 }

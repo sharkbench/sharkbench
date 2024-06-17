@@ -139,7 +139,7 @@ pub fn benchmark_web(
                     ("memory_p99", result.memory_p99.to_string().as_str()),
                     ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
                 ]),
-                take_new_line,
+                take_bigger_rps,
             ).expect("Failed to write result to file");
         }
     }
@@ -205,6 +205,11 @@ fn response_validator(body: &str, expected_response: &HashMap<String, Serialized
     true
 }
 
-fn take_new_line(_: Vec<String>, new_values: &Vec<&str>) -> Vec<String> {
-    new_values.iter().map(|v| v.to_string()).collect()
+fn take_bigger_rps<'a>(old_values: &'a [&'a str], new_values: &'a [&'a str]) -> &'a [&'a str] {
+    if old_values[0].parse::<i32>().unwrap() > new_values[0].parse::<i32>().unwrap() {
+        println!(" -> Keeping old values (rps_median: {} > {})", old_values[0], new_values[0]);
+        old_values
+    } else {
+        new_values
+    }
 }

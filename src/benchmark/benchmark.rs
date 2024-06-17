@@ -7,7 +7,6 @@ use crate::utils::percentile;
 use crate::utils::version_migrator::VersionMigrator;
 
 const COMPOSE_FILE: &str = r#"
-version: "3"
 services:
   benchmark:
     build: .

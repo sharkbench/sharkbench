@@ -1,9 +1,6 @@
-FROM debian:bookworm-slim
+FROM gcc:6
 
 WORKDIR /app
-
-RUN apt-get update && \
-    apt-get install -y gcc
 
 COPY . .
 

@@ -25,7 +25,7 @@ pub fn read_existing_result_map() -> ResultMap {
     };
 
     read_from_csv("result/computation_result.csv", 3, &mut result_map.computation);
-    read_from_csv("result/web_result.csv", 8, &mut result_map.web);
+    read_from_csv("result/web_result.csv", 9, &mut result_map.web);
 
     result_map
 }
@@ -42,10 +42,13 @@ fn read_from_csv_content(csv_content: &str, dir_column: usize, map: &mut HashMap
             return;
         }
 
-        let mut columns = line.split(",");
-        let mut full_dir = columns.nth(dir_column).unwrap().split("/");
-        let language = full_dir.nth(0).unwrap();
-        let dir = full_dir.nth(0).unwrap();
+        let full_dir: Vec<&str> = line.split(",").nth(dir_column).unwrap().split("/").collect();
+        if full_dir.len() != 2 {
+            panic!("Invalid directory format: {} (expected: lang/version)", full_dir.join("/"));
+        }
+
+        let language = full_dir[0];
+        let dir = full_dir[1];
 
         let language_map = map.entry(language.to_string()).or_insert(HashSet::new());
         language_map.insert(dir.to_string());

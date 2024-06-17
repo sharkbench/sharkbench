@@ -1,4 +1,6 @@
 language: Rust
 mode: Default
 version:
-  - '1.74'
+  - '1.40'
+  - '1.60'
+  - '1.79'

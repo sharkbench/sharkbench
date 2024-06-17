@@ -155,21 +155,29 @@ fn run_all_languages<F>(dir: &str, skip_existing: &HashMap<String, HashSet<Strin
 
 fn run_one_language<F>(dir: &str, skip_existing: Option<&HashSet<String>>, reader: &mut DockerStatsReader, run: F)
     where F: Fn(&str, &mut DockerStatsReader) {
-    let benchmarks = fs::read_dir(dir).expect(format!("Could not read directory {}", dir).as_str());
-    for b in benchmarks {
-        let version = b.unwrap();
-        if !version.file_type().unwrap().is_dir() {
+    let folders = fs::read_dir(dir).expect(&format!("Could not read directory {}", dir));
+    for folder in folders {
+        let folder = folder.unwrap();
+        if !folder.file_type().unwrap().is_dir() {
+            // Only run on directories
+            continue;
+        }
+
+        let directory_name = folder.file_name().to_str().unwrap().to_owned();
+
+        if directory_name == utils::copy_files::COMMON_DIR {
+            // Skip the common directory
             continue;
         }
 
         if let Some(skip_existing) = skip_existing {
-            if skip_existing.contains(version.file_name().to_str().unwrap()) {
-                println!(" -> Skipping {}/{}", dir, version.file_name().to_str().unwrap());
+            if skip_existing.contains(&directory_name) {
+                println!(" -> Skipping {dir}/{directory_name}");
                 continue;
             }
         }
 
-        let full_dir = format!("{}", version.path().display());
-        run(full_dir.as_str(), reader);
+        let full_dir = format!("{}", folder.path().display());
+        run(&full_dir, reader);
     }
 }

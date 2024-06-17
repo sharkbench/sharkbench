@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use crate::utils::meta_data_parser::CopyValue;
 
-const COMMON_DIR: &str = "_common";
+pub(crate) const COMMON_DIR: &str = "_common";
 
 /// Copy files from the source to the destination.
 pub(crate) fn copy_files(work_dir: &str, files: &Vec<CopyValue>) {

@@ -1,8 +1,14 @@
-FROM rust:1.40-slim
+FROM rust:1.40-slim as builder
 
 WORKDIR /app
-COPY . .
+COPY src ./src
+COPY Cargo.toml ./Cargo.toml
 
-RUN cargo install --path .
+RUN cargo build --release
 
-CMD ["benchmark"]
+FROM debian:bookworm-slim as runner
+
+WORKDIR /app
+COPY --from=builder /app/target/release/benchmark ./benchmark
+
+CMD ["./benchmark"]

@@ -83,6 +83,7 @@ pub fn run_benchmark<F>(
 
     run_docker_compose(
         dir,
+        Duration::from_secs(5),
         Some(COMPOSE_FILE),
         || {
             println!(" -> Running benchmark");

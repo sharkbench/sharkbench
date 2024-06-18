@@ -13,7 +13,7 @@ target
 /// Starts a docker container with the given `compose_file`.
 /// The container is stopped after the function `on_container_started` has finished.
 /// If `compose_file` is `None`, the directory is expected to contain a docker-compose.yml file.
-pub fn run_docker_compose<F>(dir: &str, compose_file: Option<&str>, on_container_started: F)
+pub fn run_docker_compose<F>(dir: &str, delay: Duration, compose_file: Option<&str>, on_container_started: F)
     where
         F: FnOnce(),
 {
@@ -27,7 +27,7 @@ pub fn run_docker_compose<F>(dir: &str, compose_file: Option<&str>, on_container
 
     // A heuristic to wait for the container to be ready
     println!(" -> Waiting for container to be ready");
-    thread::sleep(Duration::from_secs(5));
+    thread::sleep(delay);
 
     on_container_started();
 

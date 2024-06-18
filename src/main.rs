@@ -2,6 +2,7 @@ extern crate core;
 
 use std::collections::{HashMap, HashSet};
 use std::fs;
+use std::time::Duration;
 use clap::Parser;
 use docker_stats::DockerStatsReader;
 use crate::benchmark::computation::benchmark_computation;
@@ -64,7 +65,7 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, None, || {
+            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
                 benchmark_web(full_dir.as_str(), &mut reader, args.verbose);
             });
         } else {
@@ -94,7 +95,7 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", language);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, None, || {
+            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
                 run_one_language(
                     full_dir.as_str(),
                     existing_results.web.get(&language),
@@ -124,7 +125,7 @@ fn main() {
 
     if args.web {
         println!(" -> Running web benchmarks");
-        run_docker_compose(WEB_DATASOURCE_DIR, None, || {
+        run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
             run_all_languages(
                 "benchmark/web",
                 &existing_results.web,

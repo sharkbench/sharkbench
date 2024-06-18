@@ -1,20 +1,15 @@
 use axum::Router;
-use memory_serve::{CacheControl, load_assets, MemoryServe};
+use axum::routing::get;
 
 #[tokio::main]
 async fn main() {
-    let memory_router = MemoryServe::new(load_assets!("static"))
-        .cache_control(CacheControl::Custom("no-cache, no-store, must-revalidate"))
-        .html_cache_control(CacheControl::Custom("no-cache, no-store, must-revalidate"))
-        .enable_gzip(false)
-        .enable_brotli(false)
-        .into_router();
+    let element_file: &'static String = Box::leak(Box::new(std::fs::read_to_string("static/element.json").unwrap()));
+    let shells_file: &'static String = Box::leak(Box::new(std::fs::read_to_string("static/shells.json").unwrap()));
 
-    let app = Router::new().merge(memory_router);
+    let app = Router::new()
+        .route("/element.json", get(|| async { element_file.to_owned() }))
+        .route("/shells.json", get(|| async { shells_file.to_owned() }));
 
-    let address = "0.0.0.0:80";
-    let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
-    println!("Started Rust server serving static files.");
-    println!("Listening on {address}");
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:80").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

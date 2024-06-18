@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7"
-memory-serve = "0.4.0"
-tokio = { version = "1.0", features = ["full"] }
+axum = "0.7.5"
+memory-serve = "0.4.5"
+tokio = { version = "1.38.0", features = ["full"] }

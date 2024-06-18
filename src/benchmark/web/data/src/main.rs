@@ -1,8 +1,6 @@
 use axum::Router;
 use memory_serve::{CacheControl, load_assets, MemoryServe};
 
-const PORT: u16 = 80;
-
 #[tokio::main]
 async fn main() {
     let memory_router = MemoryServe::new(load_assets!("static"))
@@ -14,9 +12,9 @@ async fn main() {
 
     let app = Router::new().merge(memory_router);
 
-    let address = format!("0.0.0.0:{}", PORT);
+    let address = "0.0.0.0:80";
     let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
     println!("Started Rust server serving static files.");
-    println!("Listening on {}", address);
+    println!("Listening on {address}");
     axum::serve(listener, app).await.unwrap();
 }

@@ -1,6 +1,6 @@
-ARG JAVA_VERSION=8
+ARG JAVA_VERSION=21
 
-FROM maven:3-eclipse-temurin-${JAVA_VERSION} AS builder
+FROM maven:3-ibm-semeru-${JAVA_VERSION}-jammy AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY src ./src
 
 RUN mvn package -DskipTests
 
-FROM eclipse-temurin:${JAVA_VERSION} AS runtime
+FROM ibm-semeru-runtimes:open-${JAVA_VERSION}-jre-jammy AS runtime
 
 WORKDIR /app
 

@@ -1,6 +1,6 @@
 ARG JAVA_VERSION=17
 
-FROM maven:3-eclipse-temurin-${JAVA_VERSION} AS build
+FROM maven:3-ibm-semeru-${JAVA_VERSION}-focal AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY src ./src
 
 RUN mvn package -DskipTests
 
-FROM eclipse-temurin:${JAVA_VERSION}
+FROM ibm-semeru-runtimes:open-${JAVA_VERSION}-jre-focal AS runtime
 
 WORKDIR /app
 

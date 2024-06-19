@@ -1,6 +1,6 @@
-ARG JDK_VERSION=17
+ARG JAVA_VERSION=17
 
-FROM registry.access.redhat.com/ubi8/openjdk-${JDK_VERSION} AS build
+FROM registry.access.redhat.com/ubi8/openjdk-${JAVA_VERSION} AS build
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn package -DskipTests
 
-FROM registry.access.redhat.com/ubi8/openjdk-${JDK_VERSION}
+FROM registry.access.redhat.com/ubi8/openjdk-${JAVA_VERSION}
 
 COPY --from=build /app/target/quarkus-app/lib/ /deployments/lib/
 COPY --from=build /app/target/quarkus-app/*.jar /deployments/

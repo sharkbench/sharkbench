@@ -1,9 +1,6 @@
 language: Java
-mode: Temurin
+mode: Semeru
 version:
-  - '8'
-  - '11'
-  - '17'
   - '21'
 version_regex:
   Dockerfile: 'ARG JAVA_VERSION=(\d+)'

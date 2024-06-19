@@ -1,6 +1,6 @@
 ARG JAVA_VERSION=11
 
-FROM maven:3-eclipse-temurin-${JAVA_VERSION}
+FROM maven:3-ibm-semeru-${JAVA_VERSION}-focal
 
 WORKDIR /app
 

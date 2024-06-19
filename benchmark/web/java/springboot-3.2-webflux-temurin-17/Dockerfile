@@ -1,4 +1,6 @@
-FROM maven:3-eclipse-temurin-17 AS build
+ARG JAVA_VERSION=17
+
+FROM maven:3-eclipse-temurin-${JAVA_VERSION} AS build
 
 WORKDIR /app
 
@@ -10,7 +12,7 @@ COPY src ./src
 
 RUN mvn package -DskipTests
 
-FROM eclipse-temurin:17
+FROM eclipse-temurin:${JAVA_VERSION}
 
 WORKDIR /app
 

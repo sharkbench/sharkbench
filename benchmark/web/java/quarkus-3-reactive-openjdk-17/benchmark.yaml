@@ -4,7 +4,7 @@ version:
   - '17'
   - '21'
 version_regex:
-  Dockerfile: 'ARG JDK_VERSION=(\d+)'
+  Dockerfile: 'ARG JAVA_VERSION=(\d+)'
   pom.xml: '<maven\.compiler\.release>(\d+)<\/maven\.compiler\.release>'
 framework: Quarkus
 framework_website: https://quarkus.io

@@ -14,3 +14,8 @@ framework_version:
   - '2.7'
 
 extended_warmup: true
+
+copy:
+  - 'springboot/DemoApplication.java': 'src/main/java/com/example/demo/DemoApplication.java'
+  - 'springboot/application.properties': 'src/main/resources/application.properties'
+  - 'springboot-mvc/MyController-java-8.java': 'src/main/java/com/example/demo/MyController.java'

@@ -30,7 +30,27 @@ pub(crate) fn delete_copied_files(work_dir: &str, files: &Vec<CopyValue>) {
         };
 
         let final_dst = format!("{work_dir}/{dst}");
-        fs::remove_file(final_dst).expect("Failed to remove file");
+        fs::remove_file(&final_dst).expect("Failed to remove file");
         println!(" -> Removed {dst}");
+
+        let parent_path = Path::new(&final_dst).parent().unwrap();
+        delete_empty_folder(parent_path, work_dir);
+    }
+}
+
+/// Recursively delete empty folders from the leaves to the nearest parent which is not empty.
+fn delete_empty_folder(folder_path: &Path, work_dir: &str) {
+    match fs::read_dir(folder_path) {
+        Ok(mut entries) => {
+            if entries.next().is_none() {
+                fs::remove_dir(folder_path).expect("Failed to remove directory");
+                println!(" -> Removed {}", folder_path.display().to_string().replace(work_dir, "")[1..].to_string());
+
+                let parent_path = Path::new(folder_path).parent().unwrap();
+                delete_empty_folder(parent_path, work_dir);
+                return;
+            }
+        }
+        Err(_) => println!(" -> Error while reading directory {folder_path:?}"),
     }
 }

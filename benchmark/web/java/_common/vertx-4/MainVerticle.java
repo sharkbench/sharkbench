@@ -32,21 +32,17 @@ public class MainVerticle extends AbstractVerticle {
         webClientElement.get("/element.json")
                 .as(BodyCodec.jsonObject())
                 .send(ar -> {
-                    if (ar.succeeded()) {
-                        JsonObject elements = ar.result().body();
-                        JsonObject elementData = elements.getJsonObject(symbol);
+                    JsonObject elements = ar.result().body();
+                    JsonObject elementData = elements.getJsonObject(symbol);
 
-                        JsonObject response = new JsonObject()
-                                .put("name", elementData.getString("name"))
-                                .put("number", elementData.getInteger("number"))
-                                .put("group", elementData.getInteger("group"));
+                    JsonObject response = new JsonObject()
+                            .put("name", elementData.getString("name"))
+                            .put("number", elementData.getInteger("number"))
+                            .put("group", elementData.getInteger("group"));
 
-                        context.response()
-                                .putHeader("Content-Type", "application/json")
-                                .end(response.encode());
-                    } else {
-                        context.response().setStatusCode(500).end();
-                    }
+                    context.response()
+                            .putHeader("Content-Type", "application/json")
+                            .end(response.encode());
                 });
     }
 
@@ -56,17 +52,13 @@ public class MainVerticle extends AbstractVerticle {
         webClientShells.get("/shells.json")
                 .as(BodyCodec.jsonObject())
                 .send(ar -> {
-                    if (ar.succeeded()) {
-                        JsonObject elements = ar.result().body();
-                        JsonObject response = new JsonObject()
-                                .put("shells", elements.getJsonArray(symbol));
+                    JsonObject elements = ar.result().body();
+                    JsonObject response = new JsonObject()
+                            .put("shells", elements.getJsonArray(symbol));
 
-                        context.response()
-                                .putHeader("Content-Type", "application/json")
-                                .end(response.encode());
-                    } else {
-                        context.response().setStatusCode(500).end();
-                    }
+                    context.response()
+                            .putHeader("Content-Type", "application/json")
+                            .end(response.encode());
                 });
     }
 }

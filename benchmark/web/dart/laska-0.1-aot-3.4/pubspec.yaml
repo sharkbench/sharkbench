@@ -1,0 +1,8 @@
+name: benchmark
+
+environment:
+  sdk: ">=3.4.0"
+
+dependencies:
+  laska:
+    git: https://github.com/tenderowl/laska.git

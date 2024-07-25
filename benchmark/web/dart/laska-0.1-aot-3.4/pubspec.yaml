@@ -5,4 +5,6 @@ environment:
 
 dependencies:
   laska:
-    git: https://github.com/tenderowl/laska.git
+    git: 
+      url: https://github.com/tenderowl/laska.git
+      ref: '3777530'

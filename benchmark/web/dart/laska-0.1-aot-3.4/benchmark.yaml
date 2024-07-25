@@ -3,7 +3,7 @@ mode: AOT
 version: # only even versions and last minor
   - '3.4'
 framework: Laska
-framework_stdlib: true
+framework_stdlib: false
 framework_website: https://github.com/tenderowl/laska
 framework_flavor: Default
 framework_version:

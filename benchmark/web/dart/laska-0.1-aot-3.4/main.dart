@@ -39,32 +39,5 @@ void main() async {
   });
 
   await run(laska);
-
-  //   final symbol = request.uri.queryParameters['symbol'] as String;
-
-  //   switch (request.uri.path) {
-  //     case '/api/v1/periodic-table/element':
-  //       final tmpReq = await httpClient.getUrl(elementUrl);
-  //       final tmpRes = await tmpReq.close();
-  //       final json = jsonDecode(await tmpRes.transform(utf8.decoder).join())
-  //           as Map<String, dynamic>;
-
-  //       final entry = json[symbol] as Map<String, dynamic>;
-  //       request.response.write(jsonEncode(entry));
-  //       break;
-  //     case '/api/v1/periodic-table/shells':
-  //       final tmpReq = await httpClient.getUrl(shellsUrl);
-  //       final tmpRes = await tmpReq.close();
-  //       final json = jsonDecode(await tmpRes.transform(utf8.decoder).join())
-  //           as Map<String, dynamic>;
-
-  //       request.response.write(jsonEncode({
-  //         'shells': json[symbol],
-  //       }));
-  //       break;
-  //   }
-  //   request.response.close();
-  // });
-
   print('Running on port $port');
 }

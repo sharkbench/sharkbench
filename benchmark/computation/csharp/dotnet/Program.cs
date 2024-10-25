@@ -34,7 +34,7 @@ static async Task Run(int port)
 	// ReSharper disable once FunctionNeverReturns
 }
 
-static int CreateResponse(Span<byte> buffer, int iterations, bool addHeader = true)
+static int CreateResponse(Span<byte> buffer, int iterations, bool addHeader = false)
 {
 #if NET8_0_OR_GREATER
 	const byte semicolon = (byte)';';

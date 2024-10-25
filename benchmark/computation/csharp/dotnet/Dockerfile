@@ -2,15 +2,11 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
 WORKDIR /app
 
-# Dependencies
-COPY *.csproj ./
-RUN dotnet restore
-
 COPY . ./
 
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o out /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS deploy
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS deploy
 
 WORKDIR /app
 COPY --from=build /app/out .

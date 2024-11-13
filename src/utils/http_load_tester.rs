@@ -80,7 +80,7 @@ async fn run_load_test(
                             } else {
                                 local_fail_count += 1;
                                 if verbose {
-                                    println!("Unexpected response for {}: {}, expected: {:?}", uri, body, expected_response);
+                                    println!("Unexpected response {} for {}: {}, expected: {:?}", *status, uri, body, expected_response);
                                     println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
                                 }
                             }

@@ -1,18 +1,42 @@
+use rama::Service;
+use rama::error::OpaqueError;
+use rama::http::client::{EasyHttpWebClient, TlsConnectorConfig};
 use rama::http::matcher::HttpMatcher;
 use rama::http::response::Json;
 use rama::http::server::HttpServer;
+use rama::http::service::client::HttpClientExt;
 use rama::http::service::web::extract::Query;
 use rama::http::service::web::match_service;
-use rama::http::StatusCode;
+use rama::http::{BodyExtractExt, Request, Response, StatusCode};
+use rama::net::address::SocketAddress;
+use rama::net::client::Pool;
+use rama::net::tls::ApplicationProtocol;
+use rama::net::tls::client::{ClientConfig, ClientHelloExtension, ServerVerifyMode};
 use rama::rt::Executor;
-use reqwest::Client;
+use rama::service::BoxService;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+type Client = BoxService<(), Request, Response, OpaqueError>;
+
 #[tokio::main]
 async fn main() {
-    let client = Arc::new(Client::new());
+    let client = Arc::new(
+        EasyHttpWebClient::default()
+            .with_connection_pool(Pool::default())
+            .with_tls_connector_config(TlsConnectorConfig::Boring(Some(ClientConfig {
+                server_verify_mode: Some(ServerVerifyMode::Disable),
+                extensions: Some(vec![
+                    ClientHelloExtension::ApplicationLayerProtocolNegotiation(vec![
+                        ApplicationProtocol::HTTP_2,
+                        ApplicationProtocol::HTTP_11,
+                    ]),
+                ]),
+                ..Default::default()
+            })))
+            .boxed(),
+    );
     let state = State { client };
 
     let http_service = match_service! {
@@ -22,7 +46,7 @@ async fn main() {
     };
 
     HttpServer::auto(Executor::default())
-        .listen_with_state(state, "0.0.0.0:3000", http_service)
+        .listen_with_state(state, SocketAddress::local_ipv4(3000), http_service)
         .await
         .unwrap();
 }
@@ -44,10 +68,10 @@ async fn get_element(Query(query): Query<SymbolQuery>, ctx: Context) -> Json<Ele
         .state()
         .client
         .get("http://web-data-source/element.json")
-        .send()
+        .send(Default::default())
         .await
         .unwrap()
-        .json()
+        .try_into_json()
         .await
         .unwrap();
     let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
@@ -63,10 +87,10 @@ async fn get_shells(Query(query): Query<SymbolQuery>, ctx: Context) -> Json<Shel
         .state()
         .client
         .get("http://web-data-source/shells.json")
-        .send()
+        .send(Default::default())
         .await
         .unwrap()
-        .json()
+        .try_into_json()
         .await
         .unwrap();
     Json(ShellsResponse {

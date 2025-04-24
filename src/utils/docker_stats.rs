@@ -1,13 +1,8 @@
 use std::process::{Command, Child};
 use std::io::{BufReader, BufRead};
 use std::sync::{Arc, Mutex};
-use std::sync::mpsc::{self, Receiver};
 use regex::Regex;
 use crate::utils::percentile;
-
-// The start of a stats line is marked by the following bytes.
-// We ignore them because they are not valid JSON.
-const STATS_PREFIX: &[u8] = &[27, 91, 50, 74, 27, 91, 72];
 
 pub struct DockerStatsReader {
     container_name: &'static str,
@@ -31,8 +26,7 @@ impl DockerStatsReader {
         }
     }
 
-    pub fn run(&mut self) -> Receiver<()> {
-        let (tx, rx) = mpsc::channel();
+    pub fn run(&mut self) {
         let container_name = self.container_name;
         let is_tracking = Arc::clone(&self.is_tracking);
         let ram_usage = Arc::clone(&self.ram_usage);
@@ -52,11 +46,9 @@ impl DockerStatsReader {
             for line in reader.lines() {
                 if *is_tracking.lock().unwrap() {
                     let line = line.unwrap();
-                    let trimmed = if line.as_bytes().starts_with(STATS_PREFIX) {
-                        // Trim off the prefix
-                        &line[STATS_PREFIX.len()..]
-                    } else {
-                        &line[..]
+                    let trimmed = match (line.find('{'), line.rfind('}')) {
+                        (Some(start), Some(end)) => &line[start..=end],
+                        _ => "",
                     };
                     if trimmed.is_empty() {
                         continue;
@@ -65,7 +57,7 @@ impl DockerStatsReader {
                     let json: serde_json::Value = match serde_json::from_str(trimmed) {
                         Ok(json) => json,
                         Err(e) => {
-                            println!("Failed to parse JSON: {} \n {}", trimmed, e);
+                            eprintln!("Failed to parse JSON: {} \n {}", trimmed, e);
                             continue;
                         }
                     };
@@ -79,10 +71,7 @@ impl DockerStatsReader {
             }
 
             println!("Docker stats reader thread finished");
-            tx.send(()).unwrap();
         });
-
-        rx
     }
 
     pub fn stop(&mut self) {
@@ -119,10 +108,18 @@ impl DockerStatsReader {
 }
 
 /// Parses the given memory usage string and returns the number of bytes.
-/// Example: "1.5GiB" -> 1610612736
+/// Example: "1.5GiB / 16GiB" -> 1610612736
 fn get_bytes_of_ram(mem_usage: &str) -> i64 {
+    let actual_usage = if mem_usage.contains('/') {
+        // "used / limit"
+        mem_usage.split('/').next().unwrap().trim()
+    } else {
+        // "used"
+        mem_usage.trim()
+    };
+
     let mem_usage_regex = Regex::new(r"(\d*\.?\d+)(\w+)").unwrap();
-    let mem_usage_match = mem_usage_regex.captures(mem_usage).unwrap();
+    let mem_usage_match = mem_usage_regex.captures(actual_usage).unwrap();
     let mem_usage_value = mem_usage_match.get(1).unwrap().as_str().parse::<f64>().unwrap();
     let mem_usage_unit = mem_usage_match.get(2).unwrap().as_str();
 

@@ -54,8 +54,8 @@ const WEB_DATASOURCE_DIR: &str = "src/benchmark/web/data";
 fn main() {
     let mut args = Args::parse();
 
-    let mut reader = DockerStatsReader::new(CONTAINER_NAME);
-    reader.run();
+    let mut reader = DockerStatsReader::new();
+    reader.run(CONTAINER_NAME);
 
     if let Some(dir) = args.only {
         if args.computation {

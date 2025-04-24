@@ -5,7 +5,6 @@ use regex::Regex;
 use crate::utils::percentile;
 
 pub struct DockerStatsReader {
-    container_name: &'static str,
     is_tracking: Arc<Mutex<bool>>,
     process: Option<Child>,
     ram_usage: Arc<Mutex<Vec<i64>>>,
@@ -17,17 +16,15 @@ pub struct MemoryUsage {
 }
 
 impl DockerStatsReader {
-    pub fn new(container_name: &'static str) -> DockerStatsReader {
+    pub fn new() -> DockerStatsReader {
         DockerStatsReader {
-            container_name,
             is_tracking: Arc::new(Mutex::new(false)),
             process: None,
             ram_usage: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
-    pub fn run(&mut self) {
-        let container_name = self.container_name;
+    pub fn run(&mut self, container_name: &'static str) {
         let is_tracking = Arc::clone(&self.is_tracking);
         let ram_usage = Arc::clone(&self.ram_usage);
 

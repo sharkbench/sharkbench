@@ -39,6 +39,7 @@ cargo run --release -- -h
 
 - [Rust](https://www.rust-lang.org/)
 - [Docker](https://www.docker.com/)
+- [OpenSSL](https://www.openssl.org/)
 
 Create Docker network:
 

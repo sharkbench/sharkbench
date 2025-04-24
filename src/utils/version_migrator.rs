@@ -201,8 +201,8 @@ mod tests {
         let actual = migrate_contents(original, regex, initial_version, target_version).unwrap();
         assert_eq!(expected, actual);
 
-        let original = "FROM rust:1.0.0-rc1 as builder";
-        let expected = "FROM rust:2.0.0-rc1 as builder";
+        let original = "FROM rust:1.0.0-rc1 AS builder";
+        let expected = "FROM rust:2.0.0-rc1 AS builder";
         let actual = migrate_contents(original, regex, initial_version, target_version).unwrap();
         assert_eq!(expected, actual);
 
@@ -211,8 +211,8 @@ mod tests {
         let actual = migrate_contents(original, regex, initial_version, target_version).unwrap();
         assert_eq!(expected, actual);
 
-        let original = "FROM rust:1.0.0-rc1 as builder\nFROM rust:1.0.0";
-        let expected = "FROM rust:2.0.0-rc1 as builder\nFROM rust:2.0.0";
+        let original = "FROM rust:1.0.0-rc1 AS builder\nFROM rust:1.0.0";
+        let expected = "FROM rust:2.0.0-rc1 AS builder\nFROM rust:2.0.0";
         let actual = migrate_contents(original, regex, initial_version, target_version).unwrap();
         assert_eq!(expected, actual);
 

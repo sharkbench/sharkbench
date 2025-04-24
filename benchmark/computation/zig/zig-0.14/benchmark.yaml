@@ -1,0 +1,4 @@
+language: Zig
+mode: Default
+version:
+  - '0.14'

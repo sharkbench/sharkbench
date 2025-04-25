@@ -1,19 +1,15 @@
-use rama::Service;
 use rama::error::OpaqueError;
-use rama::http::client::{EasyHttpWebClient, TlsConnectorConfig};
-use rama::http::matcher::HttpMatcher;
+use rama::http::client::EasyHttpWebClient;
 use rama::http::response::Json;
 use rama::http::server::HttpServer;
 use rama::http::service::client::HttpClientExt;
 use rama::http::service::web::extract::Query;
-use rama::http::service::web::match_service;
-use rama::http::{BodyExtractExt, Request, Response, StatusCode};
+use rama::http::service::web::Router;
+use rama::http::{BodyExtractExt, Request, Response};
 use rama::net::address::SocketAddress;
-use rama::net::client::Pool;
-use rama::net::tls::ApplicationProtocol;
-use rama::net::tls::client::{ClientConfig, ClientHelloExtension, ServerVerifyMode};
 use rama::rt::Executor;
 use rama::service::BoxService;
+use rama::Service;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -22,28 +18,12 @@ type Client = BoxService<(), Request, Response, OpaqueError>;
 
 #[tokio::main]
 async fn main() {
-    let client = Arc::new(
-        EasyHttpWebClient::default()
-            .with_connection_pool(Pool::default())
-            .with_tls_connector_config(TlsConnectorConfig::Boring(Some(ClientConfig {
-                server_verify_mode: Some(ServerVerifyMode::Disable),
-                extensions: Some(vec![
-                    ClientHelloExtension::ApplicationLayerProtocolNegotiation(vec![
-                        ApplicationProtocol::HTTP_2,
-                        ApplicationProtocol::HTTP_11,
-                    ]),
-                ]),
-                ..Default::default()
-            })))
-            .boxed(),
-    );
+    let client = Arc::new(EasyHttpWebClient::default().boxed());
     let state = State { client };
 
-    let http_service = match_service! {
-        HttpMatcher::get("/api/v1/periodic-table/element") => get_element,
-        HttpMatcher::get("/api/v1/periodic-table/shells") => get_shells,
-        _ => StatusCode::NOT_FOUND,
-    };
+    let http_service = Router::new()
+        .get("/api/v1/periodic-table/element", get_element)
+        .get("/api/v1/periodic-table/shells", get_shells);
 
     HttpServer::auto(Executor::default())
         .listen_with_state(state, SocketAddress::local_ipv4(3000), http_service)

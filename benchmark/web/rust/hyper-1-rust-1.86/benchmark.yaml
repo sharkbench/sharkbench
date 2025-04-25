@@ -1,7 +1,7 @@
 language: Rust
 mode: Default
 version:
-  - '1.74'
+  - '1.86'
 framework: Hyper
 framework_website: https://hyper.rs
 framework_flavor: Default

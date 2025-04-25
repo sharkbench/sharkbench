@@ -158,7 +158,7 @@ Each benchmark has access to `http://web-data-source/element.json` and `http://w
 which is provided by the [web-data-source](https://github.com/sharkbench/sharkbench/tree/main/src/benchmark/web/data/static).
 This data source is used to simulate I/O (similar to database queries).
 
-The application should parse the `element` query parameter, fetch the json from the data source, and return the result.
+The application should parse the `symbol` query parameter, fetch the json from the data source, and return the result.
 The exact API is as follows:
 
 ### ➤ Route A
@@ -166,7 +166,7 @@ The exact API is as follows:
 Request:
 
 ```text
-GET /api/v1/periodic-table?element=He
+GET /api/v1/periodic-table/element?symbol=He
 ```
 
 Response:
@@ -184,7 +184,7 @@ Response:
 Request:
 
 ```text
-GET /api/v1/periodic-table/shells?element=He
+GET /api/v1/periodic-table/shells?symbol=He
 ```
 
 Response:

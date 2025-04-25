@@ -6,4 +6,4 @@ framework: Rama
 framework_website: https://github.com/plabayo/rama
 framework_flavor: Default
 framework_version:
-  - "0.2.0-alpha-11"
+  - "0.2.0-alpha-13"

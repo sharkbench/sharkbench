@@ -1,7 +1,7 @@
 language: Rust
 mode: Default
 version:
-  - '1.74'
+  - '1.86'
 framework: Actix
 framework_website: https://actix.rs
 framework_flavor: Default

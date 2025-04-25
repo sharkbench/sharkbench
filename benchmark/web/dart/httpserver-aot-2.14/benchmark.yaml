@@ -8,6 +8,7 @@ version: # only even versions and last minor
   - '3.0'
   - '3.2'
   - '3.4'
+  - '3.6'
 framework: HttpServer
 framework_stdlib: true
 framework_website: https://api.dart.dev/stable/dart-io/HttpServer-class.html

@@ -1,7 +1,7 @@
 language: Rust
 mode: Default
 version:
-  - '1.74'
+  - '1.86'
 framework: Rocket
 framework_website: https://rocket.rs
 framework_flavor: Default

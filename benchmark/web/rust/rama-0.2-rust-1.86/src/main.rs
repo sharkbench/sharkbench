@@ -6,7 +6,6 @@ use rama::{
         layer::{
             decompression::DecompressionLayer, map_response_body::MapResponseBodyLayer,
             required_header::AddRequiredRequestHeadersLayer, timeout::TimeoutLayer,
-            trace::TraceLayer,
         },
         response::Json,
         server::HttpServer,
@@ -34,13 +33,19 @@ use rama::{
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
 use std::{num::NonZeroU16, sync::Arc};
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::{fmt, layer::SubscriberExt as _, util::SubscriberInitExt, EnvFilter};
+
+#[cfg(feature = "tracing")]
+use ::{
+    rama::http::layer::trace::TraceLayer,
+    tracing::level_filters::LevelFilter,
+    tracing_subscriber::{fmt, layer::SubscriberExt as _, util::SubscriberInitExt, EnvFilter},
+};
 
 type Client = Arc<BoxService<(), Request, Response, OpaqueError>>;
 
 #[tokio::main]
 async fn main() -> Result<(), BoxError> {
+    #[cfg(feature = "tracing")]
     let _ = tracing_subscriber::registry()
         .with(fmt::layer())
         .with(
@@ -56,10 +61,18 @@ async fn main() -> Result<(), BoxError> {
     let app = Router::new()
         .get("/api/v1/periodic-table/element", get_element)
         .get("/api/v1/periodic-table/shells", get_shells);
-    let http_service = TraceLayer::new_for_http().into_layer(app);
 
     let addr = SocketAddress::default_ipv4(3000);
-    tracing::info!("run benchmark rama server @ {addr}");
+
+    #[cfg(feature = "tracing")]
+    let http_service = {
+        tracing::info!("run benchmark rama server @ {addr}");
+        TraceLayer::new_for_http().into_layer(app)
+    };
+
+    #[cfg(not(feature = "tracing"))]
+    let http_service = app;
+
     HttpServer::auto(Executor::default())
         .listen_with_state(state, addr, http_service)
         .await
@@ -107,6 +120,7 @@ async fn get_shells(
 }
 
 fn map_internal_error(err: OpaqueError) -> (StatusCode, String) {
+    #[cfg(feature = "tracing")]
     tracing::error!(?err, "client fetch call failed (resp: status 500)");
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }

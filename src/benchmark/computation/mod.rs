@@ -10,7 +10,7 @@ use std::time::Duration;
 
 const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
 const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.7853981633136793";
-const DEFAULT_RUNS: usize = 5;
+const DEFAULT_RUNS: usize = 15;
 
 pub fn benchmark_computation(
     dir: &str,
@@ -37,10 +37,7 @@ pub fn benchmark_computation(
 
     let runs = match meta_data.runs {
         Some(runs) => {
-            println!(
-                " -> Running {} times instead of default = {}",
-                runs, DEFAULT_RUNS
-            );
+            println!(" -> Running {runs} times instead of default = {DEFAULT_RUNS}");
             runs
         }
         None => DEFAULT_RUNS,

@@ -142,7 +142,7 @@ pub fn benchmark_web(
                 match validate {
                     true => 0,
                     false => match meta_data.extended_warmup {
-                        true => 3,
+                        true => 5,
                         false => 1,
                     },
                 },

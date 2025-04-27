@@ -19,6 +19,7 @@ pub fn benchmark_web(
     dir: &str,
     existing: Option<&ExistingResult>,
     stats_reader: &mut DockerStatsReader,
+    validate: bool,
     verbose: bool,
 ) {
     let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
@@ -138,15 +139,24 @@ pub fn benchmark_web(
                 dir,
                 stats_reader,
                 version_migrations.iter_mut().collect(),
-                match meta_data.extended_warmup {
-                    true => 3,
-                    false => 1,
+                match validate {
+                    true => 0,
+                    false => match meta_data.extended_warmup {
+                        true => 3,
+                        false => 1,
+                    },
                 },
-                5,
+                match validate {
+                    true => 1,
+                    false => 5,
+                },
                 || {
                     let result = run_http_load_test(
                         concurrency,
-                        Duration::from_secs(15),
+                        Duration::from_secs(match validate {
+                            true => 2,
+                            false => 15,
+                        }),
                         &requests,
                         response_validator,
                         verbose,
@@ -172,6 +182,10 @@ pub fn benchmark_web(
 
             if let Some(copy_files) = &meta_data.copy {
                 copy_files::delete_copied_files(dir, &copy_files);
+            }
+
+            if validate {
+                continue;
             }
 
             #[rustfmt::skip]

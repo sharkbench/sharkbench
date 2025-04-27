@@ -46,6 +46,11 @@ struct Args {
     /// Only run missing benchmarks
     #[arg(long)]
     missing: bool,
+
+    /// Reduce the benchmark time to a minimum to only check if it runs.
+    /// No results will be saved.
+    #[arg(long)]
+    validate: bool,
 }
 
 const CONTAINER_NAME: &str = "benchmark";
@@ -80,6 +85,7 @@ fn main() {
                     .get(&language)
                     .and_then(|map| map.get(&variant)),
                 &mut reader,
+                args.validate,
             );
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", dir);
@@ -92,6 +98,7 @@ fn main() {
                         .get(&language)
                         .and_then(|map| map.get(&variant)),
                     &mut reader,
+                    args.validate,
                     args.verbose,
                 );
             });
@@ -112,7 +119,9 @@ fn main() {
                 full_dir.as_str(),
                 existing_results.computation.get(&language),
                 &mut reader,
-                benchmark_computation,
+                |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
+                    benchmark_computation(dir, existing, reader, args.validate)
+                },
             );
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", language);
@@ -125,7 +134,7 @@ fn main() {
                     |dir: &str,
                      existing: Option<&ExistingResult>,
                      reader: &mut DockerStatsReader| {
-                        benchmark_web(dir, existing, reader, args.verbose)
+                        benchmark_web(dir, existing, reader, args.validate, args.verbose)
                     },
                 );
             });
@@ -150,7 +159,9 @@ fn main() {
             "benchmark/computation",
             &existing_results.computation,
             &mut reader,
-            benchmark_computation,
+            |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
+                benchmark_computation(dir, existing, reader, args.validate)
+            },
         );
     }
 
@@ -162,7 +173,7 @@ fn main() {
                 &existing_results.web,
                 &mut reader,
                 |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
-                    benchmark_web(dir, existing, reader, args.verbose)
+                    benchmark_web(dir, existing, reader, args.validate, args.verbose)
                 },
             );
         });

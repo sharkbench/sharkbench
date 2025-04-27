@@ -16,6 +16,7 @@ pub fn benchmark_computation(
     dir: &str,
     existing: Option<&ExistingResult>,
     stats_reader: &mut DockerStatsReader,
+    validate: bool,
 ) {
     let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
         .expect(&format!("Failed to read meta data: {dir}"));
@@ -35,12 +36,15 @@ pub fn benchmark_computation(
     println!(" -> Benchmarking {}", dir);
     meta_data.print_info();
 
-    let runs = match meta_data.runs {
-        Some(runs) => {
-            println!(" -> Running {runs} times instead of default = {DEFAULT_RUNS}");
-            runs
-        }
-        None => DEFAULT_RUNS,
+    let runs = match validate {
+        true => 1,
+        false => match meta_data.runs {
+            Some(runs) => {
+                println!(" -> Running {runs} times instead of default = {DEFAULT_RUNS}");
+                runs
+            }
+            None => DEFAULT_RUNS,
+        },
     };
 
     for language_version in &meta_data.language_version {
@@ -71,9 +75,12 @@ pub fn benchmark_computation(
             dir,
             stats_reader,
             version_migrations.iter_mut().collect(),
-            match meta_data.extended_warmup {
-                true => 3,
-                false => 1,
+            match validate {
+                true => 0,
+                false => match meta_data.extended_warmup {
+                    true => 3,
+                    false => 1,
+                },
             },
             runs,
             || {
@@ -104,6 +111,10 @@ pub fn benchmark_computation(
 
         if let Some(copy_files) = &meta_data.copy {
             copy_files::delete_copied_files(dir, &copy_files);
+        }
+
+        if validate {
+            continue;
         }
 
         write_result_to_file(

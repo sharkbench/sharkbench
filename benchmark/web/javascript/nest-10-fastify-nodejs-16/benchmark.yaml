@@ -4,6 +4,7 @@ version:
   - '16'
   - '18'
   - '20'
+  - '22'
 framework: Nest
 framework_website: https://nestjs.com
 framework_flavor: Fastify

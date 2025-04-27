@@ -6,6 +6,7 @@ version:
   - '16'
   - '18'
   - '20'
+  - '22'
 framework: Express
 framework_website: https://expressjs.com
 framework_flavor: Default

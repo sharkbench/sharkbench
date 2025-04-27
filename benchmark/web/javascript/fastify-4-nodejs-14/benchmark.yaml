@@ -5,6 +5,7 @@ version:
   - '16'
   - '18'
   - '20'
+  - '22'
 framework: Fastify
 framework_website: https://fastify.dev
 framework_flavor: Default

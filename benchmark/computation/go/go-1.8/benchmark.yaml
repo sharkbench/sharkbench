@@ -1,10 +1,8 @@
 language: Go
 mode: Default
-version: # only even versions
+version: # every 4 versions
   - '1.8'
-  - '1.10'
   - '1.12'
-  - '1.14'
   - '1.16'
-  - '1.18'
   - '1.20'
+  - '1.24'

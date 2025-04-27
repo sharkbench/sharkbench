@@ -58,7 +58,12 @@ pub struct WebBenchmarkMetaData {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub(crate) enum CopyValue {
+    /// Copy a file without changing its path.
+    /// Example: 'main.dart'
     Primitive(String),
+    
+    /// Copy a file and change its path.
+    /// Example: 'Main.java': 'src/main/java/example/Main.java'
     Map(IndexMap<String, String>),
 }
 

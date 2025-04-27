@@ -1,15 +1,15 @@
 extern crate core;
 
-use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::time::Duration;
-use clap::Parser;
-use docker_stats::DockerStatsReader;
 use crate::benchmark::computation::benchmark_computation;
 use crate::benchmark::web::benchmark_web;
 use crate::utils::docker_runner::run_docker_compose;
 use crate::utils::docker_stats;
-use crate::utils::result_reader::ResultMap;
+use crate::utils::result_reader::{ExistingResult, ResultMap};
+use clap::Parser;
+use docker_stats::DockerStatsReader;
+use std::collections::HashMap;
+use std::fs;
+use std::time::Duration;
 
 mod benchmark;
 mod utils;
@@ -57,16 +57,43 @@ fn main() {
     let mut reader = DockerStatsReader::new();
     reader.run(CONTAINER_NAME);
 
+    let existing_results: ResultMap = match args.missing {
+        true => utils::result_reader::read_existing_result_map(),
+        false => ResultMap::default(),
+    };
+
     if let Some(dir) = args.only {
+        let (language, variant) = {
+            let parts: Vec<&str> = dir.split('/').collect();
+            if parts.len() != 2 {
+                panic!("Invalid directory format. Expected <language>/<variant>");
+            }
+            (parts[0].to_string(), parts[1].to_string())
+        };
         if args.computation {
             let full_dir = format!("benchmark/computation/{}", dir);
             println!(" -> Running only {}", full_dir);
-            benchmark_computation(full_dir.as_str(), &mut reader);
+            benchmark_computation(
+                full_dir.as_str(),
+                existing_results
+                    .computation
+                    .get(&language)
+                    .and_then(|map| map.get(&variant)),
+                &mut reader,
+            );
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
             run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
-                benchmark_web(full_dir.as_str(), &mut reader, args.verbose);
+                benchmark_web(
+                    full_dir.as_str(),
+                    existing_results
+                        .web
+                        .get(&language)
+                        .and_then(|map| map.get(&variant)),
+                    &mut reader,
+                    args.verbose,
+                );
             });
         } else {
             panic!("No benchmark selected");
@@ -76,11 +103,6 @@ fn main() {
         reader.dispose();
         return;
     }
-
-    let existing_results: ResultMap = match args.missing {
-        true => utils::result_reader::read_existing_result_map(),
-        false => ResultMap::default(),
-    };
 
     if let Some(language) = args.lang {
         if args.computation {
@@ -100,7 +122,11 @@ fn main() {
                     full_dir.as_str(),
                     existing_results.web.get(&language),
                     &mut reader,
-                    |dir: &str, reader: &mut DockerStatsReader| benchmark_web(dir, reader, args.verbose),
+                    |dir: &str,
+                     existing: Option<&ExistingResult>,
+                     reader: &mut DockerStatsReader| {
+                        benchmark_web(dir, existing, reader, args.verbose)
+                    },
                 );
             });
         } else {
@@ -120,7 +146,12 @@ fn main() {
 
     if args.computation {
         println!(" -> Running computation benchmarks");
-        run_all_languages("benchmark/computation", &existing_results.computation, &mut reader, benchmark_computation);
+        run_all_languages(
+            "benchmark/computation",
+            &existing_results.computation,
+            &mut reader,
+            benchmark_computation,
+        );
     }
 
     if args.web {
@@ -130,55 +161,66 @@ fn main() {
                 "benchmark/web",
                 &existing_results.web,
                 &mut reader,
-                |dir: &str, reader: &mut DockerStatsReader| benchmark_web(dir, reader, args.verbose),
+                |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
+                    benchmark_web(dir, existing, reader, args.verbose)
+                },
             );
         });
     }
 }
 
-fn run_all_languages<F>(dir: &str, skip_existing: &HashMap<String, HashSet<String>>, reader: &mut DockerStatsReader, run: F)
-    where F: Fn(&str, &mut DockerStatsReader) {
+fn run_all_languages<F>(
+    dir: &str,
+    skip_existing: &HashMap<String, HashMap<String, ExistingResult>>,
+    reader: &mut DockerStatsReader,
+    run: F,
+) where
+    F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
+{
     let languages = fs::read_dir(dir).unwrap();
-    for language in languages {
-        let language = language.unwrap();
-        if !language.file_type().unwrap().is_dir() {
+    for language_folder in languages {
+        let language_folder = language_folder.unwrap();
+        if !language_folder.file_type().unwrap().is_dir() {
             continue;
         }
 
         run_one_language(
-            language.path().to_str().unwrap(),
-            skip_existing.get(language.file_name().to_str().unwrap()),
+            language_folder.path().to_str().unwrap(),
+            skip_existing.get(language_folder.file_name().to_str().unwrap()),
             reader,
-            &run
+            &run,
         );
     }
 }
 
-fn run_one_language<F>(dir: &str, skip_existing: Option<&HashSet<String>>, reader: &mut DockerStatsReader, run: F)
-    where F: Fn(&str, &mut DockerStatsReader) {
-    let folders = fs::read_dir(dir).expect(&format!("Could not read directory {}", dir));
-    for folder in folders {
-        let folder = folder.unwrap();
-        if !folder.file_type().unwrap().is_dir() {
+fn run_one_language<F>(
+    dir: &str,
+    skip_existing: Option<&HashMap<String, ExistingResult>>,
+    reader: &mut DockerStatsReader,
+    run: F,
+) where
+    F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
+{
+    let variants = fs::read_dir(dir).expect(&format!("Could not read directory {}", dir));
+    for variant_folder in variants {
+        let variant_folder = variant_folder.unwrap();
+        if !variant_folder.file_type().unwrap().is_dir() {
             // Only run on directories
             continue;
         }
 
-        let directory_name = folder.file_name().to_str().unwrap().to_owned();
+        let directory_name = variant_folder.file_name().to_str().unwrap().to_owned();
 
         if directory_name == utils::copy_files::COMMON_DIR {
             // Skip the common directory
             continue;
         }
 
-        if let Some(skip_existing) = skip_existing {
-            if skip_existing.contains(&directory_name) {
-                println!(" -> Skipping {dir}/{directory_name}");
-                continue;
-            }
-        }
+        let full_dir = format!("{}", variant_folder.path().display());
 
-        let full_dir = format!("{}", folder.path().display());
-        run(&full_dir, reader);
+        let existing_result = skip_existing.and_then(|map| map.get(&directory_name));
+
+        println!();
+        run(&full_dir, existing_result, reader);
     }
 }

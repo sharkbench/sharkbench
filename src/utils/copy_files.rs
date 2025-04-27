@@ -24,16 +24,16 @@ pub(crate) fn copy_files(work_dir: &str, files: &Vec<CopyValue>) {
 /// Reverts the copied files by deleting the destination files.
 pub(crate) fn delete_copied_files(work_dir: &str, files: &Vec<CopyValue>) {
     for file in files {
-        let dst = match file {
+        let dest = match file {
             CopyValue::Primitive(dst) => dst,
             CopyValue::Map(map) => map.get_index(0).expect("Failed to get index").1,
         };
 
-        let final_dst = format!("{work_dir}/{dst}");
-        fs::remove_file(&final_dst).expect("Failed to remove file");
-        println!(" -> Removed {dst}");
+        let final_dest = format!("{work_dir}/{dest}");
+        fs::remove_file(&final_dest).expect("Failed to remove file");
+        println!(" -> Removed {dest}");
 
-        let parent_path = Path::new(&final_dst).parent().unwrap();
+        let parent_path = Path::new(&final_dest).parent().unwrap();
         delete_empty_folder(parent_path, work_dir);
     }
 }

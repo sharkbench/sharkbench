@@ -2,6 +2,9 @@ FROM elixir:1.16-slim AS builder
 
 WORKDIR /app
 
+# Required by Elixir 1.18+ (OTP 26+)
+RUN apt update && apt install -y ca-certificates
+
 # Install hex package manager and Phoenix framework
 RUN mix local.hex --force && \
     mix local.rebar --force && \

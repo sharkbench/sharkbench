@@ -1,0 +1,11 @@
+language: Elixir
+mode: Default
+version:
+  - '1.16'
+  - '1.18'
+
+framework: Phoenix
+framework_website: https://www.phoenixframework.org
+framework_flavor: Bandit
+framework_version:
+  - '1.7'

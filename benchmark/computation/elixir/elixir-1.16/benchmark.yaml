@@ -1,0 +1,8 @@
+language: Elixir
+mode: Default
+version:
+  - '1.16'
+  - '1.18'
+
+# Not as long as Python, but still takes a while
+runs: 5

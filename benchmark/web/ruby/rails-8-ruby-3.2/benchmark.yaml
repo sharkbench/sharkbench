@@ -1,0 +1,13 @@
+language: Ruby
+mode: Default
+version:
+  - '3.2'
+  - '3.4'
+version_regex:
+  Dockerfile: 'ARG RUBY_VERSION=([\d.]+)'
+
+framework: Ruby on Rails
+framework_website: https://rubyonrails.org
+framework_flavor: Default
+framework_version:
+  - '8'

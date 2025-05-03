@@ -1,0 +1,171 @@
+Actix: >
+  Actix is a powerful, pragmatic, and extremely fast web framework for Rust
+  built on the Actix actor framework. It provides a high level of control over
+  threading and asynchronous processing through its fun and flexible API. Actix
+  is designed for developers who need performance without sacrificing developer
+  experience.
+ASP.NET Core: >
+  ASP.NET Core is a free and open-source web framework developed by Microsoft
+  for building modern, cloud-based applications. It is a cross-platform redesign
+  of ASP.NET that runs on Windows, Linux, and macOS. ASP.NET Core supports
+  full-featured web applications and APIs with a focus on scalability and high
+  performance.
+Axum: >
+  Axum is a web framework maintained by the Tokio project team for building
+  modern web applications using Rust. It leverages Rust's asynchronous runtime,
+  Tokio, to enable developers to build applications that are both scalable and
+  performant. Axum provides a robust foundation for creating efficient web
+  services.
+Bun.serve: >
+  Bun.serve is a component of the Bun JavaScript runtime, package manager, and
+  bundler ecosystem. It is specifically designed for handling HTTP requests with
+  high performance and simplicity. Bun.serve enables developers to create modern
+  web applications with minimal configuration and maximum speed.
+Dart Frog: >
+  Dart Frog is a minimalistic, fast backend framework for the Dart programming
+  language developed by Very Good Ventures. It helps developers quickly create
+  backend services through a simple core and minimal API surface area. Dart Frog
+  features efficient endpoint creation, hot reload during development, and
+  supports dynamic routing, middleware, and WebSockets.
+Django: >
+  Django is a high-level Python web framework that encourages rapid development
+  and clean, pragmatic design. It follows a "batteries-included" philosophy with
+  an extensive suite of built-in features from authentication to site maps.
+  Django is widely used for developing complex, database-driven websites with an
+  emphasis on reusability and security.
+Express: >
+  Express is a minimal and flexible Node.js web application framework that
+  provides a robust set of features for web and mobile applications. It has
+  become the standard server framework for Node.js, offering powerful middleware
+  capabilities for managing application routes. Express strikes a balance
+  between simplicity and functionality for JavaScript backend development.
+FastAPI: >
+  FastAPI is a modern, high-performance web framework for building APIs with
+  Python 3.6+ based on standard Python type hints. It emphasizes speed in both
+  execution and development time, with automatic interactive API documentation
+  generation.
+FastHTTP: >
+  FastHTTP is a low-level, high-performance HTTP framework for Go designed to be
+  faster than the standard net/http package. It is optimized for high throughput
+  and low memory usage in performance-critical applications. FastHTTP provides
+  the foundation for many higher-level Go web frameworks seeking maximum
+  efficiency.
+Fastify: >
+  Fastify is a high-performance Node.js web framework focused on providing low
+  latency and high throughput by leveraging Node.js features and asynchronous
+  I/O. It is known for its extensible plugin architecture and efficient handling
+  of JSON-based data. Fastify offers a modern alternative to Express with better
+  performance characteristics.
+Flask: >
+  Flask is a lightweight and flexible Python web framework for creating web
+  applications. It is designed as a simple core that is easily extendable
+  through numerous extensions for form validation, upload handling, and
+  authentication technologies. Flask follows the "micro-framework" philosophy
+  that gives developers more control over component choices.
+Gin: >
+  Gin is a high-performance HTTP web framework written in Go (Golang) built on
+  top of HttpRouter, the fastest HTTP router for Go. It provides a simple API
+  for building robust web applications and microservices with an emphasis on
+  speed and efficiency. Gin includes helpful features like middleware support,
+  error management, and JSON validation.
+HttpServer: >
+  HttpServer is a low-level web server class in Dart, part of the dart:io
+  library. It provides basic HTTP server functionality that serves as a
+  foundation for more complex web applications and frameworks. HttpServer is
+  typically used for smaller tasks or as a component within more comprehensive
+  Dart web frameworks.
+Hyper: >
+  Hyper is a fast and low-level HTTP implementation in Rust that serves as the
+  foundation for higher-level frameworks like Axum and Warp. It provides
+  efficient HTTP protocol handling with a focus on performance and correctness.
+  Hyper is designed for developers who need fine-grained control over HTTP
+  operations.
+Ktor: >
+  Ktor is a framework for building asynchronous servers and clients in connected
+  systems using the Kotlin programming language. It is designed to be flexible
+  and easy to use, allowing developers to create highly scalable and robust
+  applications. Ktor leverages Kotlin's coroutines for handling asynchronous
+  operations elegantly.
+Laravel: >
+  Laravel is a PHP web framework designed for building modern, full-featured web
+  applications with elegant syntax and expressive design. It provides a
+  comprehensive ecosystem for web development including authentication, routing,
+  sessions, and caching. Laravel emphasizes developer productivity through
+  convention over configuration and helpful tooling.
+Nest: >
+  Nest is a progressive Node.js framework for building efficient, reliable, and
+  scalable server-side applications. It is built with TypeScript and combines
+  elements of Object Oriented Programming, Functional Programming, and
+  Functional Reactive Programming. Nest provides an architecture inspired by
+  Angular for structuring larger Node.js applications.
+Phoenix: >
+  Phoenix is a web development framework written in Elixir that implements the
+  server-side MVC pattern. It is designed to be fast and efficient, leveraging
+  the Erlang VM's capabilities for building concurrent and fault-tolerant
+  applications. Phoenix excels at handling high-traffic applications and
+  real-time communication through WebSockets.
+Pharaoh: >
+  Pharaoh is a server-side application framework for Dart inspired by ExpressJS.
+  It is compatible with shelf middlewares, allowing developers to leverage the
+  existing Dart ecosystem while building their server applications.
+Rama: >
+  Rama (ラマ) is a modular service framework for the Rust language focused on
+  moving and transforming network packets. It provides a specialized approach to
+  handling network communication efficiently. Rama is designed for developers
+  working on network-intensive applications requiring fine-grained control over
+  packet handling.
+Rocket: >
+  Rocket is a web framework for Rust that makes it simple to write fast, secure
+  web applications without sacrificing flexibility or type safety. It
+  extensively uses Rust's advanced features such as code generation to ensure
+  that applications are both type-safe and thread-safe. Rocket emphasizes
+  developer ergonomics alongside performance.
+Serinus: >
+  Serinus is a simple and easy-to-use framework for building server-side
+  applications inspired by NestJS. It is designed to integrate seamlessly with
+  existing projects and offers a shallow learning curve for quick developer
+  onboarding. Serinus focuses on providing a straightforward path to creating
+  structured web applications.
+Serverpod: >
+  Serverpod is a server-side framework designed specifically for Dart that
+  seamlessly integrates with Flutter. It is an ideal choice for mobile app
+  developers using Flutter who need a reliable backend solution in the same
+  language. Serverpod provides end-to-end type safety between client and server,
+  streamlining full-stack Dart development.
+Shelf: >
+  Shelf is a modular Dart web server middleware framework inspired by Rack
+  (Ruby) and Connect (Node.js). It allows developers to create and compose web
+  servers from small pieces of middleware and handlers. Shelf is designed to be
+  simple and flexible, offering high customizability for building web
+  applications in Dart.
+Spring Boot: >
+  Spring Boot is an open-source Java framework for building standalone,
+  production-grade Spring-based applications with minimal configuration. It
+  extends the Spring platform with convention-over-configuration principles to
+  minimize boilerplate code. Spring Boot is widely used for microservices, web
+  applications, and enterprise projects due to its robustness and extensive
+  ecosystem.
+Symfony: >
+  Symfony is a set of reusable PHP components and a web application framework
+  that speeds up the creation and maintenance of web applications. It provides a
+  structured, modular foundation widely used for large-scale enterprise
+  projects. Symfony emphasizes flexibility, reusability, and following industry
+  best practices in web development.
+Quarkus: >
+  Quarkus is a Kubernetes-native Java framework tailored for GraalVM and
+  OpenJDK, crafted from best-of-breed Java libraries and standards. It offers a
+  unified reactive and imperative programming model optimized for containers and
+  serverless environments. Quarkus focuses on fast startup time, low memory
+  footprint, and developer productivity.
+Vania: >
+  Vania is a robust backend framework for building high-performance web
+  applications using Dart. It features a straightforward approach and powerful
+  features that streamline the development process for developers of all
+  experience levels. Vania aims to provide the tools necessary for efficient
+  backend development in the Dart ecosystem.
+Vert.x: >
+  Vert.x is a toolkit for building reactive applications on the JVM designed to
+  be lightweight, high-performance, and modular. It enables developers to create
+  microservices and distributed systems with ease through an event-driven,
+  non-blocking development model. Vert.x supports multiple programming languages
+  and emphasizes performance and scalability.

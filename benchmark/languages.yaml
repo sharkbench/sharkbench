@@ -1,0 +1,241 @@
+C:
+  paradigm:
+    - Procedural
+    - Imperative
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: false
+  memoryManagement: Manual
+  description: >
+    C is a general-purpose programming language developed in the early 1970s
+    that is known for its efficiency and control over system resources. It has
+    influenced many other languages including C++, Java, and Python. C is widely
+    used for high-performance computing applications due to its compiled nature
+    and manual memory management.
+'C#':
+  paradigm:
+    - ObjectOriented
+    - Imperative
+    - EventDriven
+    - Functional
+  execution:
+    - JIT
+  typing: Static
+  nullSafety: true
+  memoryManagement: GarbageCollection
+  description: >
+    C# is a modern, general-purpose programming language developed by Microsoft
+    as part of its .NET initiative. It features static typing, null safety, and
+    garbage collection. C# is primarily used on the .NET Framework for Windows
+    application development but has grown to support cross-platform needs via
+    .NET Core.
+Dart:
+  paradigm:
+    - ObjectOriented
+    - Functional
+    - Imperative
+  execution:
+    - JIT
+    - AOT
+  typing: Static
+  nullSafety: true
+  memoryManagement: GarbageCollection
+  description: >
+    Dart is a client-optimized programming language developed by Google for
+    building user interfaces with event-driven programming. It supports both
+    just-in-time and ahead-of-time compilation for development flexibility and
+    deployment performance. Dart is the programming language behind Flutter,
+    Google's UI toolkit for building applications across multiple platforms.
+Elixir:
+  paradigm:
+    - Functional
+    - Concurrent
+  execution:
+    - Interpreted
+  typing: Dynamic
+  nullSafety: true
+  memoryManagement: GarbageCollection
+  description: >
+    Elixir is a functional, concurrent programming language built on the Erlang
+    VM created by José Valim in 2011. It combines Erlang's fault-tolerance and
+    distributed capabilities with a Ruby-inspired syntax. Elixir features
+    immutable data structures and actor-based concurrency through lightweight
+    processes.
+Go:
+  paradigm:
+    - Concurrent
+    - Imperative
+    - Procedural
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    Go is a statically typed, compiled programming language designed at Google
+    that is syntactically similar to C but with memory safety and garbage
+    collection. It is designed to be simple, efficient, and readable with a
+    focus on concurrent programming. Go is widely used for building network
+    servers, data pipelines, and command-line tools.
+Java:
+  paradigm:
+    - ObjectOriented
+    - Imperative
+  execution:
+    - JIT
+    - AOT
+  typing: Static
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    Java is a versatile programming language developed by Sun Microsystems, now
+    owned by Oracle Corporation. It supports development across various
+    platforms through its "write once, run anywhere" approach. Java is known for
+    its object-oriented structure, high performance, and robust security
+    features ideal for enterprise systems and Android development.
+JavaScript:
+  paradigm:
+    - ObjectOriented
+    - Imperative
+    - Functional
+  execution:
+    - Interpreted
+  typing: Dynamic
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    JavaScript is a high-level, dynamic programming language that conforms to
+    the ECMAScript specification and has become a core technology of the World
+    Wide Web. It enables interactive web elements and is supported by all major
+    browsers without plugins. JavaScript can also be used on the server-side
+    through Node.js for developing network applications.
+Julia:
+  paradigm:
+    - Functional
+    - ObjectOriented
+    - Imperative
+  execution:
+    - JIT
+    - AOT
+  typing: Dynamic
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    Julia is a high-level, high-performance dynamic programming language
+    designed to be fast while remaining expressive and easy to use. It has
+    execution speeds comparable to C and is particularly well-suited for
+    scientific computing and data analysis. Julia is popular among researchers
+    and data scientists due to its rich ecosystem of specialized packages.
+Kotlin:
+  paradigm:
+    - ObjectOriented
+    - Functional
+    - Imperative
+  execution:
+    - JIT
+    - AOT
+  typing: Static
+  nullSafety: true
+  memoryManagement: GarbageCollection
+  description: >
+    Kotlin is a modern programming language developed by JetBrains and
+    officially supported by Google for Android development. It is fully
+    interoperable with Java while addressing many of its limitations through
+    features like null safety and extension functions. Kotlin has rapidly gained
+    popularity for mobile development and is growing in server-side
+    applications.
+PHP:
+  paradigm:
+    - Imperative
+    - ObjectOriented
+    - Reflective
+  execution:
+    - Interpreted
+  typing: Dynamic
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    PHP is a popular general-purpose scripting language especially suited for
+    web development. It integrates well with HTML and databases as part of the
+    LAMP stack for hosting websites. PHP is powerful enough to drive complex
+    websites like Facebook and WordPress while remaining accessible to
+    beginners.
+Python:
+  paradigm:
+    - ObjectOriented
+    - Imperative
+    - Functional
+  execution:
+    - Interpreted
+  typing: Dynamic
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    Python is a high-level, interpreted programming language known for its
+    simplicity and readability with an emphasis on code clarity. It has an
+    extensive standard library and large ecosystem of third-party packages for
+    various domains. Python is used in web development, data analysis,
+    artificial intelligence, and scientific computing, and is popular in
+    educational settings.
+Ruby:
+  paradigm:
+    - ObjectOriented
+    - Imperative
+  execution:
+    - Interpreted
+  typing: Dynamic
+  nullSafety: false
+  memoryManagement: GarbageCollection
+  description: >
+    Ruby is a dynamic, open-source programming language developed by Yukihiro
+    Matsumoto with a focus on simplicity and productivity. It has an elegant
+    syntax designed for programmer happiness and expressive code. Ruby is
+    commonly used for building web applications through the Ruby on Rails
+    framework, which follows the Model-View-Controller pattern.
+Rust:
+  paradigm:
+    - Imperative
+    - Functional
+    - Concurrent
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: true
+  memoryManagement: OwnershipSystem
+  description: >
+    Rust is a modern, systems-level programming language focused on safety,
+    speed, and concurrency sponsored by Mozilla Research. It provides memory
+    safety without garbage collection through its unique ownership system with
+    compile-time checks. Rust is designed for creating high-performance
+    applications with strict control over system resources.
+Swift:
+  paradigm:
+    - ObjectOriented
+    - Functional
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: true
+  memoryManagement: AutomaticReferenceCounting
+  description: >
+    Swift is a powerful and intuitive programming language developed by Apple
+    for their ecosystem. It features safety mechanisms including optionals for
+    handling nil values and automatic memory management through Automatic
+    Reference Counting. Swift's concise syntax and modern features make it ideal
+    for developing applications across Apple platforms.
+Zig:
+  paradigm:
+    - Imperative
+    - Procedural
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: true
+  memoryManagement: Manual
+  description: >
+    Zig is a modern systems programming language designed to be robust, optimal,
+    and maintainable, created by Andrew Kelley in 2016. It prioritizes
+    simplicity and debuggability while offering powerful compile-time code
+    execution and C interoperability. Zig aims to replace C with better tooling
+    while maintaining performance suitable for low-level systems programming.

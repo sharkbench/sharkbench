@@ -1,5 +1,5 @@
 language: Python
-mode: Default
+mode: PyPy
 version:
   - '3.6'
   - '3.7'
@@ -7,11 +7,6 @@ version:
   - '3.9'
   - '3.10'
   - '3.11'
-  - '3.12'
-  - '3.13'
-
-# Python takes too long to run
-runs: 3
 
 copy:
   - 'app.py'

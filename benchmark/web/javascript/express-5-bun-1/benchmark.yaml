@@ -6,7 +6,7 @@ framework: Express
 framework_website: https://expressjs.com
 framework_flavor: Default
 framework_version:
-  - '4'
+  - '5'
 
 copy:
   - 'express-base/main.js': 'main.js'

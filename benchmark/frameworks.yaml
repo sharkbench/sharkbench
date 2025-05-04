@@ -80,6 +80,14 @@ Hyper: >
   efficient HTTP protocol handling with a focus on performance and correctness.
   Hyper is designed for developers who need fine-grained control over HTTP
   operations.
+Koa: >
+  Koa is a lightweight and expressive web framework for Node.js created by the
+  team behind Express. It leverages JavaScript's async functions to eliminate
+  callbacks and improve error handling. Koa provides an elegant middleware
+  architecture that processes requests downstream and manipulates responses
+  upstream. Unlike Express, Koa doesn't bundle any middleware in its core or
+  provide built-in routing, emphasizing modularity and giving developers greater
+  flexibility in their component choices.
 Ktor: >
   Ktor is a framework for building asynchronous servers and clients in connected
   systems using the Kotlin programming language. It is designed to be flexible
@@ -120,6 +128,14 @@ Rocket: >
   extensively uses Rust's advanced features such as code generation to ensure
   that applications are both type-safe and thread-safe. Rocket emphasizes
   developer ergonomics alongside performance.
+Ruby on Rails: >
+  Ruby on Rails is a full-featured web application framework written in Ruby
+  that follows the Model-View-Controller (MVC) pattern. Created by David
+  Heinemeier Hansson in 2004, Rails emphasizes "convention over configuration"
+  and "don't repeat yourself" (DRY) principles, enabling developers to build
+  database-backed applications with less code. It includes a robust suite of
+  integrated tools including Active Record ORM, routing, templating engines, and
+  middleware, making it ideal for rapid development of complex web applications.
 Serinus: >
   Serinus is a simple and easy-to-use framework for building server-side
   applications inspired by NestJS. It is designed to integrate seamlessly with

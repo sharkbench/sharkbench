@@ -1,0 +1,16 @@
+language: JavaScript
+mode: Deno
+version:
+  - '2.1'
+
+framework: Koa
+framework_website: https://koajs.com
+framework_flavor: Default
+framework_version:
+  - '2'
+  - '3'
+framework_version_regex:
+  deno.json: '"koa": "npm:koa@(\d+)"'
+
+copy:
+  - 'koa-base/main.js': 'main.js'

@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "koa": "npm:koa@2",
+    "@koa/router": "npm:@koa/router@*"
+  }
+}

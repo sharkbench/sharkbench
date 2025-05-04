@@ -1,0 +1,16 @@
+language: JavaScript
+mode: Bun
+version:
+  - '1'
+
+framework: Koa
+framework_website: https://koajs.com
+framework_flavor: Default
+framework_version:
+  - '2'
+  - '3'
+framework_version_regex:
+  package.json: '"koa": "(\d+)"'
+
+copy:
+  - 'koa-base/main.js': 'main.js'

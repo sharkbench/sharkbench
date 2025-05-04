@@ -1,0 +1,14 @@
+language: JavaScript
+mode: Node.js
+version:
+  - '20'
+  - '22'
+
+framework: Koa
+framework_website: https://koajs.com
+framework_flavor: Default
+framework_version:
+  - '2'
+  - '3'
+framework_version_regex:
+  package.json: '"koa": "(\d+)"'

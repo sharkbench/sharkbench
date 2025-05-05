@@ -11,7 +11,7 @@ Checkout the results at [sharkbench.dev](https://sharkbench.dev).
 This benchmark tests how fast a programming language can perform mathematical computations without any I/O or memory allocation.
 We are using the [Leibniz formula](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80) to approximate the value of PI.
 
-### ➤ Memory
+### ➤ Memory (not yet implemented)
 
 This benchmark tests how efficiently a programming language can perform memory management.
 We are using the [A* algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm), a popular pathfinding algorithm, to find the shortest path between two points.

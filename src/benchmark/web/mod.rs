@@ -1,7 +1,7 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
-use crate::utils::http_load_tester::run_http_load_test;
+use crate::utils::http_load_tester::{run_http_load_test, PreparedHttpRequest};
 use crate::utils::meta_data_parser::WebBenchmarkMetaData;
 use crate::utils::result_reader::ExistingResult;
 use crate::utils::result_writer::write_result_to_file;
@@ -42,7 +42,7 @@ pub fn benchmark_web(
     meta_data.print_info();
 
     let data: HashMap<String, PeriodicTableElement> = load_data();
-    let requests: Vec<(String, HashMap<String, SerializedValue>)> = [
+    let requests: Vec<PreparedHttpRequest> = [
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
@@ -63,9 +63,13 @@ pub fn benchmark_web(
                         SerializedValue::IntValue(v.group as i32),
                     ),
                 ]);
-                (url, expected_response)
+
+                PreparedHttpRequest {
+                    url,
+                    expected_response,
+                }
             })
-            .collect::<Vec<(String, HashMap<String, SerializedValue>)>>(),
+            .collect::<Vec<PreparedHttpRequest>>(),
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
@@ -78,9 +82,13 @@ pub fn benchmark_web(
                         v.shells.iter().map(|v| *v as i32).collect::<Vec<i32>>(),
                     ),
                 )]);
-                (url, expected_response)
+
+                PreparedHttpRequest {
+                    url,
+                    expected_response,
+                }
             })
-            .collect::<Vec<(String, HashMap<String, SerializedValue>)>>(),
+            .collect::<Vec<PreparedHttpRequest>>(),
     ]
     .concat();
 

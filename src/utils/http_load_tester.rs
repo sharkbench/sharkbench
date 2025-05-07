@@ -1,13 +1,13 @@
-use std::collections::HashMap;
-use reqwest;
-use tokio;
-use std::time::Duration;
-use tokio::{task, time};
-use rand::seq::SliceRandom;
-use reqwest::StatusCode;
-use tokio::task::JoinHandle;
 use crate::utils::percentile;
 use crate::utils::serialization::SerializedValue;
+use rand::seq::SliceRandom;
+use reqwest;
+use reqwest::StatusCode;
+use std::collections::HashMap;
+use std::time::Duration;
+use tokio;
+use tokio::task::JoinHandle;
+use tokio::{task, time};
 
 pub struct HttpLoadResult {
     pub success_count: i32,
@@ -19,12 +19,18 @@ pub struct HttpLoadResult {
     pub latency_p99: Duration,
 }
 
+#[derive(Clone)]
+pub struct PreparedHttpRequest {
+    pub url: String,
+    pub expected_response: HashMap<String, SerializedValue>,
+}
+
 type RequestValidatorFn = fn(&str, &HashMap<String, SerializedValue>) -> bool;
 
 pub fn run_http_load_test(
     concurrency: usize,
     duration: Duration,
-    requests: &Vec<(String, HashMap<String, SerializedValue>)>,
+    requests: &Vec<PreparedHttpRequest>,
     request_validator: RequestValidatorFn,
     verbose: bool,
 ) -> HttpLoadResult {
@@ -42,7 +48,7 @@ pub fn run_http_load_test(
 async fn run_load_test(
     concurrency: usize,
     duration: Duration,
-    requests: &Vec<(String, HashMap<String, SerializedValue>)>,
+    requests: &Vec<PreparedHttpRequest>,
     request_validator: RequestValidatorFn,
     verbose: bool,
 ) -> HttpLoadResult {
@@ -50,7 +56,7 @@ async fn run_load_test(
 
     for _ in 0..concurrency {
         let mut requests_clone = requests.clone();
-        requests_clone.shuffle(&mut rand::thread_rng());
+        requests_clone.shuffle(&mut rand::rng());
 
         let handle = task::spawn(async move {
             let mut local_success_count = 0;
@@ -67,9 +73,11 @@ async fn run_load_test(
             let start = std::time::Instant::now();
             let mut second = 1;
             'outer: loop {
-                for (uri, expected_response) in &requests_clone {
+                for request in &requests_clone {
+                    let url = &request.url;
+                    let expected_response = &request.expected_response;
                     let request_start = std::time::Instant::now();
-                    match client.get(uri).send().await {
+                    match client.get(url).send().await {
                         Ok(response) => {
                             let status = &response.status();
                             let body = response.text().await.unwrap();
@@ -80,14 +88,14 @@ async fn run_load_test(
                             } else {
                                 local_fail_count += 1;
                                 if verbose {
-                                    println!("Unexpected response {} for {}: {}, expected: {:?}", *status, uri, body, expected_response);
+                                    println!("Unexpected response {} for {}: {}, expected: {:?}", *status, url, body, expected_response);
                                     println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
                                 }
                             }
                         }
                         Err(e) => {
                             if verbose {
-                                println!("Request to {} failed: {}", uri, e);
+                                println!("Request to {} failed: {}", url, e);
                                 println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
                             }
                             local_fail_count += 1;

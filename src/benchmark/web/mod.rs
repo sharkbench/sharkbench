@@ -1,7 +1,9 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
-use crate::utils::http_load_tester::{run_http_load_test, PreparedHttpRequest};
+use crate::utils::http_load_tester::{
+    run_http_load_test, PendingValidationResponse, PreparedHttpRequest,
+};
 use crate::utils::meta_data_parser::WebBenchmarkMetaData;
 use crate::utils::result_reader::ExistingResult;
 use crate::utils::result_writer::write_result_to_file;
@@ -159,6 +161,8 @@ pub fn benchmark_web(
                     false => 5,
                 },
                 || {
+                    let _ = reqwest::blocking::get("http://localhost:3001/reset").expect("Failed to reset counter");
+
                     let result = run_http_load_test(
                         concurrency,
                         Duration::from_secs(match validate {
@@ -169,6 +173,18 @@ pub fn benchmark_web(
                         response_validator,
                         verbose,
                     );
+
+                    if let Ok(response) = reqwest::blocking::get("http://localhost:3001/reset") {
+                        let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
+                        if data_source_counter != result.success_count {
+                            panic!("Request count measured by data source: {}.
+Successful responses by framework: {}.
+Maybe some requests were not fired but cached responses were used?",
+                                data_source_counter, result.success_count);
+                        }
+                    } else {
+                        panic!("Failed to reset counter");
+                    }
 
                     let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
                     additional_data.insert("rps_median".to_string(), AdditionalData::Int(result.rps_median));
@@ -249,15 +265,15 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
     elements
 }
 
-fn response_validator(body: &str, expected_response: &HashMap<String, SerializedValue>) -> Result<(), String> {
+fn response_validator(response: &PendingValidationResponse) -> Result<(), String> {
     let json: serde_json::Value = {
-        match serde_json::from_str::<serde_json::Value>(body) {
+        match serde_json::from_str::<serde_json::Value>(&response.body) {
             Ok(json) => json,
-            Err(_) => return Err(format!("Failed to parse JSON: {}", body)),
+            Err(_) => return Err(format!("Failed to parse JSON: {}", &response.body)),
         }
     };
 
-    for (key, expected_value) in expected_response {
+    for (key, expected_value) in response.expected_body {
         let actual_value = json.get(key).ok_or(&format!(
             r#"Expected "{key}": {expected_value} but this key does not exist"#,
         ))?;

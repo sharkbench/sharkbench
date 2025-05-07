@@ -25,13 +25,13 @@ pub struct PreparedHttpRequest {
     pub expected_response: HashMap<String, SerializedValue>,
 }
 
-struct HttpResponse<'a> {
-    url: &'a str,
-    body: String,
-    expected_body: &'a HashMap<String, SerializedValue>,
+pub struct PendingValidationResponse<'a> {
+    pub url: &'a str,
+    pub body: String,
+    pub expected_body: &'a HashMap<String, SerializedValue>,
 }
 
-type RequestValidatorFn = fn(&str, &HashMap<String, SerializedValue>) -> Result<(), String>;
+type RequestValidatorFn = fn(&PendingValidationResponse) -> Result<(), String>;
 
 pub fn run_http_load_test(
     concurrency: usize,
@@ -70,7 +70,7 @@ async fn run_load_test(
             let mut local_fail_count = 0;
             let mut local_latency_us: Vec<u64> = Vec::with_capacity(1_000_000);
             let mut rps_per_second: Vec<i32> = Vec::with_capacity(100);
-            let mut responses: Vec<HttpResponse> = Vec::with_capacity(1_000_000);
+            let mut responses: Vec<PendingValidationResponse> = Vec::with_capacity(1_000_000);
 
             let client = reqwest::Client::builder()
                 .timeout(Duration::from_secs(5))
@@ -89,7 +89,7 @@ async fn run_load_test(
                             if *status == StatusCode::OK {
                                 local_success_count += 1;
                                 local_latency_us.push(latency_us);
-                                responses.push(HttpResponse {
+                                responses.push(PendingValidationResponse {
                                     url,
                                     body,
                                     expected_body: &request.expected_response,
@@ -125,12 +125,11 @@ async fn run_load_test(
 
             // validate
             for response in responses {
-                let body = &response.body;
-                if let Err(e) = request_validator(body, response.expected_body) {
+                if let Err(e) = request_validator(&response) {
                     local_success_count -= 1;
                     local_fail_count += 1;
                     if verbose {
-                        println!("Validation failed for response for {}: {}, expected: {:?}, {}", response.url, body, response.expected_body, e);
+                        println!("Validation failed for response for {}: {}, expected: {:?}, {}", response.url, response.body, response.expected_body, e);
                     }
                 }
             }

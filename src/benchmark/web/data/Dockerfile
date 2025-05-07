@@ -1,4 +1,4 @@
-FROM rust:1.79 AS builder
+FROM rust:1.86 AS builder
 
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
@@ -10,5 +10,5 @@ FROM debian:bookworm-slim AS runtime
 COPY --from=builder /app/target/release/app /app
 COPY static ./static
 
-EXPOSE 3000
+EXPOSE 80
 ENTRYPOINT ["/app"]

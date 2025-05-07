@@ -25,7 +25,13 @@ pub struct PreparedHttpRequest {
     pub expected_response: HashMap<String, SerializedValue>,
 }
 
-type RequestValidatorFn = fn(&str, &HashMap<String, SerializedValue>) -> bool;
+struct HttpResponse<'a> {
+    url: &'a str,
+    body: String,
+    expected_body: &'a HashMap<String, SerializedValue>,
+}
+
+type RequestValidatorFn = fn(&str, &HashMap<String, SerializedValue>) -> Result<(), String>;
 
 pub fn run_http_load_test(
     concurrency: usize,
@@ -62,10 +68,9 @@ async fn run_load_test(
             let mut local_success_count = 0;
             let mut success_count_temp = 0;
             let mut local_fail_count = 0;
-            let mut local_latency_us: Vec<u64> = Vec::new();
-            local_latency_us.reserve(100000);
-            let mut rps_per_second: Vec<i32> = Vec::new();
-            rps_per_second.reserve(100000);
+            let mut local_latency_us: Vec<u64> = Vec::with_capacity(1_000_000);
+            let mut rps_per_second: Vec<i32> = Vec::with_capacity(100);
+            let mut responses: Vec<HttpResponse> = Vec::with_capacity(1_000_000);
 
             let client = reqwest::Client::builder()
                 .timeout(Duration::from_secs(5))
@@ -75,20 +80,24 @@ async fn run_load_test(
             'outer: loop {
                 for request in &requests_clone {
                     let url = &request.url;
-                    let expected_response = &request.expected_response;
                     let request_start = std::time::Instant::now();
                     match client.get(url).send().await {
                         Ok(response) => {
                             let status = &response.status();
                             let body = response.text().await.unwrap();
                             let latency_us = request_start.elapsed().as_micros() as u64;
-                            if *status == StatusCode::OK && request_validator(&body, &expected_response) {
+                            if *status == StatusCode::OK {
                                 local_success_count += 1;
                                 local_latency_us.push(latency_us);
+                                responses.push(HttpResponse {
+                                    url,
+                                    body,
+                                    expected_body: &request.expected_response,
+                                });
                             } else {
                                 local_fail_count += 1;
                                 if verbose {
-                                    println!("Unexpected response {} for {}: {}, expected: {:?}", *status, url, body, expected_response);
+                                    println!("Unexpected response {} for {}", *status, url);
                                     println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
                                 }
                             }
@@ -110,6 +119,18 @@ async fn run_load_test(
                             success_count_temp = local_success_count;
                             second += 1;
                         }
+                    }
+                }
+            }
+
+            // validate
+            for response in responses {
+                let body = &response.body;
+                if let Err(e) = request_validator(body, response.expected_body) {
+                    local_success_count -= 1;
+                    local_fail_count += 1;
+                    if verbose {
+                        println!("Validation failed for response for {}: {}, expected: {:?}, {}", response.url, body, response.expected_body, e);
                     }
                 }
             }
@@ -146,7 +167,11 @@ async fn run_load_test(
     let fail_count = handle_results.iter().fold(0, |acc, x| acc + x.fail_count);
 
     if success_count == 0 {
-        panic!("No successful requests. Something is wrong.")
+        panic!("No successful requests. Something is wrong. Run with --verbose to see the errors.");
+    }
+
+    if fail_count > 0 {
+        panic!("Some requests failed. Run with --verbose to see the errors.");
     }
 
     let rps_per_second: Vec<i32> = {

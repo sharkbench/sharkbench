@@ -249,60 +249,63 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
     elements
 }
 
-fn response_validator(body: &str, expected_response: &HashMap<String, SerializedValue>) -> bool {
+fn response_validator(body: &str, expected_response: &HashMap<String, SerializedValue>) -> Result<(), String> {
     let json: serde_json::Value = {
         match serde_json::from_str::<serde_json::Value>(body) {
             Ok(json) => json,
-            Err(_) => return false,
+            Err(_) => return Err(format!("Failed to parse JSON: {}", body)),
         }
     };
 
     for (key, expected_value) in expected_response {
-        let actual_value = json.get(key).expect(&format!(
-            r#"Expected "{}": {} but this key does not exist"#,
-            key, expected_value
-        ));
+        let actual_value = json.get(key).ok_or(&format!(
+            r#"Expected "{key}": {expected_value} but this key does not exist"#,
+        ))?;
         match expected_value {
             SerializedValue::StringValue(v) => {
-                if actual_value.as_str().expect(&format!(
-                    r#"Expected "{}": {} but got <{:?}>"#,
-                    key, expected_value, actual_value
-                )) != v
+                if actual_value.as_str().ok_or(&format!(
+                    r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                ))? != v
                 {
-                    return false;
+                    return Err(format!(
+                        r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                    ));
                 }
             }
             SerializedValue::IntValue(v) => {
-                if actual_value.as_i64().expect(&format!(
-                    r#"Expected "{}": {} but got <{:?}>"#,
-                    key, expected_value, actual_value
-                )) != *v as i64
+                if actual_value.as_i64().ok_or(&format!(
+                    r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                ))? != *v as i64
                 {
-                    return false;
+                    return Err(format!(
+                        r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                    ));
                 }
             }
             SerializedValue::IntListValue(v) => {
-                let actual_list = actual_value.as_array().expect(&format!(
-                    r#"Expected "{}": {} but got <{:?}>"#,
-                    key, expected_value, actual_value
-                ));
+                let actual_list = actual_value.as_array().ok_or(&format!(
+                    r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                ))?;
                 if actual_list.len() != v.len() {
-                    return false;
+                    return Err(format!(
+                        r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                    ));
                 }
                 for (i, actual_value) in actual_list.iter().enumerate() {
-                    if actual_value.as_i64().expect(&format!(
-                        r#"Expected "{}": {} but got <{:?}>"#,
-                        key, expected_value, actual_value
-                    )) != v[i] as i64
+                    if actual_value.as_i64().ok_or(&format!(
+                        r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                    ))? != v[i] as i64
                     {
-                        return false;
+                        return Err(format!(
+                            r#"Expected "{key}": {expected_value} but got <{actual_value:?}>"#,
+                        ));
                     }
                 }
             }
         }
     }
 
-    true
+    Ok(())
 }
 
 fn take_bigger_rps<'a>(old_values: &'a [&'a str], new_values: &'a [&'a str]) -> &'a [&'a str] {

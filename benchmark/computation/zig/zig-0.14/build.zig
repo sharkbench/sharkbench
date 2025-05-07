@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const exe = b.addExecutable(.{
-        .name = "zig_0_14",
+        .name = "benchmark",
         .root_module = exe_mod,
     });
 

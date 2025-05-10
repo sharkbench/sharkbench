@@ -1,44 +1,39 @@
 use rama::{
+    Layer, Service,
     dns::HickoryDns,
     error::{BoxError, ErrorContext, OpaqueError},
     http::{
-        client::{HttpClientService, HttpConnector},
+        Body, BodyExtractExt, Request, Response, StatusCode,
+        client::HttpConnector,
         layer::{
             decompression::DecompressionLayer, map_response_body::MapResponseBodyLayer,
             required_header::AddRequiredRequestHeadersLayer, timeout::TimeoutLayer,
         },
-        response::Json,
         server::HttpServer,
         service::{
             client::HttpClientExt,
-            web::{extract::Query, Router},
+            web::{Router, extract::Query, response::Json},
         },
-        Body, BodyExtractExt, Request, Response, StatusCode,
     },
     layer::MapErrLayer,
     net::{
-        address::{Authority, SocketAddress},
+        address::SocketAddress,
         client::{
-            ConnStoreFiFoReuseLruDrop, ConnectorService, EstablishedClientConnection, Pool,
-            PooledConnector, ReqToConnID,
+            ConnectorService, EstablishedClientConnection, pool::http::HttpPooledConnectorBuilder,
         },
-        http::RequestContext,
-        Protocol,
     },
     rt::Executor,
     service::BoxService,
     tcp::client::service::TcpConnector,
-    Layer, Service,
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, time::Duration};
-use std::{num::NonZeroU16, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 #[cfg(feature = "tracing")]
 use ::{
     rama::http::layer::trace::TraceLayer,
     tracing::level_filters::LevelFilter,
-    tracing_subscriber::{fmt, layer::SubscriberExt as _, util::SubscriberInitExt, EnvFilter},
+    tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt as _, util::SubscriberInitExt},
 };
 
 type Client = Arc<BoxService<(), Request, Response, OpaqueError>>;
@@ -141,17 +136,13 @@ async fn try_fetch_json_data<T: serde::de::DeserializeOwned + Send + 'static>(
 }
 
 fn try_new_client() -> Result<Client, OpaqueError> {
-    let conn_pool = Pool::<ConnStoreFiFoReuseLruDrop<HttpClientService<Body>, BasicConnID>>::new(
-        NonZeroU16::new(128).context("create NonZeroU16(128)")?,
-        NonZeroU16::new(1024).context("create NonZeroU16(1024)")?,
-    )
-    .context("create conn pool")?;
-
-    let connector = PooledConnector::new(
-        HttpConnector::new(TcpConnector::new().with_dns(try_new_dns_resolver()?)),
-        conn_pool,
-        BasicHttpConnId,
-    );
+    let connector = HttpPooledConnectorBuilder::new()
+        .max_active(128)
+        .max_total(1024)
+        .build(HttpConnector::new(
+            TcpConnector::new().with_dns(try_new_dns_resolver()?),
+        ))
+        .context("build pooled http connector")?;
 
     let http_client = HttpClient { connector };
 
@@ -176,11 +167,11 @@ struct HttpClient<C> {
 impl<C> Service<(), Request> for HttpClient<C>
 where
     C: ConnectorService<
-        (),
-        Request,
-        Connection: Service<(), Request, Response = Response, Error: Into<BoxError>>,
-        Error: Into<BoxError>,
-    >,
+            (),
+            Request,
+            Connection: Service<(), Request, Response = Response, Error: Into<BoxError>>,
+            Error: Into<BoxError>,
+        >,
 {
     type Response = Response;
     type Error = OpaqueError;
@@ -207,28 +198,6 @@ fn try_new_dns_resolver() -> Result<HickoryDns, OpaqueError> {
 #[cfg(not(any(unix, target_os = "windows")))]
 fn try_new_dns_resolver() -> Result<ResolverConfig, OpaqueError> {
     Ok(HickoryDns::new_cloudflare())
-}
-
-#[derive(Debug)]
-#[non_exhaustive]
-struct BasicHttpConnId;
-type BasicConnID = (Protocol, Authority);
-
-impl<Body> ReqToConnID<(), Request<Body>> for BasicHttpConnId {
-    type ConnID = BasicConnID;
-
-    fn id(
-        &self,
-        ctx: &rama::Context<()>,
-        req: &Request<Body>,
-    ) -> Result<Self::ConnID, OpaqueError> {
-        let req_ctx = match ctx.get::<RequestContext>() {
-            Some(ctx) => ctx,
-            None => &RequestContext::try_from((ctx, req))?,
-        };
-
-        Ok((req_ctx.protocol.clone(), req_ctx.authority.clone()))
-    }
 }
 
 #[derive(Serialize)]

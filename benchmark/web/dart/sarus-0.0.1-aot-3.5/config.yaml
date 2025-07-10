@@ -1,0 +1,11 @@
+project:
+  name: app
+  description: A fast, minimalistic backend framework for Dart.
+
+# env:
+#   default: development
+
+#   flavors:
+#     development: .env
+#     staging: .env.staging
+#     production: .env.prod

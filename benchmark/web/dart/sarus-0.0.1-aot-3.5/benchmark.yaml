@@ -1,0 +1,9 @@
+language: Dart
+mode: AOT
+version:
+  - '3.8'
+framework: Sarus
+framework_website: https://sarus-docs.vercel.app/
+framework_flavor: Default
+framework_version:
+  - '0.0.1-alpha'

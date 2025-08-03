@@ -1,0 +1,11 @@
+{
+  "authors": ["Sergei Giniatulin"],
+  "copyright": "Copyright © 2025, Sergei Giniatulin",
+  "dependencies": {
+    "requests": "~>2.1.3",
+    "serverino": "~>0.7.18"
+  },
+  "description": "Serverino - server, Requests - client, Std - json",
+  "license": "MIT",
+  "name": "app"
+}

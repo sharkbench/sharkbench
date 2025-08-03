@@ -1,7 +1,6 @@
 import arsd.cgi;
 import arsd.http2 : Uri, HttpClient;
 import arsd.jsvar;
-import std.stdio;
 
 struct Element {
     string name;
@@ -41,7 +40,6 @@ class ApiV1 : WebObject {
         request.send();
         auto response = request.waitForCompletion();
         auto entry = response.contentJson()[symbol];
-        writeln(entry);
         return Shell(entry.get!(ubyte[]));
     }
 }

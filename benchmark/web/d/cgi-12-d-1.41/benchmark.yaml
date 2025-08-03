@@ -1,0 +1,9 @@
+language: D
+mode: Default
+version:
+  - "1.41"
+framework: Arsd.CGI
+framework_website: https://github.com/adamdruppe/arsd
+framework_flavor: Default
+framework_version:
+  - "12"

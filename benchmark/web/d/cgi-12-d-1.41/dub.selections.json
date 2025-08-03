@@ -1,0 +1,6 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"arsd-official": {"version":"d0b857578cbdb6f8d82261e620e64beef196917f","repository":"git+https://github.com/adamdruppe/arsd"}
+	}
+}

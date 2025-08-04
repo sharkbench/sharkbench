@@ -41,11 +41,12 @@ D:
   nullSafety: true
   memoryManagement: GarbageCollection
   description: >
-    The D programming language is an object-oriented, imperative, multi-paradigm
-    system programming language. D language originated as a re-engineering of C++,
-    and D's design goals try combining the performance of compiled languages with
-    the safety and expressive power of modern dynamic languages. Native D code is
-    commonly as fast as equivalent C++ code, while being shorter and memory-safe.
+    The D programming language is an object-oriented, imperative, multi
+    paradigm system programming language. D language originated as a
+    re-engineering of C++, and D's design goals try combining the performance
+    of compiled languages with the safety and expressive power of modern
+    dynamic languages. Native D code is commonly as fast as equivalent C++ code
+    while being shorter and memory-safe.
 Dart:
   paradigm:
     - ObjectOriented

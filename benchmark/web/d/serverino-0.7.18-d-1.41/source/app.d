@@ -30,9 +30,9 @@ __gshared req client = req();
 }
 
 @endpoint
-@route!("/api/v1/periodic-table/shells") void shelltHandler(Request req, Output output) {
+@route!("/api/v1/periodic-table/shells") void shellsHandler(Request req, Output output) {
     auto symbol = req.get.read("symbol");
-    auto rs = client.get("http://web-data-source/element.json");
+    auto rs = client.get("http://web-data-source/shells.json");
     auto entry = parseJSON((rs.responseBody).toString())[symbol];
 
     output.addHeader("content-type", "application/json");

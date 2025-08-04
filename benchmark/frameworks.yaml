@@ -201,9 +201,9 @@ Vibe.d: >
   High-level declarative REST and web application framework Full HTTP(S) stack
   with client, server and proxy implementations. Shipped with native database
   drivers for MongoDB and Redis. Complete concurrency toolkit and support for
-  low level I/O operations. Asynchronous I/O for maximum speed and minimum memory
+  low level IO operations. Asynchronous I/O for maximum speed and minimum memory
   usage. Compile-time "Diet" templates for unparalleled dynamic page speed.
-  Compiled to native machine code .Multi-threading and integrated load-balancing.
+  Compiled to native machine code.Multi-threading and integrated load-balancing.
   Fiber based blocking programming model for concise and intuitive development.
   Compact API with sensible default choices. Full support for exception based
   error handling

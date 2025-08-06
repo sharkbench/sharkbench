@@ -1,0 +1,9 @@
+language: D
+mode: Default
+version:
+  - "1.41"
+framework: Serverino
+framework_website: https://github.com/trikko/serverino
+framework_flavor: Default
+framework_version:
+  - "0.7.18"

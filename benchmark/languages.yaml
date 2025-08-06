@@ -13,7 +13,7 @@ C:
     influenced many other languages including C++, Java, and Python. C is widely
     used for high-performance computing applications due to its compiled nature
     and manual memory management.
-'C#':
+"C#":
   paradigm:
     - ObjectOriented
     - Imperative
@@ -30,6 +30,23 @@ C:
     garbage collection. C# is primarily used on the .NET Framework for Windows
     application development but has grown to support cross-platform needs via
     .NET Core.
+D:
+  paradigm:
+    - ObjectOriented
+    - Functional
+    - Imperative
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: true
+  memoryManagement: GarbageCollection
+  description: >
+    The D programming language is an object-oriented, imperative, multi
+    paradigm system programming language. D language originated as a
+    re-engineering of C++, and D's design goals try combining the performance
+    of compiled languages with the safety and expressive power of modern
+    dynamic languages. Native D code is commonly as fast as equivalent C++ code
+    while being shorter and memory-safe.
 Dart:
   paradigm:
     - ObjectOriented

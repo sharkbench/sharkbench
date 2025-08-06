@@ -1,0 +1,13 @@
+{
+  "authors": ["Sergei Giniatulin"],
+  "copyright": "Copyright © 2025, Sergei Giniatulin",
+  "dependencies": {
+    "arsd-official:cgi": "~>12.0.0",
+    "arsd-official:dom": "~>12.0.0",
+    "arsd-official:http": "~>12.0.0",
+    "arsd-official:jsvar": "~>12.0.0"
+  },
+  "description": "Arsd.CGI (server, client, json)",
+  "license": "MIT",
+  "name": "app"
+}

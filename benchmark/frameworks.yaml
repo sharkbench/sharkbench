@@ -4,6 +4,11 @@ Actix: >
   threading and asynchronous processing through its fun and flexible API. Actix
   is designed for developers who need performance without sacrificing developer
   experience.
+Arsd.CGI: >
+  Provides a uniform server-side API for CGI, FastCGI, SCGI, and HTTP web
+  applications. Offers both lower- and higher- level api options among other
+  common (optional) things like websocket and event source serving support,
+  session management, and job scheduling.
 ASP.NET Core: >
   ASP.NET Core is a free and open-source web framework developed by Microsoft
   for building modern, cloud-based applications. It is a cross-platform redesign
@@ -142,6 +147,13 @@ Serinus: >
   existing projects and offers a shallow learning curve for quick developer
   onboarding. Serinus focuses on providing a straightforward path to creating
   structured web applications.
+Serverino: >
+  Small and ready-to-go http server. Support for websockets included.
+  Quick build & start: build & run your server in seconds. Zero dependencies:
+  serverino doesn't rely on any external library. High performance: capable
+  of managing tens of thousands of connections per second. Cross-platform:
+  every release is tested on Linux, Windows, and MacOS. Hot-reload: restart
+  workers without downtime or dropped connections.
 Serverpod: >
   Serverpod is a server-side framework designed specifically for Dart that
   seamlessly integrates with Flutter. It is an ideal choice for mobile app
@@ -185,3 +197,13 @@ Vert.x: >
   microservices and distributed systems with ease through an event-driven,
   non-blocking development model. Vert.x supports multiple programming languages
   and emphasizes performance and scalability.
+Vibe.d: >
+  High-level declarative REST and web application framework Full HTTP(S) stack
+  with client, server and proxy implementations. Shipped with native database
+  drivers for MongoDB and Redis. Complete concurrency toolkit and support for
+  low level IO operations. Asynchronous I/O for maximum speed and minimum memory
+  usage. Compile-time "Diet" templates for unparalleled dynamic page speed.
+  Compiled to native machine code.Multi-threading and integrated load-balancing.
+  Fiber based blocking programming model for concise and intuitive development.
+  Compact API with sensible default choices. Full support for exception based
+  error handling

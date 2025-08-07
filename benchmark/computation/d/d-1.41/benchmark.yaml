@@ -1,4 +1,4 @@
 language: D
 mode: Default
 version:
-  - "1.40"
+  - "1.41"

@@ -1,4 +1,4 @@
-FROM kirillsaidov/dlang:ldc2-latest
+FROM vreitech/docker-ldc:latest
 
 WORKDIR /app
 COPY . .

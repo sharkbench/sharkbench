@@ -1,9 +1,9 @@
-FROM dlangdockerized/ldc:1.40.0
+FROM vreitech/docker-ldc:latest
 
 WORKDIR /app
 COPY . .
 
-RUN dub build -b=release
+RUN dub build -b=release --compiler=ldc2
 
 RUN chmod +x app
 

@@ -1,0 +1,4 @@
+language: D
+mode: Default
+version:
+  - "1.41"

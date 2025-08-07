@@ -1,0 +1,8 @@
+{
+  "authors": ["Sergei Giniatulin"],
+  "copyright": "Copyright © 2025, Sergei Giniatulin",
+  "dflags": ["-mcpu=native"],
+  "description": "Computation benchmark",
+  "license": "MIT",
+  "name": "app"
+}

@@ -89,6 +89,16 @@ cargo run --release -- --web --missing
 
 ## Contributing
 
+Keep in mind that the goal of Sharkbench is to guide developers in choosing the next stack for their **production** applications.
+Therefore, the submitted frameworks and programming languages should be **production-ready** and **actively maintained**.
+
+- at least 3 months old
+- evidence of production usage
+
+There might be exceptions or additional requirements, but this is the general guideline.
+
+Always bind the server to `0.0.0.0` to allow access from outside the container.
+
 ### ➤ File structure
 
 In general, each benchmark is located in a separate folder.

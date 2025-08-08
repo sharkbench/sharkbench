@@ -1,4 +1,4 @@
-FROM vreitech/docker-ldc:latest
+FROM vreitech/docker-ldc:2-v1.41.0
 
 WORKDIR /app
 COPY . .

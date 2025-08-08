@@ -12,7 +12,6 @@ struct Shell {
     ubyte[] shells;
 }
 
-@DefaultFormat("json"):
 class ApiV1 : WebObject {
     static HttpClient internClient;
 
@@ -28,6 +27,7 @@ class ApiV1 : WebObject {
         makeClient();
     }
 
+    @DefaultFormat("json"):
     auto element(string symbol) {
         auto request = internClient.request(Uri("http://web-data-source/element.json"));
         request.send();
@@ -35,6 +35,8 @@ class ApiV1 : WebObject {
         auto entry = response.contentJson()[symbol];
         return entry.get!Element;
     }
+
+    @DefaultFormat("json"):
     auto shells(string symbol) {
         auto request = internClient.request(Uri("http://web-data-source/shells.json"));
         request.send();

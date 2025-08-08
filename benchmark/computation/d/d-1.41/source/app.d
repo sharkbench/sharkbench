@@ -49,7 +49,7 @@ class TCPServer {
 
 void main()
 {
-    auto ts = new TCPServer("127.0.0.1", 3000);
+    auto ts = new TCPServer("0.0.0.0", 3000);
     ts.start();
 }
 

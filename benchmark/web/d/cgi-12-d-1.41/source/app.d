@@ -51,6 +51,6 @@ void requestHandler(Cgi cgi) {
 }
 
 void main() {
-    auto server = RequestServer(3000);
+    auto server = RequestServer("0.0.0.0", 3000);
     server.serve!requestHandler();
 }

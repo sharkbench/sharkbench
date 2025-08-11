@@ -38,7 +38,7 @@ D:
   execution:
     - Compiled
   typing: Static
-  nullSafety: true
+  nullSafety: false
   memoryManagement: GarbageCollection
   description: >
     The D programming language is an object-oriented, imperative, multi

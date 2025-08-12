@@ -1,5 +1,5 @@
 import arsd.cgi;
-import arsd.http2 : Uri, HttpClient;
+import arsd.http2 : ICache, Uri, HttpClient, HttpResponse, HttpRequestParameters;
 import arsd.jsvar;
 
 struct Element {
@@ -12,12 +12,29 @@ struct Shell {
     ubyte[] shells;
 }
 
+class myCache: ICache {
+    __gshared HttpResponse[HttpRequestParameters] aa;
+
+    const(HttpResponse)* getCachedResponse(HttpRequestParameters request) {
+        return &aa[request];
+    }
+
+    bool cacheResponse(HttpRequestParameters request, HttpResponse response) {
+        aa[request] = response;
+        return true;
+    }
+}
+
+
 class ApiV1 : WebObject {
     static HttpClient internClient;
+    myCache internCache;
 
     void makeClient() {
         if (internClient is null) {
-            auto c = new HttpClient();
+            auto cc = new myCache();
+            internCache = cc;
+            auto c = new HttpClient(internCache);
             c.keepAlive = true;
             internClient = c;
         }
@@ -54,5 +71,6 @@ void requestHandler(Cgi cgi) {
 
 void main() {
     auto server = RequestServer("0.0.0.0", 3000);
+    //server.numberOfThreads = 100;
     server.serve!requestHandler();
 }

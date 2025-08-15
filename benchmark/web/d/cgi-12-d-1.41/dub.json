@@ -8,7 +8,7 @@
     "arsd-official:jsvar": "~>12.0.0"
   },
   "description": "Arsd.CGI (server, client, json)",
-  "subConfigurations": { "arsd-official:cgi": "embedded_httpd_threads" },
+  "subConfigurations": { "arsd-official:cgi": "embedded_httpd_processes" },
   "license": "MIT",
   "name": "app"
 }

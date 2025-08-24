@@ -6,11 +6,10 @@ use hyper::body::Bytes;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Request, Response, Uri};
-use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client;
+use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::rt::TokioIo;
 use serde::{Deserialize, Serialize};
-use smallstr::SmallString;
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::rc::Rc;
@@ -148,14 +147,14 @@ async fn get_element(client: Rc<HttpClient>, symbol: &str) -> Result<Vec<u8>, Ap
     let res = client.request(req).await?;
     let body_bytes = res.into_body().collect().await?.to_bytes();
 
-    let json: HashMap<SmallString<[u8; 8]>, DataSourceElement> =
+    let json: HashMap<String, DataSourceElement> =
         serde_json::from_slice(&body_bytes)?;
     let entry = json.get(symbol).ok_or(AppError::ElementNotFound)?;
 
     let response = ElementResponse {
-        name: entry.name.to_owned(),
         number: entry.number,
         group: entry.group,
+        name: entry.name.to_owned(),
     };
 
     Ok(serde_json::to_vec(&response)?)
@@ -171,7 +170,7 @@ async fn get_shells(client: Rc<HttpClient>, symbol: &str) -> Result<Vec<u8>, App
     let res = client.request(req).await?;
     let body_bytes = res.into_body().collect().await?.to_bytes();
 
-    let json: HashMap<SmallString<[u8; 8]>, Vec<u8>> = serde_json::from_slice(&body_bytes)?;
+    let json: HashMap<String, Vec<u8>> = serde_json::from_slice(&body_bytes)?;
 
     let shells = json.get(symbol).ok_or(AppError::ShellsNotFound)?;
 
@@ -184,7 +183,7 @@ async fn get_shells(client: Rc<HttpClient>, symbol: &str) -> Result<Vec<u8>, App
 struct ElementResponse {
     number: u8,
     group: u8,
-    name: SmallString<[u8; 24]>,
+    name: String,
 }
 
 #[derive(Serialize)]
@@ -196,5 +195,5 @@ struct ShellsResponse<'shell> {
 struct DataSourceElement {
     number: u8,
     group: u8,
-    name: SmallString<[u8; 24]>,
-}
+    name: String,
+        }

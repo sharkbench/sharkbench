@@ -38,6 +38,13 @@ Django: >
   an extensive suite of built-in features from authentication to site maps.
   Django is widely used for developing complex, database-driven websites with an
   emphasis on reusability and security.
+Drogon: >
+  Drogon is a high-performance C++14/17-based HTTP application framework that
+  supports both synchronous and asynchronous programming models. It provides
+  excellent performance through non-blocking I/O and multi-threading, with
+  comprehensive features including ORM support, WebSocket handling, and
+  middleware. Drogon is designed for developers who need maximum performance
+  and control in C++ web applications.
 Express: >
   Express is a minimal and flexible Node.js web application framework that
   provides a robust set of features for web and mobile applications. It has

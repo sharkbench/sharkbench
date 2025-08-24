@@ -36,7 +36,13 @@ fn p_higher<T: Copy>(values: &Vec<T>, percentile: f64) -> T {
     }
 
     let index = match (values.len() as f64 * percentile) as usize {
-        0 => if values.len() == 1 { 0 } else { 1 },
+        0 => {
+            if values.len() == 1 {
+                0
+            } else {
+                1
+            }
+        }
         index => index,
     };
     values[index]

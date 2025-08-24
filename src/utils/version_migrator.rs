@@ -37,38 +37,56 @@ impl VersionMigrator {
         for t in &mut self.transformations {
             let contents = t.original.as_ref().unwrap();
 
-            match migrate_contents(contents, &t.regex, &self.initial_version, &self.target_version) {
+            match migrate_contents(
+                contents,
+                &t.regex,
+                &self.initial_version,
+                &self.target_version,
+            ) {
                 Ok(new_contents) => {
-                    std::fs::write(&t.path, new_contents).expect(format!("Could not write {}", t.path).as_str());
+                    std::fs::write(&t.path, new_contents)
+                        .expect(format!("Could not write {}", t.path).as_str());
                 }
-                Err(e) => {
-                    match e {
-                        MigrationError::VersionNotFound => {
-                            panic!("Expected {} in {} but found none.", self.initial_version, t.path);
-                        }
-                        MigrationError::InvalidVersion(version) => {
-                            panic!("Expected {} in {} but found {}.", self.initial_version, t.path, version);
-                        }
-                        MigrationError::InvalidRegex(regex) => {
-                            panic!("Regex in file {} is invalid: {}", t.path, regex);
-                        }
+                Err(e) => match e {
+                    MigrationError::VersionNotFound => {
+                        panic!(
+                            "Expected {} in {} but found none.",
+                            self.initial_version, t.path
+                        );
                     }
-                }
+                    MigrationError::InvalidVersion(version) => {
+                        panic!(
+                            "Expected {} in {} but found {}.",
+                            self.initial_version, t.path, version
+                        );
+                    }
+                    MigrationError::InvalidRegex(regex) => {
+                        panic!("Regex in file {} is invalid: {}", t.path, regex);
+                    }
+                },
             }
         }
     }
 
     pub fn restore(&self) {
         for t in &self.transformations {
-            let contents = t.original.as_ref().expect(format!("Could not restore {} (original not found). This should not happen.", t.path).as_str());
-            std::fs::write(&t.path, contents).expect(format!("Could not write {}", t.path).as_str());
+            let contents = t.original.as_ref().expect(
+                format!(
+                    "Could not restore {} (original not found). This should not happen.",
+                    t.path
+                )
+                .as_str(),
+            );
+            std::fs::write(&t.path, contents)
+                .expect(format!("Could not write {}", t.path).as_str());
         }
     }
 
     /// Store the contents in self.transformations.original
     fn load_original_contents(&mut self) {
         for t in &mut self.transformations {
-            let contents = std::fs::read_to_string(&t.path).expect(format!("Could not read {}", t.path).as_str());
+            let contents = std::fs::read_to_string(&t.path)
+                .expect(format!("Could not read {}", t.path).as_str());
             t.original = Some(contents);
         }
     }
@@ -81,7 +99,10 @@ enum MigrationError {
     InvalidVersion(String),
 }
 
-fn build_initial_transformation(dir: &str, regex: Option<IndexMap<String, String>>) -> Vec<Transformation> {
+fn build_initial_transformation(
+    dir: &str,
+    regex: Option<IndexMap<String, String>>,
+) -> Vec<Transformation> {
     regex
         .unwrap_or_else(|| {
             let mut map = IndexMap::new();
@@ -103,28 +124,43 @@ fn build_initial_transformation(dir: &str, regex: Option<IndexMap<String, String
 /// Migrate the contents of a file.
 /// Expects the regex to capture exactly one group containing the (old) version.
 /// It will panic if the group does not exist or if it contains a different initial version.
-fn migrate_contents(original: &str, regex: &str, initial_version: &str, target_version: &str) -> Result<String, MigrationError> {
+fn migrate_contents(
+    original: &str,
+    regex: &str,
+    initial_version: &str,
+    target_version: &str,
+) -> Result<String, MigrationError> {
     let regex = RegexBuilder::new(regex)
         .multi_line(true)
         .build()
-        .map_err(|e| MigrationError::InvalidRegex(format!("Could not compile regex {}: {}", regex, e)))?;
+        .map_err(|e| {
+            MigrationError::InvalidRegex(format!("Could not compile regex {}: {}", regex, e))
+        })?;
 
     let mut replaced = false;
     let mut detected_version: Option<String> = None;
-    let new_contents = regex.replace_all(original, |caps: &regex::Captures| {
-        let full_match = caps.get(0).unwrap();
-        let version = caps.get(1).unwrap();
-        if version.as_str() != initial_version {
-            // return original string if the version is not the initial version
-            detected_version = Some(version.as_str().to_string());
-            return caps.get(0).unwrap().as_str().to_string();
-        }
+    let new_contents = regex
+        .replace_all(original, |caps: &regex::Captures| {
+            let full_match = caps.get(0).unwrap();
+            let version = caps.get(1).unwrap();
+            if version.as_str() != initial_version {
+                // return original string if the version is not the initial version
+                detected_version = Some(version.as_str().to_string());
+                return caps.get(0).unwrap().as_str().to_string();
+            }
 
-        let match_start = full_match.start();
-        let start_index = version.start();
-        replaced = true;
-        format!("{}{}{}", &full_match.as_str()[..start_index - match_start], target_version, &full_match.as_str()[start_index - match_start + version.len()..])
-    }).parse().or(Err(MigrationError::VersionNotFound))?;
+            let match_start = full_match.start();
+            let start_index = version.start();
+            replaced = true;
+            format!(
+                "{}{}{}",
+                &full_match.as_str()[..start_index - match_start],
+                target_version,
+                &full_match.as_str()[start_index - match_start + version.len()..]
+            )
+        })
+        .parse()
+        .or(Err(MigrationError::VersionNotFound))?;
 
     if !replaced {
         return if let Some(detected_version) = detected_version {
@@ -146,43 +182,48 @@ mod tests {
         let dir = "test";
         let regex = None;
         let actual = build_initial_transformation(dir, regex);
-        assert_eq!(vec![
-            Transformation {
+        assert_eq!(
+            vec![Transformation {
                 path: "test/Dockerfile".to_string(),
                 original: None,
                 regex: DEFAULT_REGEX_STRING.to_string(),
-            },
-        ], actual);
+            },],
+            actual
+        );
 
         let dir = "test";
         let mut regex = IndexMap::new();
         regex.insert("Dockerfile2".to_string(), DEFAULT_REGEX_KEYWORD.to_string());
         let actual = build_initial_transformation(dir, Some(regex));
-        assert_eq!(vec![
-            Transformation {
+        assert_eq!(
+            vec![Transformation {
                 path: "test/Dockerfile2".to_string(),
                 original: None,
                 regex: DEFAULT_REGEX_STRING.to_string(),
-            },
-        ], actual);
+            },],
+            actual
+        );
 
         let dir = "test";
         let mut regex = IndexMap::new();
         regex.insert("Dockerfile3".to_string(), "my regex".to_string());
         regex.insert("Dockerfile4".to_string(), DEFAULT_REGEX_KEYWORD.to_string());
         let actual = build_initial_transformation(dir, Some(regex));
-        assert_eq!(vec![
-            Transformation {
-                path: "test/Dockerfile3".to_string(),
-                original: None,
-                regex: "my regex".to_string(),
-            },
-            Transformation {
-                path: "test/Dockerfile4".to_string(),
-                original: None,
-                regex: DEFAULT_REGEX_STRING.to_string(),
-            },
-        ], actual);
+        assert_eq!(
+            vec![
+                Transformation {
+                    path: "test/Dockerfile3".to_string(),
+                    original: None,
+                    regex: "my regex".to_string(),
+                },
+                Transformation {
+                    path: "test/Dockerfile4".to_string(),
+                    original: None,
+                    regex: DEFAULT_REGEX_STRING.to_string(),
+                },
+            ],
+            actual
+        );
     }
 
     #[test]
@@ -217,11 +258,13 @@ mod tests {
         assert_eq!(expected, actual);
 
         let original = "FROM rust:";
-        let actual = migrate_contents(original, regex, initial_version, target_version).unwrap_err();
+        let actual =
+            migrate_contents(original, regex, initial_version, target_version).unwrap_err();
         assert_eq!(MigrationError::VersionNotFound, actual);
 
         let original = "FROM rust:5.0.0";
-        let actual = migrate_contents(original, regex, initial_version, target_version).unwrap_err();
+        let actual =
+            migrate_contents(original, regex, initial_version, target_version).unwrap_err();
         assert_eq!(MigrationError::InvalidVersion("5.0.0".to_string()), actual);
     }
 }

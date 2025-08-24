@@ -1,8 +1,8 @@
-use std::process::{Command, Child};
-use std::io::{BufReader, BufRead};
-use std::sync::{Arc, Mutex};
-use regex::Regex;
 use crate::utils::percentile;
+use regex::Regex;
+use std::io::{BufRead, BufReader};
+use std::process::{Child, Command};
+use std::sync::{Arc, Mutex};
 
 pub struct DockerStatsReader {
     is_tracking: Arc<Mutex<bool>>,
@@ -92,10 +92,7 @@ impl DockerStatsReader {
         let mut ram_usage = self.ram_usage.lock().unwrap();
         ram_usage.sort();
         if ram_usage.len() == 0 {
-            return MemoryUsage {
-                median: 0,
-                p99: 0,
-            };
+            return MemoryUsage { median: 0, p99: 0 };
         }
         MemoryUsage {
             median: percentile::p50(&ram_usage),
@@ -117,7 +114,12 @@ fn get_bytes_of_ram(mem_usage: &str) -> i64 {
 
     let mem_usage_regex = Regex::new(r"(\d*\.?\d+)(\w+)").unwrap();
     let mem_usage_match = mem_usage_regex.captures(actual_usage).unwrap();
-    let mem_usage_value = mem_usage_match.get(1).unwrap().as_str().parse::<f64>().unwrap();
+    let mem_usage_value = mem_usage_match
+        .get(1)
+        .unwrap()
+        .as_str()
+        .parse::<f64>()
+        .unwrap();
     let mem_usage_unit = mem_usage_match.get(2).unwrap().as_str();
 
     match mem_usage_unit {

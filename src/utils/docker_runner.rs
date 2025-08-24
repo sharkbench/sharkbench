@@ -1,6 +1,6 @@
-use std::{fs, thread, time::Duration};
-use std::process::Command;
 use std::path::Path;
+use std::process::Command;
+use std::{fs, thread, time::Duration};
 
 const IGNORE_FILE: &str = r#"
 .dart_tool
@@ -13,9 +13,13 @@ target
 /// Starts a docker container with the given `compose_file`.
 /// The container is stopped after the function `on_container_started` has finished.
 /// If `compose_file` is `None`, the directory is expected to contain a docker-compose.yml file.
-pub fn run_docker_compose<F>(dir: &str, delay: Duration, compose_file: Option<&str>, on_container_started: F)
-    where
-        F: FnOnce(),
+pub fn run_docker_compose<F>(
+    dir: &str,
+    delay: Duration,
+    compose_file: Option<&str>,
+    on_container_started: F,
+) where
+    F: FnOnce(),
 {
     if let Some(compose_file_content) = compose_file {
         fs::write(format!("{}/docker-compose.yml", dir), compose_file_content).unwrap();
@@ -44,7 +48,9 @@ fn run_shell(cmd: &[&str], working_dir: &str) {
     let mut command = Command::new(cmd[0]);
     command.args(&cmd[1..]);
     command.current_dir(Path::new(working_dir));
-    let status = command.status().expect(&format!("failed to execute command: {:?}", cmd));
+    let status = command
+        .status()
+        .expect(&format!("failed to execute command: {:?}", cmd));
     if !status.success() {
         panic!("Command failed: {:?}", cmd);
     }

@@ -36,12 +36,7 @@ kotlin {
                 implementation("io.ktor:ktor-server-cio:$ktor_version")
                 implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-server-core:$ktor_version")
-            }
-        }
-
-        val nativeMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-curl:${ktor_version}")
+                implementation("io.ktor:ktor-client-cio:$ktor_version")
             }
         }
     }

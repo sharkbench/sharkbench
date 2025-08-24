@@ -1,7 +1,7 @@
 package com.example
 
 import io.ktor.client.*
-import io.ktor.client.engine.curl.Curl
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.application.*
@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
-    val client = HttpClient(Curl)
+    val client = HttpClient(CIO)
 
     routing {
         get("/api/v1/periodic-table/element") {

@@ -1,7 +1,7 @@
 language: Kotlin
-mode: Default
+mode: Native
 version:
-  - '3.2.3'
+  - '2.2.10'
 framework: Ktor
 framework_website: https://ktor.io
 framework_flavor: CIO-Native

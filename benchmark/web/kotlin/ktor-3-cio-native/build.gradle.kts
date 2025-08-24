@@ -13,17 +13,16 @@ group = "com.example"
 version = "0.0.1"
 
 kotlin {
-    val native = if (HostManager.hostIsLinux && System.getProperty("os.arch") == "amd64") {
-        linuxX64("native")
-    } else if (HostManager.hostIsMac && System.getProperty("os.arch") == "aarch64") {
-        macosArm64("native")
-    } else if (HostManager.hostIsMac) {
-        macosX64("native")
-    } else {
-        throw IllegalStateException("Your OS is not supported by Ktor")
+    val arch = System.getProperty("os.arch")
+    val nativeTarget = when {
+        HostManager.hostIsMac && arch == "x86_64" -> macosX64("native")
+        HostManager.hostIsMac && arch == "aarch64" -> macosArm64("native")
+        HostManager.hostIsLinux -> linuxX64("native")
+        // Other supported targets are listed here: https://ktor.io/docs/native-server.html#targets
+        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    native.binaries {
+    nativeTarget.binaries {
         executable {
             entryPoint = "com.example.main"
         }

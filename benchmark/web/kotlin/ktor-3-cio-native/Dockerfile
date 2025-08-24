@@ -1,11 +1,11 @@
-FROM eclipse-temurin:21-jdk-noble AS build
+FROM gradle:8.8-jdk21 AS build
 
 RUN apt update
 RUN apt install -y gcc g++ make cmake
 
 WORKDIR /app
 COPY . .
-RUN ./gradlew linkReleaseExecutableNative
+RUN gradle linkReleaseExecutableNative
 
 FROM ubuntu:24.04
 

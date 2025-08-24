@@ -176,7 +176,8 @@ pub fn benchmark_web(
 
                     if let Ok(response) = reqwest::blocking::get("http://localhost:3001/reset") {
                         let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
-                        if data_source_counter != result.success_count {
+                        if data_source_counter < result.success_count {
+                            // Note: data_source_counter might be bigger when some requests are timed out, which is fine
                             panic!("Request count measured by data source: {}.
 Successful responses by framework: {}.
 Maybe some requests were not fired but cached responses were used?",

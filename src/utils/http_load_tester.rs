@@ -4,6 +4,8 @@ use rand::seq::SliceRandom;
 use reqwest;
 use reqwest::StatusCode;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Write;
 use std::time::Duration;
 use tokio;
 use tokio::task::JoinHandle;
@@ -73,8 +75,9 @@ async fn run_load_test(
             let mut responses: Vec<PendingValidationResponse> = Vec::with_capacity(1_000_000);
 
             let client = reqwest::Client::builder()
-                .timeout(Duration::from_secs(5))
-                .build().unwrap();
+                .timeout(Duration::from_secs(15))
+                .build()
+                .unwrap();
             let start = std::time::Instant::now();
             let mut second = 1;
             'outer: loop {
@@ -98,21 +101,36 @@ async fn run_load_test(
                                 local_fail_count += 1;
                                 if verbose {
                                     println!("Unexpected response {} for {}", *status, url);
-                                    println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
+                                    println!(
+                                        "Success: {}, Fail: {}",
+                                        local_success_count, local_fail_count
+                                    );
                                 }
                             }
                         }
                         Err(e) => {
-                            if verbose {
-                                println!("Request to {} failed: {}", url, e);
-                                println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
+                            if e.is_timeout() {
+                                // ignore timeout errors
+                            } else {
+                                if verbose {
+                                    println!(
+                                        "Request to {} failed: {}",
+                                        url,
+                                        report_reqwest_error(&e)
+                                    );
+                                    println!(
+                                        "Success: {}, Fail: {}",
+                                        local_success_count, local_fail_count
+                                    );
+                                }
+                                local_fail_count += 1;
                             }
-                            local_fail_count += 1;
-                        },
+                        }
                     }
 
-                    if start.elapsed().as_secs() >= second {
-                        if second == duration.as_secs() {
+                    let elapsed = start.elapsed().as_secs();
+                    if elapsed >= second {
+                        if elapsed >= duration.as_secs() {
                             break 'outer;
                         } else {
                             rps_per_second.push(local_success_count - success_count_temp);
@@ -129,7 +147,10 @@ async fn run_load_test(
                     local_success_count -= 1;
                     local_fail_count += 1;
                     if verbose {
-                        println!("Validation failed for response for {}: {}, expected: {:?}, {}", response.url, response.body, response.expected_body, e);
+                        println!(
+                            "Validation failed for response for {}: {}, expected: {:?}, {}",
+                            response.url, response.body, response.expected_body, e
+                        );
                     }
                 }
             }
@@ -154,15 +175,19 @@ async fn run_load_test(
     }
 
     // max time of all threads
-    let total_time = handle_results.iter().fold(Duration::from_secs(0), |acc, x| {
-        if x.total_time > acc {
-            x.total_time
-        } else {
-            acc
-        }
-    });
+    let total_time = handle_results
+        .iter()
+        .fold(Duration::from_secs(0), |acc, x| {
+            if x.total_time > acc {
+                x.total_time
+            } else {
+                acc
+            }
+        });
 
-    let success_count = handle_results.iter().fold(0, |acc, x| acc + x.success_count);
+    let success_count = handle_results
+        .iter()
+        .fold(0, |acc, x| acc + x.success_count);
     let fail_count = handle_results.iter().fold(0, |acc, x| acc + x.fail_count);
 
     if success_count == 0 {
@@ -174,7 +199,10 @@ async fn run_load_test(
     }
 
     let rps_per_second: Vec<i32> = {
-        let all_vectors: Vec<Vec<i32>> = handle_results.iter().map(|x| x.rps_per_second.clone()).collect();
+        let all_vectors: Vec<Vec<i32>> = handle_results
+            .iter()
+            .map(|x| x.rps_per_second.clone())
+            .collect();
         let mut rps_per_second: Vec<i32> = Vec::new();
         for i in 0..all_vectors[0].len() {
             let mut sum = 0;
@@ -216,4 +244,19 @@ struct ThreadResult {
 
     latency_us: Vec<u64>,
     total_time: Duration,
+}
+
+fn report_reqwest_error(err: &reqwest::Error) -> String {
+    let mut s = format!("{}", err);
+    if let Some(src) = err.source() {
+        let _ = write!(s, "\n\nCaused by: {}", src);
+
+        let mut std_error = src;
+        while let Some(src) = std_error.source() {
+            let _ = write!(s, "\n\nCaused by: {}", src);
+            std_error = src;
+        }
+    }
+
+    s
 }

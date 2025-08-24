@@ -1,11 +1,9 @@
 language: C++
-mode: Default
+mode: GCC
 version:
-  - '1.86'
+  - '14'
 framework: Drogon
 framework_website: https://drogonframework.github.io/drogon-docs/#/
 framework_flavor: Default
 framework_version:
-  - '1.86'
-
-extended_warmup: true
+  - '1.9'

@@ -1,28 +1,45 @@
-FROM alpine:3.22 AS builder
+FROM gcc:14 AS builder
 
 WORKDIR /
-RUN apk update
-RUN apk add git gcc g++ make cmake jsoncpp-dev zlib-dev ossp-uuid-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git \
+        make \
+        cmake \
+        libjsoncpp-dev \
+        zlib1g-dev \
+        uuid-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN git clone --recurse-submodules https://github.com/drogonframework/drogon
-WORKDIR /drogon
-RUN mkdir build
-WORKDIR /drogon/build
-RUN cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF ..
-RUN make
-RUN make install
+# Build Drogon framework at specific version
+RUN git clone --recurse-submodules --branch v1.9.11 https://github.com/drogonframework/drogon && \
+    cd drogon && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF .. && \
+    make -j$(nproc) && \
+    make install
 
+# Build app
 WORKDIR /server
 COPY . .
-RUN ls -la
-RUN mkdir build
-WORKDIR /server/build
-RUN cmake -DCMAKE_BUILD_TYPE=Release ..
-RUN make
+RUN mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j$(nproc)
 
-FROM alpine:3.22
+FROM debian:trixie-slim
 
-RUN apk add jsoncpp ossp-uuid-dev zlib --no-cache
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libjsoncpp26 \
+        uuid-runtime \
+        zlib1g \
+        openssl \
+        libbrotli1 \
+        libpq5 \
+        libmariadb3 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
 COPY --from=builder /server/build/drogon drogon

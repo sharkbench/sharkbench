@@ -1,0 +1,11 @@
+language: Kotlin
+mode: Native
+version:
+  - '2.2.10'
+framework: Ktor
+framework_website: https://ktor.io
+framework_flavor: CIO-Native
+framework_version:
+  - '3.2.3'
+
+extended_warmup: true

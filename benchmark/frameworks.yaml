@@ -4,6 +4,10 @@ Actix: >
   threading and asynchronous processing through its fun and flexible API. Actix
   is designed for developers who need performance without sacrificing developer
   experience.
+Arcade: >
+  Arcade is a backend framework written in Dart that provides a simple and 
+  easy-to-use API for building web applications. It is designed to be fast,
+  with support for distributed websockets out of the box using Redis Pub/Sub.
 Arsd.CGI: >
   Provides a uniform server-side API for CGI, FastCGI, SCGI, and HTTP web
   applications. Offers both lower- and higher- level api options among other

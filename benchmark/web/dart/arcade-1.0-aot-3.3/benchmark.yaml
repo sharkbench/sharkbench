@@ -1,0 +1,9 @@
+language: Dart
+mode: AOT
+version:
+  - '3.9'
+framework: Arcade
+framework_website: https://arcade.ex3.dev/
+framework_flavor: Default
+framework_version:
+  - '1.0'

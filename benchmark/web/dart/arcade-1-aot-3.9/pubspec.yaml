@@ -3,4 +3,4 @@ environment:
   sdk: '>=3.9.0 <4.0.0'
 
 dependencies:
-  arcade: ^1.0.1
+  arcade: ^1.0.0

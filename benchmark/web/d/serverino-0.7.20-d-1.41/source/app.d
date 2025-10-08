@@ -14,9 +14,10 @@ __gshared req client = req();
 	return ServerinoConfig
 		.create()
         .setHttpTimeout(15.seconds)
-        .enableKeepAlive(180.seconds)
+        .enableKeepAlive(100.seconds)
    		.addListener("0.0.0.0", 3000)
-		.setWorkers(10);
+        .setDaemonInstances(1)
+        .setWorkers(4);
 }
 
 @endpoint

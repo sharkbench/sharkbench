@@ -17,7 +17,7 @@ __gshared req client = req();
         .enableKeepAlive(100.seconds)
    		.addListener("0.0.0.0", 3000)
         .setDaemonInstances(1)
-        .setWorkers(4);
+        .setWorkers(2);
 }
 
 @endpoint

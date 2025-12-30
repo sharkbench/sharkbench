@@ -1,0 +1,29 @@
+parameters:
+    webDataSourceUrl: 'http://web-data-source'
+
+application:
+    errorPresenter: Error
+    mapping:
+        *: App\Presenters\*Presenter
+
+http:
+    frames: false
+
+session:
+    autoStart: false
+
+di:
+    export:
+        parameters: false
+        tags: false
+
+services:
+    - App\Router\RouterFactory::createRouter
+
+    # Guzzle HTTP Client
+    http.client:
+        factory: GuzzleHttp\Client
+        arguments:
+            - base_uri: %webDataSourceUrl%
+              timeout: 10
+              http_errors: false

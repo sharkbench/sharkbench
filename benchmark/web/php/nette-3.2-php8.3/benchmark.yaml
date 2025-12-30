@@ -1,0 +1,13 @@
+language: PHP
+mode: Default
+version:
+  - '8.3'
+framework: Nette
+framework_website: https://nette.org
+framework_flavor: Default
+framework_version:
+  - '3.2'
+
+copy:
+  - 'nginx.conf'
+  - 'www.conf'

@@ -13,9 +13,13 @@ fn start_server(server: *net.Server) void {
         var connection = server.accept() catch unreachable;
         defer connection.stream.close();
 
-        var read_buffer: [1024]u8 = undefined;
+        var recv_buffer: [1024]u8 = undefined;
+        var send_buffer: [1024]u8 = undefined;
 
-        var http_server = http.Server.init(connection, &read_buffer);
+        var conn_reader = connection.stream.reader(&recv_buffer);
+        var conn_writer = connection.stream.writer(&send_buffer);
+
+        var http_server = http.Server.init(conn_reader.interface(), &conn_writer.interface);
 
         var request = http_server.receiveHead() catch unreachable;
         handle_request(&request) catch unreachable;

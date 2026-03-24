@@ -1,4 +1,0 @@
-name: benchmark
-
-environment:
-  sdk: ">=2.12.0"

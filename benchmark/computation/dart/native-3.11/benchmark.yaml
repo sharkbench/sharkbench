@@ -1,0 +1,4 @@
+language: Dart
+mode: AOT
+version: # only even versions and last minor
+  - '3.11'

@@ -1,7 +1,7 @@
 language: Dart
-mode: AOT
+mode: JIT
 version: # only even versions and last minor
-  - '3.10'
+  - '3.11'
 framework: HttpServer
 framework_stdlib: true
 framework_website: https://api.dart.dev/stable/dart-io/HttpServer-class.html

@@ -16,6 +16,6 @@ WORKDIR /app
 COPY --from=build /usr/lib/dart/bin/dartaotruntime /usr/lib/dart/bin/dartaotruntime
 COPY --from=build /app/server.aot /app/server.aot
 
-EXPOSE 8080
+EXPOSE 3000
 
 ENTRYPOINT ["/usr/lib/dart/bin/dartaotruntime", "/app/server.aot"]

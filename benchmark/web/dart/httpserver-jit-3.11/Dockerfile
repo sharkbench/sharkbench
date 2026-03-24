@@ -4,5 +4,5 @@ WORKDIR /app
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 3000
 ENTRYPOINT ["dart", "run", "bin/server.dart"]

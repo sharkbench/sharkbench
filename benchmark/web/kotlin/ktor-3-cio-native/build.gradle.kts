@@ -5,8 +5,8 @@ val kotlin_version: String by project
 val logback_version: String by project
 
 plugins {
-    kotlin("multiplatform") version "2.2.10"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
+    kotlin("multiplatform") version "2.3.20"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
 }
 
 group = "com.example"

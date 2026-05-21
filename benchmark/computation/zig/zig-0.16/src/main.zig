@@ -1,33 +1,39 @@
 const std = @import("std");
-const net = std.net;
+const net = std.Io.net;
 const http = std.http;
 
-pub fn main() !void {
-    const addr = net.Address.parseIp4("0.0.0.0", 3000) catch unreachable;
-    var server = try addr.listen(.{});
-    start_server(&server);
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    const addr = try net.IpAddress.parseIp4("0.0.0.0", 3000);
+    var server = try addr.listen(io, .{ .reuse_address = true });
+    defer server.deinit(io);
+
+    try start_server(io, &server);
 }
 
-fn start_server(server: *net.Server) void {
+fn start_server(io: std.Io, server: *net.Server) !void {
     while (true) {
-        var connection = server.accept() catch unreachable;
-        defer connection.stream.close();
+        var connection = try server.accept(io);
+        defer connection.close(io);
 
         var recv_buffer: [1024]u8 = undefined;
         var send_buffer: [1024]u8 = undefined;
 
-        var conn_reader = connection.stream.reader(&recv_buffer);
-        var conn_writer = connection.stream.writer(&send_buffer);
+        var stream_reader = connection.reader(io, &recv_buffer);
+        var stream_writer = connection.writer(io, &send_buffer);
 
-        var http_server = http.Server.init(conn_reader.interface(), &conn_writer.interface);
+        var http_server = http.Server.init(&stream_reader.interface, &stream_writer.interface);
 
-        var request = http_server.receiveHead() catch unreachable;
-        handle_request(&request) catch unreachable;
+        var request = try http_server.receiveHead();
+        try handle_request(&request);
     }
 }
 
 fn handle_request(request: *http.Server.Request) !void {
     const parameter = request.head.target[13..];
+    if (!std.mem.eql(u8, request.head.target[0..13], "/?iterations=")) {
+        std.log.err("Expected request parameter as \"/?iterations=<number>\", got {s}", .{request.head.target});
+    }
     const iterations = try std.fmt.parseUnsigned(u32, parameter, 10);
     const result = calc_pi(iterations);
     var buf: [1024]u8 = undefined;

@@ -91,19 +91,16 @@ fn getShells(handler: *Handler, req: *httpz.Request, res: *httpz.Response) !void
     try res.json(shells_res, .{});
 }
 
-pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+    const io = init.io;
 
-    var client = std.http.Client{ .allocator = allocator };
+    var client = std.http.Client{ .io = io, .allocator = allocator };
     defer client.deinit();
 
     var handler = Handler{ .client = client };
-    var server = try httpz.Server(*Handler).init(allocator, .{
-        .address = .{
-            .addr = .initIp4(.{ 0, 0, 0, 0 }, 3000),
-        },
+    var server = try httpz.Server(*Handler).init(io, allocator, .{
+        .address = .all(3000),
     }, &handler);
 
     defer {

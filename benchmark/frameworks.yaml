@@ -49,6 +49,11 @@ Drogon: >
   comprehensive features including ORM support, WebSocket handling, and
   middleware. Drogon is designed for developers who need maximum performance
   and control in C++ web applications.
+Echo: >
+  Echo is a high-performance, extensible web framework for Go focused on
+  building HTTP APIs and services with a small core. It provides fast routing,
+  middleware support, request binding, validation hooks, and flexible response
+  helpers while staying close to Go's standard net/http model.
 Express: >
   Express is a minimal and flexible Node.js web application framework that
   provides a robust set of features for web and mobile applications. It has

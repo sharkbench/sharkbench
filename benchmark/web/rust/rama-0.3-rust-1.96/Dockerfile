@@ -1,4 +1,4 @@
-FROM rust:1.86 AS builder
+FROM rust:1.96 AS builder
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y cmake clang

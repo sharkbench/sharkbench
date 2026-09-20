@@ -2,7 +2,7 @@ language: JavaScript
 mode: Node.js
 version:
   - '26'
-framework: Fulmine
+framework: Fulmine.js
 framework_website: https://github.com/nigrosimone/fulmine.js
 framework_flavor: Default
 framework_version:

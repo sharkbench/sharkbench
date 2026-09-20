@@ -4,6 +4,9 @@ FROM node:26-trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
 
+# npm 12 refuses git dependencies unless told otherwise
+ENV NPM_CONFIG_ALLOW_GIT=all
+
 WORKDIR /app
 COPY . .
 

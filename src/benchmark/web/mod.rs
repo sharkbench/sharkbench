@@ -1,5 +1,6 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
 use crate::utils::copy_files;
+use crate::utils::docker_runner::get_container_network;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::{
     run_http_load_test, PendingValidationResponse, PreparedHttpRequest,
@@ -11,8 +12,10 @@ use crate::utils::serialization::SerializedValue;
 use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
 use serde::Deserialize;
+use std::cell::OnceCell;
 use std::collections::HashMap;
 use std::fs;
+use std::net::{SocketAddr, UdpSocket};
 use std::time::Duration;
 
 /// The web data source runs as a sidecar sharing the network namespace of the benchmark
@@ -87,55 +90,6 @@ pub fn benchmark_web(
     meta_data.print_info();
 
     let data: HashMap<String, PeriodicTableElement> = load_data();
-    let requests: Vec<PreparedHttpRequest> = [
-        data.iter()
-            .map(|(k, v)| {
-                let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/element?symbol={}",
-                    k
-                );
-                let expected_response = HashMap::from([
-                    (
-                        "name".to_string(),
-                        SerializedValue::StringValue(v.name.to_string()),
-                    ),
-                    (
-                        "number".to_string(),
-                        SerializedValue::IntValue(v.number as i32),
-                    ),
-                    (
-                        "group".to_string(),
-                        SerializedValue::IntValue(v.group as i32),
-                    ),
-                ]);
-
-                PreparedHttpRequest {
-                    url,
-                    expected_response,
-                }
-            })
-            .collect::<Vec<PreparedHttpRequest>>(),
-        data.iter()
-            .map(|(k, v)| {
-                let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/shells?symbol={}",
-                    k
-                );
-                let expected_response = HashMap::from([(
-                    "shells".to_string(),
-                    SerializedValue::IntListValue(
-                        v.shells.iter().map(|v| *v as i32).collect::<Vec<i32>>(),
-                    ),
-                )]);
-
-                PreparedHttpRequest {
-                    url,
-                    expected_response,
-                }
-            })
-            .collect::<Vec<PreparedHttpRequest>>(),
-    ]
-    .concat();
 
     let concurrency = match meta_data.concurrency {
         Some(concurrency) => {
@@ -187,6 +141,9 @@ pub fn benchmark_web(
                 ));
             }
 
+            // Prepared once the container is started, as the URL depends on the container
+            let requests: OnceCell<Vec<PreparedHttpRequest>> = OnceCell::new();
+
             #[rustfmt::skip]
             let result = run_benchmark(
                 dir,
@@ -205,6 +162,8 @@ pub fn benchmark_web(
                     false => 5,
                 },
                 || {
+                    let requests = requests.get_or_init(|| prepare_requests(&get_benchmark_url(), &data));
+
                     reset_data_source_counter();
 
                     let result = run_http_load_test(
@@ -213,7 +172,7 @@ pub fn benchmark_web(
                             true => 2,
                             false => 15,
                         }),
-                        &requests,
+                        requests,
                         response_validator,
                         verbose,
                     );
@@ -304,6 +263,85 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
     }
 
     elements
+}
+
+fn prepare_requests(
+    benchmark_url: &str,
+    data: &HashMap<String, PeriodicTableElement>,
+) -> Vec<PreparedHttpRequest> {
+    [
+        data.iter()
+            .map(|(k, v)| {
+                let url = format!(
+                    "{}/api/v1/periodic-table/element?symbol={}",
+                    benchmark_url, k
+                );
+                let expected_response = HashMap::from([
+                    (
+                        "name".to_string(),
+                        SerializedValue::StringValue(v.name.to_string()),
+                    ),
+                    (
+                        "number".to_string(),
+                        SerializedValue::IntValue(v.number as i32),
+                    ),
+                    (
+                        "group".to_string(),
+                        SerializedValue::IntValue(v.group as i32),
+                    ),
+                ]);
+
+                PreparedHttpRequest {
+                    url,
+                    expected_response,
+                }
+            })
+            .collect::<Vec<PreparedHttpRequest>>(),
+        data.iter()
+            .map(|(k, v)| {
+                let url = format!(
+                    "{}/api/v1/periodic-table/shells?symbol={}",
+                    benchmark_url, k
+                );
+                let expected_response = HashMap::from([(
+                    "shells".to_string(),
+                    SerializedValue::IntListValue(
+                        v.shells.iter().map(|v| *v as i32).collect::<Vec<i32>>(),
+                    ),
+                )]);
+
+                PreparedHttpRequest {
+                    url,
+                    expected_response,
+                }
+            })
+            .collect::<Vec<PreparedHttpRequest>>(),
+    ]
+    .concat()
+}
+
+/// Returns the URL the load test sends its requests to.
+/// Requests to a published port via localhost go through docker-proxy, a userspace TCP relay
+/// adding noise to each request. Connecting to the container IP bypasses it (and the NAT).
+/// This requires the Docker network to be attached to the host, which is not the case
+/// e.g. with Docker Desktop or rootless Docker. Otherwise, the published port is used.
+fn get_benchmark_url() -> String {
+    if let Some((ip, gateway)) = get_container_network(crate::CONTAINER_NAME) {
+        // The network is attached to the host if the host reaches the container from the gateway.
+        // Connecting a UDP socket only selects the route, no packet is sent.
+        let source = UdpSocket::bind("0.0.0.0:0").and_then(|socket| {
+            socket.connect((ip, 3000))?;
+            socket.local_addr()
+        });
+        if source.is_ok_and(|source| source.ip() == gateway) {
+            let address = SocketAddr::new(ip, 3000);
+            println!(" -> Sending requests to the container IP {address}");
+            return format!("http://{address}");
+        }
+    }
+
+    println!(" -> Container IP not reachable, sending requests to the published port");
+    "http://localhost:3000".to_string()
 }
 
 /// Resets the request counter of the web data source and returns its value before the reset.

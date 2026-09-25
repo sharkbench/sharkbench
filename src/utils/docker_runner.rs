@@ -1,3 +1,4 @@
+use std::net::IpAddr;
 use std::path::Path;
 use std::process::Command;
 use std::{fs, thread, time::Duration};
@@ -59,6 +60,25 @@ where
 
     println!(" -> Removing image");
     run_shell(&["docker", "compose", "down", "--rmi", "all"], dir);
+}
+
+/// Returns the IP address of the container and the gateway of its Docker network.
+pub fn get_container_network(container_name: &str) -> Option<(IpAddr, IpAddr)> {
+    let output = Command::new("docker")
+        .args([
+            "inspect",
+            "--format",
+            "{{range .NetworkSettings.Networks}}{{.IPAddress}} {{.Gateway}} {{end}}",
+            container_name,
+        ])
+        .output()
+        .ok()?;
+    let stdout = String::from_utf8(output.stdout).ok()?;
+    let mut ips = stdout.split_whitespace().map(|ip| ip.parse::<IpAddr>());
+    match (ips.next(), ips.next()) {
+        (Some(Ok(ip)), Some(Ok(gateway))) => Some((ip, gateway)),
+        _ => None,
+    }
 }
 
 fn run_shell(cmd: &[&str], working_dir: &str) {

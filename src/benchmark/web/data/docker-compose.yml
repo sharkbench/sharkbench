@@ -1,6 +1,7 @@
 services:
   web-data-source:
     build: .
+    image: sharkbench-web-data-source
     container_name: web_data_source
     ports:
       - "3001:80"

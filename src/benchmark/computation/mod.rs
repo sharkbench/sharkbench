@@ -8,6 +8,26 @@ use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
 use std::time::Duration;
 
+const COMPOSE_FILE: &str = r#"
+services:
+  benchmark:
+    build: .
+    container_name: benchmark
+    ports:
+      - "3000:3000"
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65535
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+
+networks:
+  default:
+    name: "sharkbench-benchmark-network"
+    external: true
+"#;
+
 const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
 const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.7853981633136793";
 const DEFAULT_RUNS: usize = 15;
@@ -73,6 +93,7 @@ pub fn benchmark_computation(
         };
         let result = run_benchmark(
             dir,
+            COMPOSE_FILE,
             stats_reader,
             version_migrations.iter_mut().collect(),
             match validate {

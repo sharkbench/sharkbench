@@ -1,5 +1,6 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
 use crate::utils::copy_files;
+use crate::utils::docker_runner::get_container_network;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::{
     run_http_load_test, PendingValidationResponse, PreparedHttpRequest,
@@ -11,9 +12,54 @@ use crate::utils::serialization::SerializedValue;
 use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
 use serde::Deserialize;
+use std::cell::OnceCell;
 use std::collections::HashMap;
 use std::fs;
+use std::net::{SocketAddr, UdpSocket};
 use std::time::Duration;
+
+/// The web data source runs as a sidecar sharing the network namespace of the benchmark
+/// (like the containers of a Kubernetes pod) and `web-data-source` resolves to 127.0.0.1.
+/// The data is fetched via loopback instead of the Docker network (no DNS lookup, no bridge),
+/// so the benchmark measures the framework instead of the network noise.
+/// Therefore, port 80 is reserved for the data source and must not be used by the benchmark.
+/// The data source is published on port 3001 to reset its request counter.
+/// Clients that ignore /etc/hosts and only use DNS (e.g. rama) get the network alias instead,
+/// the IP of the benchmark container, so they fetch the data locally too.
+const COMPOSE_FILE: &str = r#"
+services:
+  benchmark:
+    build: .
+    container_name: benchmark
+    ports:
+      - "3000:3000"
+      - "3001:80"
+    extra_hosts:
+      - "web-data-source:127.0.0.1"
+    networks:
+      default:
+        aliases:
+          - web-data-source
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65535
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+
+  web-data-source:
+    image: sharkbench-web-data-source
+    pull_policy: never
+    container_name: web_data_source
+    network_mode: "service:benchmark"
+    # The data source ignores SIGTERM, without init each compose down waits 10 seconds
+    init: true
+
+networks:
+  default:
+    name: "sharkbench-benchmark-network"
+    external: true
+"#;
 
 const DEFAULT_CONCURRENCY: usize = 32;
 
@@ -44,55 +90,6 @@ pub fn benchmark_web(
     meta_data.print_info();
 
     let data: HashMap<String, PeriodicTableElement> = load_data();
-    let requests: Vec<PreparedHttpRequest> = [
-        data.iter()
-            .map(|(k, v)| {
-                let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/element?symbol={}",
-                    k
-                );
-                let expected_response = HashMap::from([
-                    (
-                        "name".to_string(),
-                        SerializedValue::StringValue(v.name.to_string()),
-                    ),
-                    (
-                        "number".to_string(),
-                        SerializedValue::IntValue(v.number as i32),
-                    ),
-                    (
-                        "group".to_string(),
-                        SerializedValue::IntValue(v.group as i32),
-                    ),
-                ]);
-
-                PreparedHttpRequest {
-                    url,
-                    expected_response,
-                }
-            })
-            .collect::<Vec<PreparedHttpRequest>>(),
-        data.iter()
-            .map(|(k, v)| {
-                let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/shells?symbol={}",
-                    k
-                );
-                let expected_response = HashMap::from([(
-                    "shells".to_string(),
-                    SerializedValue::IntListValue(
-                        v.shells.iter().map(|v| *v as i32).collect::<Vec<i32>>(),
-                    ),
-                )]);
-
-                PreparedHttpRequest {
-                    url,
-                    expected_response,
-                }
-            })
-            .collect::<Vec<PreparedHttpRequest>>(),
-    ]
-    .concat();
 
     let concurrency = match meta_data.concurrency {
         Some(concurrency) => {
@@ -144,9 +141,13 @@ pub fn benchmark_web(
                 ));
             }
 
+            // Prepared once the container is started, as the URL depends on the container
+            let requests: OnceCell<Vec<PreparedHttpRequest>> = OnceCell::new();
+
             #[rustfmt::skip]
             let result = run_benchmark(
                 dir,
+                COMPOSE_FILE,
                 stats_reader,
                 version_migrations.iter_mut().collect(),
                 match validate {
@@ -161,7 +162,9 @@ pub fn benchmark_web(
                     false => 5,
                 },
                 || {
-                    let _ = reqwest::blocking::get("http://localhost:3001/reset").expect("Failed to reset counter");
+                    let requests = requests.get_or_init(|| prepare_requests(&get_benchmark_url(), &data));
+
+                    reset_data_source_counter();
 
                     let result = run_http_load_test(
                         concurrency,
@@ -169,22 +172,18 @@ pub fn benchmark_web(
                             true => 2,
                             false => 15,
                         }),
-                        &requests,
+                        requests,
                         response_validator,
                         verbose,
                     );
 
-                    if let Ok(response) = reqwest::blocking::get("http://localhost:3001/reset") {
-                        let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
-                        if data_source_counter < result.success_count {
-                            // Note: data_source_counter might be bigger when some requests are timed out, which is fine
-                            panic!("Request count measured by data source: {}.
+                    let data_source_counter = reset_data_source_counter();
+                    if data_source_counter < result.success_count {
+                        // Note: data_source_counter might be bigger when some requests are timed out, which is fine
+                        panic!("Request count measured by data source: {}.
 Successful responses by framework: {}.
 Maybe some requests were not fired but cached responses were used?",
-                                data_source_counter, result.success_count);
-                        }
-                    } else {
-                        panic!("Failed to reset counter");
+                            data_source_counter, result.success_count);
                     }
 
                     let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
@@ -264,6 +263,94 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
     }
 
     elements
+}
+
+fn prepare_requests(
+    benchmark_url: &str,
+    data: &HashMap<String, PeriodicTableElement>,
+) -> Vec<PreparedHttpRequest> {
+    [
+        data.iter()
+            .map(|(k, v)| {
+                let url = format!(
+                    "{}/api/v1/periodic-table/element?symbol={}",
+                    benchmark_url, k
+                );
+                let expected_response = HashMap::from([
+                    (
+                        "name".to_string(),
+                        SerializedValue::StringValue(v.name.to_string()),
+                    ),
+                    (
+                        "number".to_string(),
+                        SerializedValue::IntValue(v.number as i32),
+                    ),
+                    (
+                        "group".to_string(),
+                        SerializedValue::IntValue(v.group as i32),
+                    ),
+                ]);
+
+                PreparedHttpRequest {
+                    url,
+                    expected_response,
+                }
+            })
+            .collect::<Vec<PreparedHttpRequest>>(),
+        data.iter()
+            .map(|(k, v)| {
+                let url = format!(
+                    "{}/api/v1/periodic-table/shells?symbol={}",
+                    benchmark_url, k
+                );
+                let expected_response = HashMap::from([(
+                    "shells".to_string(),
+                    SerializedValue::IntListValue(
+                        v.shells.iter().map(|v| *v as i32).collect::<Vec<i32>>(),
+                    ),
+                )]);
+
+                PreparedHttpRequest {
+                    url,
+                    expected_response,
+                }
+            })
+            .collect::<Vec<PreparedHttpRequest>>(),
+    ]
+    .concat()
+}
+
+/// Returns the URL the load test sends its requests to.
+/// Requests to a published port via localhost go through docker-proxy, a userspace TCP relay
+/// adding noise to each request. Connecting to the container IP bypasses it (and the NAT).
+/// This requires the Docker network to be attached to the host, which is not the case
+/// e.g. with Docker Desktop or rootless Docker. Otherwise, the published port is used.
+fn get_benchmark_url() -> String {
+    if let Some((ip, gateway)) = get_container_network(crate::CONTAINER_NAME) {
+        // The network is attached to the host if the host reaches the container from the gateway.
+        // Connecting a UDP socket only selects the route, no packet is sent.
+        let source = UdpSocket::bind("0.0.0.0:0").and_then(|socket| {
+            socket.connect((ip, 3000))?;
+            socket.local_addr()
+        });
+        if source.is_ok_and(|source| source.ip() == gateway) {
+            let address = SocketAddr::new(ip, 3000);
+            println!(" -> Sending requests to the container IP {address}");
+            return format!("http://{address}");
+        }
+    }
+
+    println!(" -> Container IP not reachable, sending requests to the published port");
+    "http://localhost:3000".to_string()
+}
+
+/// Resets the request counter of the web data source and returns its value before the reset.
+fn reset_data_source_counter() -> i32 {
+    reqwest::blocking::get("http://localhost:3001/reset")
+        .and_then(|response| response.text())
+        .ok()
+        .and_then(|counter| counter.parse::<i32>().ok())
+        .expect("Failed to reset the request counter of the web data source. Does the benchmark listen on port 80? This port is reserved for the data source")
 }
 
 fn response_validator(response: &PendingValidationResponse) -> Result<(), String> {

@@ -56,5 +56,7 @@ COPY --from=build /rails /rails
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster by default, this can be overwritten at runtime
+# Thruster listens on port 80 by default, which is reserved for the web data source
+ENV HTTP_PORT="8080"
 EXPOSE 3000
 CMD ["./bin/thrust", "./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]

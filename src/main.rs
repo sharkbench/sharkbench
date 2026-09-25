@@ -2,14 +2,13 @@ extern crate core;
 
 use crate::benchmark::computation::benchmark_computation;
 use crate::benchmark::web::benchmark_web;
-use crate::utils::docker_runner::run_docker_compose;
+use crate::utils::docker_runner::build_docker_compose;
 use crate::utils::docker_stats;
 use crate::utils::result_reader::{ExistingResult, ResultMap};
 use clap::Parser;
 use docker_stats::DockerStatsReader;
 use std::collections::HashMap;
 use std::fs;
-use std::time::Duration;
 
 mod benchmark;
 mod utils;
@@ -54,6 +53,8 @@ struct Args {
 }
 
 const CONTAINER_NAME: &str = "benchmark";
+/// The web data source image is built once.
+/// Each web benchmark then starts it as a sidecar of the benchmark container.
 const WEB_DATASOURCE_DIR: &str = "src/benchmark/web/data";
 
 fn main() {
@@ -90,7 +91,7 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
+            build_docker_compose(WEB_DATASOURCE_DIR, || {
                 benchmark_web(
                     full_dir.as_str(),
                     existing_results
@@ -126,7 +127,7 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", language);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
+            build_docker_compose(WEB_DATASOURCE_DIR, || {
                 run_one_language(
                     full_dir.as_str(),
                     existing_results.web.get(&language),
@@ -167,7 +168,7 @@ fn main() {
 
     if args.web {
         println!(" -> Running web benchmarks");
-        run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
+        build_docker_compose(WEB_DATASOURCE_DIR, || {
             run_all_languages(
                 "benchmark/web",
                 &existing_results.web,

@@ -1,0 +1,12 @@
+{
+  "authors": ["Sergei Giniatulin", "Andrea Fontana"],
+  "copyright": "Copyright © 2025, Sergei Giniatulin",
+  "dependencies": {
+    "djson": "~>0.9.3",
+    "requests": "~>2.2.0",
+    "serverino": "~>0.8.3"
+  },
+  "description": "Serverino - server, Requests - client, djson - json",
+  "license": "MIT",
+  "name": "app"
+}

@@ -176,6 +176,13 @@ Each benchmark has access to `http://web-data-source/element.json` and `http://w
 which is provided by the [web-data-source](https://github.com/sharkbench/sharkbench/tree/main/src/benchmark/web/data/static).
 This data source is used to simulate I/O (similar to database queries).
 
+The data source runs as a sidecar container sharing the network namespace of the benchmark container
+(like the containers of a Kubernetes pod) and `web-data-source` resolves to `127.0.0.1`.
+This way, the data is fetched via loopback without DNS lookups or Docker bridge,
+so the benchmark measures the framework instead of the network noise.
+HTTP clients that only use DNS get the IP of the benchmark container, so they fetch the data locally too.
+Therefore, port `80` is reserved for the data source and must not be used by the application.
+
 The application should parse the `symbol` query parameter, fetch the json from the data source, and return the result.
 The exact API is as follows:
 

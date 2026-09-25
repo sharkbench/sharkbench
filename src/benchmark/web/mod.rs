@@ -15,6 +15,49 @@ use std::collections::HashMap;
 use std::fs;
 use std::time::Duration;
 
+/// The web data source runs as a sidecar sharing the network namespace of the benchmark
+/// (like the containers of a Kubernetes pod) and `web-data-source` resolves to 127.0.0.1.
+/// The data is fetched via loopback instead of the Docker network (no DNS lookup, no bridge),
+/// so the benchmark measures the framework instead of the network noise.
+/// Therefore, port 80 is reserved for the data source and must not be used by the benchmark.
+/// The data source is published on port 3001 to reset its request counter.
+/// Clients that ignore /etc/hosts and only use DNS (e.g. rama) get the network alias instead,
+/// the IP of the benchmark container, so they fetch the data locally too.
+const COMPOSE_FILE: &str = r#"
+services:
+  benchmark:
+    build: .
+    container_name: benchmark
+    ports:
+      - "3000:3000"
+      - "3001:80"
+    extra_hosts:
+      - "web-data-source:127.0.0.1"
+    networks:
+      default:
+        aliases:
+          - web-data-source
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65535
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+
+  web-data-source:
+    image: sharkbench-web-data-source
+    pull_policy: never
+    container_name: web_data_source
+    network_mode: "service:benchmark"
+    # The data source ignores SIGTERM, without init each compose down waits 10 seconds
+    init: true
+
+networks:
+  default:
+    name: "sharkbench-benchmark-network"
+    external: true
+"#;
+
 const DEFAULT_CONCURRENCY: usize = 32;
 
 pub fn benchmark_web(
@@ -147,6 +190,7 @@ pub fn benchmark_web(
             #[rustfmt::skip]
             let result = run_benchmark(
                 dir,
+                COMPOSE_FILE,
                 stats_reader,
                 version_migrations.iter_mut().collect(),
                 match validate {
@@ -161,7 +205,7 @@ pub fn benchmark_web(
                     false => 5,
                 },
                 || {
-                    let _ = reqwest::blocking::get("http://localhost:3001/reset").expect("Failed to reset counter");
+                    reset_data_source_counter();
 
                     let result = run_http_load_test(
                         concurrency,
@@ -174,17 +218,13 @@ pub fn benchmark_web(
                         verbose,
                     );
 
-                    if let Ok(response) = reqwest::blocking::get("http://localhost:3001/reset") {
-                        let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
-                        if data_source_counter < result.success_count {
-                            // Note: data_source_counter might be bigger when some requests are timed out, which is fine
-                            panic!("Request count measured by data source: {}.
+                    let data_source_counter = reset_data_source_counter();
+                    if data_source_counter < result.success_count {
+                        // Note: data_source_counter might be bigger when some requests are timed out, which is fine
+                        panic!("Request count measured by data source: {}.
 Successful responses by framework: {}.
 Maybe some requests were not fired but cached responses were used?",
-                                data_source_counter, result.success_count);
-                        }
-                    } else {
-                        panic!("Failed to reset counter");
+                            data_source_counter, result.success_count);
                     }
 
                     let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
@@ -264,6 +304,15 @@ fn load_data() -> HashMap<String, PeriodicTableElement> {
     }
 
     elements
+}
+
+/// Resets the request counter of the web data source and returns its value before the reset.
+fn reset_data_source_counter() -> i32 {
+    reqwest::blocking::get("http://localhost:3001/reset")
+        .and_then(|response| response.text())
+        .ok()
+        .and_then(|counter| counter.parse::<i32>().ok())
+        .expect("Failed to reset the request counter of the web data source. Does the benchmark listen on port 80? This port is reserved for the data source")
 }
 
 fn response_validator(response: &PendingValidationResponse) -> Result<(), String> {

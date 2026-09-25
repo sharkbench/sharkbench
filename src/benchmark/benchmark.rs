@@ -6,26 +6,6 @@ use std::fmt::{Debug, Display};
 use std::thread;
 use std::time::Duration;
 
-const COMPOSE_FILE: &str = r#"
-services:
-  benchmark:
-    build: .
-    container_name: benchmark
-    ports:
-      - "3000:3000"
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65535
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-
-networks:
-  default:
-    name: "sharkbench-benchmark-network"
-    external: true
-"#;
-
 pub struct BenchmarkResult {
     pub time_median: i64,
     pub memory_median: i64,
@@ -71,6 +51,7 @@ fn format_additional_data(
 
 pub fn run_benchmark<F>(
     dir: &str,
+    compose_file: &str,
     stats_reader: &mut crate::utils::docker_stats::DockerStatsReader,
     mut version_migrations: Vec<&mut VersionMigrator>,
     warmup_rounds: usize,
@@ -89,7 +70,7 @@ where
     let mut memory_p99: Vec<i64> = Vec::new();
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
-    run_docker_compose(dir, Duration::from_secs(5), Some(COMPOSE_FILE), || {
+    run_docker_compose(dir, Duration::from_secs(5), Some(compose_file), || {
         println!(" -> Running benchmark");
         let mut fail_count = 0;
         let mut warmup_counter = 0;

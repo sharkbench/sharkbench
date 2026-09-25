@@ -14,7 +14,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let shells_file: &'static Bytes = Box::leak(Box::new(Bytes::from(fs::read_to_string("static/shells.json").unwrap())));
     static COUNTER: AtomicU32 = AtomicU32::new(0);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:80").await.unwrap();
+    // Shares the network namespace of the benchmark container, so the benchmark must not use port 80
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:80")
+        .await
+        .expect("Failed to listen on port 80. Make sure the benchmark does not use it");
 
     loop {
         let (stream, _) = listener.accept().await?;

@@ -31,6 +31,8 @@ RUN chmod -R 777 storage
 RUN mkdir -p var
 RUN chown -R www-data:www-data var
 
+# Disable the default nginx site, port 80 is reserved for the web data source
+RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/custom.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 

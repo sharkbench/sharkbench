@@ -36,12 +36,29 @@ pub fn run_docker_compose<F>(
     on_container_started();
 
     println!(" -> Stopping container");
-    run_shell(&["docker", "compose", "down", "--rmi", "all"], dir);
+    // "local" only removes the images built by this project.
+    // Images referenced by name (e.g. the web data source) are kept for the next benchmark.
+    run_shell(&["docker", "compose", "down", "--rmi", "local"], dir);
 
     if compose_file.is_some() {
         fs::remove_file(format!("{}/docker-compose.yml", dir)).unwrap();
         fs::remove_file(format!("{}/.dockerignore", dir)).unwrap();
     }
+}
+
+/// Builds the images of the docker-compose.yml file in `dir` without starting any container.
+/// The images are removed after the function `on_images_built` has finished.
+pub fn build_docker_compose<F>(dir: &str, on_images_built: F)
+where
+    F: FnOnce(),
+{
+    println!(" -> Building image");
+    run_shell(&["docker", "compose", "build"], dir);
+
+    on_images_built();
+
+    println!(" -> Removing image");
+    run_shell(&["docker", "compose", "down", "--rmi", "all"], dir);
 }
 
 fn run_shell(cmd: &[&str], working_dir: &str) {

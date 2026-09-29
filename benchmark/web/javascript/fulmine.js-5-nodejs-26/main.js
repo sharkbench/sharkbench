@@ -2,7 +2,7 @@ const http = require('http');
 const express = require('fulmine.js');
 
 const app = express();
-const port = 3000;
+const port = 5001;
 
 // fetch() is not available prior Node.js 18, and it is slower than http.get()
 // TODO: Use fetch() as soon as the following issue is resolved:
@@ -27,7 +27,7 @@ function fetch(url) {
 
 app.get('/api/v1/periodic-table/element', async (req, res) => {
     const symbol = req.query.symbol;
-    const elementRes = await fetch('http://web-data-source/element.json');
+    const elementRes = await fetch('http://127.0.0.1:5002/element.json');
     const element = elementRes[symbol];
 
     res.json({
@@ -39,7 +39,7 @@ app.get('/api/v1/periodic-table/element', async (req, res) => {
 
 app.get('/api/v1/periodic-table/shells', async (req, res) => {
     const symbol = req.query.symbol;
-    const shellsRes = await fetch('http://web-data-source/shells.json');
+    const shellsRes = await fetch('http://127.0.0.1:5002/shells.json');
 
     res.json({
         shells: shellsRes[symbol]

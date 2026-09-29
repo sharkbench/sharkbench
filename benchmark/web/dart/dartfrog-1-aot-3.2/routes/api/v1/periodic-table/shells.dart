@@ -4,7 +4,7 @@ import 'package:dart_frog/dart_frog.dart';
 
 import 'element.dart';
 
-final _shellsUrl = Uri.http('web-data-source', '/shells.json');
+final _shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
 
 Future<Response> onRequest(RequestContext context) async {
   final request = context.request;

@@ -6,7 +6,7 @@ const app = new Koa();
 const router = new Router({
     prefix: '/api/v1/periodic-table'
 });
-const port = 3000;
+const port = 5001;
 
 // TODO: Use fetch() as soon as the following issue is resolved:
 // https://github.com/nodejs/undici/issues/1203
@@ -30,7 +30,7 @@ function fetch(url) {
 
 router.get('/element', async (ctx) => {
     const symbol = ctx.query.symbol;
-    const elementRes = await fetch('http://web-data-source/element.json');
+    const elementRes = await fetch('http://127.0.0.1:5002/element.json');
     const element = elementRes[symbol];
 
     ctx.body = {
@@ -42,7 +42,7 @@ router.get('/element', async (ctx) => {
 
 router.get('/shells', async (ctx) => {
     const symbol = ctx.query.symbol;
-    const shellsRes = await fetch('http://web-data-source/shells.json');
+    const shellsRes = await fetch('http://127.0.0.1:5002/shells.json');
 
     ctx.body = {
         shells: shellsRes[symbol]

@@ -50,7 +50,7 @@ async fn main() -> Result<(), AppError> {
         .run_until(async move {
             let client: Rc<HttpClient> =
                 Rc::new(Client::builder(hyper_util::rt::TokioExecutor::new()).build_http());
-            let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+            let listener = tokio::net::TcpListener::bind("0.0.0.0:5001").await.unwrap();
 
             loop {
                 let (stream, _) = match listener.accept().await {
@@ -138,7 +138,7 @@ async fn handle_request(
 }
 
 async fn get_element(client: Rc<HttpClient>, symbol: &str) -> Result<Vec<u8>, AppError> {
-    let uri: Uri = "http://web-data-source/element.json".parse()?;
+    let uri: Uri = "http://127.0.0.1:5002/element.json".parse()?;
     let req = Request::builder()
         .method("GET")
         .uri(uri)
@@ -161,7 +161,7 @@ async fn get_element(client: Rc<HttpClient>, symbol: &str) -> Result<Vec<u8>, Ap
 }
 
 async fn get_shells(client: Rc<HttpClient>, symbol: &str) -> Result<Vec<u8>, AppError> {
-    let uri: Uri = "http://web-data-source/shells.json".parse()?;
+    let uri: Uri = "http://127.0.0.1:5002/shells.json".parse()?;
     let req = Request::builder()
         .method("GET")
         .uri(uri)

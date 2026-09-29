@@ -14,7 +14,7 @@ fn rocket() -> _ {
         .configure({
             let mut config = rocket::Config::release_default();
             config.address = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
-            config.port = 3000;
+            config.port = 5001;
             config
         })
         .mount("/api/v1/periodic-table", routes![get_element, get_shells])
@@ -45,7 +45,7 @@ struct DataSourceElement {
 
 #[get("/element?<symbol>")]
 async fn get_element(client: &State<Arc<Client>>, symbol: &str) -> Json<ElementResponse> {
-    let json: HashMap<String, DataSourceElement> = client.inner().get("http://web-data-source/element.json").send().await.unwrap().json().await.unwrap();
+    let json: HashMap<String, DataSourceElement> = client.inner().get("http://127.0.0.1:5002/element.json").send().await.unwrap().json().await.unwrap();
     let entry: &DataSourceElement = json.get(symbol).unwrap();
     Json(ElementResponse {
         name: entry.name.clone(),
@@ -56,7 +56,7 @@ async fn get_element(client: &State<Arc<Client>>, symbol: &str) -> Json<ElementR
 
 #[get("/shells?<symbol>")]
 async fn get_shells(client: &State<Arc<Client>>, symbol: &str) -> Json<ShellsResponse> {
-    let json: HashMap<String, Vec<u8>> = client.inner().get("http://web-data-source/shells.json").send().await.unwrap().json().await.unwrap();
+    let json: HashMap<String, Vec<u8>> = client.inner().get("http://127.0.0.1:5002/shells.json").send().await.unwrap().json().await.unwrap();
     Json(ShellsResponse {
         shells: json.get(symbol).unwrap().clone(),
     })

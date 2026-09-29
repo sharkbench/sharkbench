@@ -30,7 +30,7 @@ COPY --from=build /app/bin/server /bin/server
 COPY --from=build /app/.env /
 
 # Expose the server port (useful for binding)
-EXPOSE 3000
+EXPOSE 5001
 
 # Start server.
 CMD ["/bin/server"]

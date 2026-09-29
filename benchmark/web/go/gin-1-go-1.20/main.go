@@ -18,7 +18,7 @@ func main() {
 	router.GET("/api/v1/periodic-table/element", getElement)
 	router.GET("/api/v1/periodic-table/shells", getShells)
 
-	router.Run(":3000")
+	router.Run(":5001")
 }
 
 type Element struct {
@@ -42,7 +42,7 @@ func getElement(c *gin.Context) {
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI("http://web-data-source/element.json")
+	req.SetRequestURI("http://127.0.0.1:5002/element.json")
 
 	client.Do(req, resp)
 	body := resp.Body()
@@ -63,7 +63,7 @@ func getShells(c *gin.Context) {
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI("http://web-data-source/shells.json")
+	req.SetRequestURI("http://127.0.0.1:5002/shells.json")
 
 	client.Do(req, resp)
 	body := resp.Body()

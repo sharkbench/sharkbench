@@ -16,7 +16,7 @@ __gshared req client = req();
 		.create()
         .setHttpTimeout(15.seconds)
         .enableKeepAlive(100.seconds)
-   		.addListener("0.0.0.0", 3000)
+   		.addListener("0.0.0.0", 5001)
         .setDaemonInstances(1)
         .setWorkers(1)
         .enableWorkerBacklog(8);
@@ -37,7 +37,7 @@ string findEntry(string json, string symbol) {
 @endpoint
 @route!("/api/v1/periodic-table/element") void elementHandler(Request req, Output output) {
     auto symbol = req.get.read("symbol");
-    auto rs = client.get("http://web-data-source/element.json");
+    auto rs = client.get("http://127.0.0.1:5002/element.json");
     auto entry = findEntry((rs.responseBody).toString(), symbol);
 
     output.addHeader("content-type", "application/json");
@@ -47,7 +47,7 @@ string findEntry(string json, string symbol) {
 @endpoint
 @route!("/api/v1/periodic-table/shells") void shellsHandler(Request req, Output output) {
     auto symbol = req.get.read("symbol");
-    auto rs = client.get("http://web-data-source/shells.json");
+    auto rs = client.get("http://127.0.0.1:5002/shells.json");
     auto entry = findEntry((rs.responseBody).toString(), symbol);
 
     output.addHeader("content-type", "application/json");

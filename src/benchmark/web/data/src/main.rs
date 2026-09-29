@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let shells_file: &'static Bytes = Box::leak(Box::new(Bytes::from(fs::read_to_string("static/shells.json").unwrap())));
     static COUNTER: AtomicU32 = AtomicU32::new(0);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:80").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:5002").await.unwrap();
 
     loop {
         let (stream, _) = listener.accept().await?;

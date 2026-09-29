@@ -14,7 +14,7 @@ session = requests.Session()
 @app.route('/api/v1/periodic-table/element', methods=['GET'])
 def get_element():
     symbol = request.args.get('symbol')
-    json_data = session.get('http://web-data-source/element.json').json()
+    json_data = session.get('http://127.0.0.1:5002/element.json').json()
     entry = json_data[symbol]
 
     return {
@@ -27,7 +27,7 @@ def get_element():
 @app.route('/api/v1/periodic-table/shells', methods=['GET'])
 def get_shells():
     symbol = request.args.get('symbol')
-    json_data = session.get('http://web-data-source/shells.json').json()
+    json_data = session.get('http://127.0.0.1:5002/shells.json').json()
 
     return {
         'shells': json_data[symbol],
@@ -35,4 +35,4 @@ def get_shells():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3000, debug=False)
+    app.run(host='0.0.0.0', port=5001, debug=False)

@@ -1,5 +1,5 @@
 parameters:
-    webDataSourceUrl: 'http://web-data-source'
+    webDataSourceUrl: 'http://127.0.0.1:5002'
 
 application:
     errorPresenter: Error

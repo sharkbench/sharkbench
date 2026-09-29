@@ -13,8 +13,8 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        webClientElement = WebClient.create(vertx, new WebClientOptions().setDefaultHost("web-data-source").setDefaultPort(80));
-        webClientShells = WebClient.create(vertx, new WebClientOptions().setDefaultHost("web-data-source").setDefaultPort(80));
+        webClientElement = WebClient.create(vertx, new WebClientOptions().setDefaultHost("127.0.0.1").setDefaultPort(5002));
+        webClientShells = WebClient.create(vertx, new WebClientOptions().setDefaultHost("127.0.0.1").setDefaultPort(5002));
 
         Router router = Router.router(vertx);
 
@@ -23,7 +23,7 @@ public class MainVerticle extends AbstractVerticle {
 
         vertx.createHttpServer()
                 .requestHandler(router)
-                .listen(3000);
+                .listen(5001);
     }
 
     private void getElement(RoutingContext context) {

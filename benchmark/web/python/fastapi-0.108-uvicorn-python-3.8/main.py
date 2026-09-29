@@ -9,7 +9,7 @@ logging.getLogger('uvicorn').disabled = True
 
 @app.get('/api/v1/periodic-table/element')
 async def get_element(symbol: str = Query()):
-    response = await async_client.get('http://web-data-source/element.json')
+    response = await async_client.get('http://127.0.0.1:5002/element.json')
     json_data = response.json()
     entry = json_data.get(symbol)
 
@@ -22,7 +22,7 @@ async def get_element(symbol: str = Query()):
 
 @app.get('/api/v1/periodic-table/shells')
 async def get_shells(symbol: str = Query()):
-    response = await async_client.get('http://web-data-source/shells.json')
+    response = await async_client.get('http://127.0.0.1:5002/shells.json')
     json_data = response.json()
 
     return {
@@ -31,4 +31,4 @@ async def get_shells(symbol: str = Query()):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=3000)
+    uvicorn.run(app, host='0.0.0.0', port=5001)

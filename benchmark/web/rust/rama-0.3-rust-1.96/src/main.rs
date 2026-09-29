@@ -59,7 +59,7 @@ async fn main() -> Result<(), BoxError> {
         .with_get("/api/v1/periodic-table/element", get_element)
         .with_get("/api/v1/periodic-table/shells", get_shells);
 
-    let addr = SocketAddress::default_ipv4(3000);
+    let addr = SocketAddress::default_ipv4(5001);
 
     #[cfg(feature = "tracing")]
     let http_service = {
@@ -89,7 +89,7 @@ async fn get_element(
     Query(query): Query<SymbolQuery>,
     StateExtractor(state): StateExtractor<State>,
 ) -> Response {
-    match try_fetch_json_data(state, "http://web-data-source/element.json").await {
+    match try_fetch_json_data(state, "http://127.0.0.1:5002/element.json").await {
         Ok(json) => {
             let json: HashMap<String, DataSourceElement> = json;
             let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
@@ -108,7 +108,7 @@ async fn get_shells(
     Query(query): Query<SymbolQuery>,
     StateExtractor(state): StateExtractor<State>,
 ) -> Response {
-    match try_fetch_json_data(state, "http://web-data-source/shells.json").await {
+    match try_fetch_json_data(state, "http://127.0.0.1:5002/shells.json").await {
         Ok(json) => {
             let json: HashMap<String, Vec<u8>> = json;
             Json(ShellsResponse {

@@ -26,7 +26,7 @@ function fetch(url: string) {
 export class AppController {
   @Get('element')
   async getElement(@Query('symbol') symbol: string) {
-    const elementRes = await fetch('http://web-data-source/element.json');
+    const elementRes = await fetch('http://127.0.0.1:5002/element.json');
     const element = elementRes[symbol];
 
     return {
@@ -38,7 +38,7 @@ export class AppController {
 
   @Get('shells')
   async getShells(@Query('symbol') symbol: string) {
-    const shellsRes = await fetch('http://web-data-source/shells.json');
+    const shellsRes = await fetch('http://127.0.0.1:5002/shells.json');
 
     return {
       shells: shellsRes[symbol]

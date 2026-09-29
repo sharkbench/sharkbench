@@ -16,6 +16,6 @@ namespace v1 {
         void getShells(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
 
     private:
-        drogon::HttpClientPtr client_ = drogon::HttpClient::newHttpClient("http://web-data-source");
+        drogon::HttpClientPtr client_ = drogon::HttpClient::newHttpClient("http://127.0.0.1:5002");
     };
 }

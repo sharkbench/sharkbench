@@ -42,8 +42,8 @@ class ApiRoute extends Route {
 }
 
 class ApiController extends Controller {
-  static final _elementUrl = Uri.http('web-data-source', '/element.json');
-  static final _shellsUrl = Uri.http('web-data-source', '/shells.json');
+  static final _elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
+  static final _shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
 
   final HttpClient _httpClient = HttpClient();
 

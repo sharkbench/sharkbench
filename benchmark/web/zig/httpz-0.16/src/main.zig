@@ -19,7 +19,7 @@ fn getElement(handler: *Handler, req: *httpz.Request, res: *httpz.Response) !voi
     const query = try req.query();
     const symbol = query.get("symbol").?;
 
-    const uri = try std.Uri.parse("http://web-data-source/element.json");
+    const uri = try std.Uri.parse("http://127.0.0.1:5002/element.json");
 
     var data_req = try handler.client.request(.GET, uri, .{});
     defer data_req.deinit();
@@ -55,7 +55,7 @@ fn getShells(handler: *Handler, req: *httpz.Request, res: *httpz.Response) !void
     const query = try req.query();
     const symbol = query.get("symbol").?;
 
-    const uri = try std.Uri.parse("http://web-data-source/shells.json");
+    const uri = try std.Uri.parse("http://127.0.0.1:5002/shells.json");
 
     var data_req = try handler.client.request(.GET, uri, .{});
     defer data_req.deinit();
@@ -100,7 +100,7 @@ pub fn main(init: std.process.Init) !void {
 
     var handler = Handler{ .client = client };
     var server = try httpz.Server(*Handler).init(io, allocator, .{
-        .address = .all(3000),
+        .address = .all(5001),
     }, &handler);
 
     defer {

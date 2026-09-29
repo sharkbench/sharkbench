@@ -16,6 +16,24 @@ use std::collections::HashMap;
 use std::fs;
 use std::time::Duration;
 
+/// The benchmark and the web data source both run with host networking, so every request
+/// goes through loopback without docker-proxy, Docker bridge, NAT or DNS lookups.
+/// The benchmark listens on port 5001 and the web data source on port 5002.
+const COMPOSE_FILE: &str = r#"
+services:
+  benchmark:
+    build: .
+    container_name: benchmark
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+"#;
+
+const BENCHMARK_URL: &str = "http://127.0.0.1:5001";
+const DATA_SOURCE_RESET_URL: &str = "http://127.0.0.1:5002/reset";
+
 const DEFAULT_CONCURRENCY: usize = 32;
 
 pub fn benchmark_web(
@@ -54,8 +72,8 @@ pub fn benchmark_web(
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/element?symbol={}",
-                    k
+                    "{}/api/v1/periodic-table/element?symbol={}",
+                    BENCHMARK_URL, k
                 );
                 let expected_response = HashMap::from([
                     (
@@ -81,8 +99,8 @@ pub fn benchmark_web(
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/shells?symbol={}",
-                    k
+                    "{}/api/v1/periodic-table/shells?symbol={}",
+                    BENCHMARK_URL, k
                 );
                 let expected_response = HashMap::from([(
                     "shells".to_string(),
@@ -157,6 +175,7 @@ pub fn benchmark_web(
             #[rustfmt::skip]
             let result = run_benchmark(
                 dir,
+                COMPOSE_FILE,
                 stats_reader,
                 version_migrations.iter_mut().collect(),
                 match validate {
@@ -171,7 +190,7 @@ pub fn benchmark_web(
                     false => 5,
                 },
                 || {
-                    let _ = reqwest::blocking::get("http://localhost:3001/reset").expect("Failed to reset counter");
+                    let _ = reqwest::blocking::get(DATA_SOURCE_RESET_URL).expect("Failed to reset counter");
 
                     let result = run_http_load_test(
                         concurrency,
@@ -184,7 +203,7 @@ pub fn benchmark_web(
                         verbose,
                     );
 
-                    if let Ok(response) = reqwest::blocking::get("http://localhost:3001/reset") {
+                    if let Ok(response) = reqwest::blocking::get(DATA_SOURCE_RESET_URL) {
                         let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
                         if data_source_counter < result.success_count {
                             // Note: data_source_counter might be bigger when some requests are timed out, which is fine

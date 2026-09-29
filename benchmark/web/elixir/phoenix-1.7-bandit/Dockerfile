@@ -32,8 +32,8 @@ COPY --from=builder /app/_build/prod/rel/benchmark ./
 ENV SECRET_KEY_BASE="Cm+q1aBiaPxplQH8i4W/dIJdU3ldL4uysgnseOMnA7G5McpRgbommCoOF/N/rMnj"
 
 ENV PHX_SERVER=true
-ENV PORT=3000
+ENV PORT=5001
 
-EXPOSE 3000
+EXPOSE 5001
 ENTRYPOINT ["/app/bin/benchmark"]
 CMD ["start"]

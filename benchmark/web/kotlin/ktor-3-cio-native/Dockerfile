@@ -12,5 +12,5 @@ FROM ubuntu:24.04
 WORKDIR /
 COPY --from=build /app/build/bin/native/releaseExecutable/ktor-3-cio-native.kexe server.kexe
 
-EXPOSE 3000
+EXPOSE 5001
 ENTRYPOINT ["/server.kexe"]

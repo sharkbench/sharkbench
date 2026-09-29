@@ -21,7 +21,7 @@ func main() {
 	e.GET("/api/v1/periodic-table/element", getElement)
 	e.GET("/api/v1/periodic-table/shells", getShells)
 
-	e.Start("0.0.0.0:3000")
+	e.Start("0.0.0.0:5001")
 }
 
 type goccyJSONSerializer struct{}
@@ -70,7 +70,7 @@ func getElement(c echo.Context) error {
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI("http://web-data-source/element.json")
+	req.SetRequestURI("http://127.0.0.1:5002/element.json")
 
 	client.Do(req, resp)
 	body := resp.Body()
@@ -91,7 +91,7 @@ func getShells(c echo.Context) error {
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI("http://web-data-source/shells.json")
+	req.SetRequestURI("http://127.0.0.1:5002/shells.json")
 
 	client.Do(req, resp)
 	body := resp.Body()

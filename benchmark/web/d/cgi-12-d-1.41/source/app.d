@@ -15,14 +15,14 @@ struct Shell {
 class ApiV1 : WebObject {
     @DefaultFormat("json"):
     auto element(string symbol) {
-        auto response = get(Uri("http://web-data-source/element.json")).waitForCompletion;
+        auto response = get(Uri("http://127.0.0.1:5002/element.json")).waitForCompletion;
         auto entry = response.contentJson()[symbol];
         return entry.get!Element;
     }
 
     @DefaultFormat("json"):
     auto shells(string symbol) {
-        auto response = get(Uri("http://web-data-source/shells.json")).waitForCompletion();
+        auto response = get(Uri("http://127.0.0.1:5002/shells.json")).waitForCompletion();
         auto entry = response.contentJson()[symbol];
         return Shell(entry.get!(ubyte[]));
     }
@@ -35,6 +35,6 @@ void requestHandler(Cgi cgi) {
 }
 
 void main() {
-    auto server = RequestServer("0.0.0.0", 3000);
+    auto server = RequestServer("0.0.0.0", 5001);
     server.serve!requestHandler();
 }

@@ -93,6 +93,12 @@ To exit after `N` benchmarks (e.g. to let the machine cool down between runs), a
 cargo run --release -- --web --missing --limit 1
 ```
 
+To print how many benchmarks would be run without running any, add `--count`:
+
+```bash
+cargo run --release -- --web --missing --count
+```
+
 ## Contributing
 
 Keep in mind that the goal of Sharkbench is to guide developers in choosing the next stack for their **production** applications.

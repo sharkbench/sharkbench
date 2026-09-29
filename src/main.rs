@@ -1,7 +1,7 @@
 extern crate core;
 
-use crate::benchmark::computation::benchmark_computation;
-use crate::benchmark::web::benchmark_web;
+use crate::benchmark::computation::{benchmark_computation, count_computation};
+use crate::benchmark::web::{benchmark_web, count_web};
 use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::docker_runner::run_docker_compose;
 use crate::utils::docker_stats;
@@ -53,6 +53,11 @@ struct Args {
     #[arg(long, value_name = "N")]
     limit: Option<usize>,
 
+    /// Do not run any benchmarks, only print how many would be run.
+    /// Respects `--missing`, `--lang` and `--only`.
+    #[arg(long)]
+    count: bool,
+
     /// Reduce the benchmark time to a minimum to only check if it runs.
     /// No results will be saved.
     #[arg(long)]
@@ -65,24 +70,23 @@ const WEB_DATASOURCE_DIR: &str = "src/benchmark/web/data";
 fn main() {
     let mut args = Args::parse();
 
-    let mut reader = DockerStatsReader::new();
-    reader.run(CONTAINER_NAME);
-
-    let limit = BenchmarkLimit::new(args.limit);
-
     let existing_results: ResultMap = match args.missing {
         true => utils::result_reader::read_existing_result_map(),
         false => ResultMap::default(),
     };
 
+    if args.count {
+        println!("Count: {}", count_benchmarks(&args, &existing_results));
+        return;
+    }
+
+    let mut reader = DockerStatsReader::new();
+    reader.run(CONTAINER_NAME);
+
+    let limit = BenchmarkLimit::new(args.limit);
+
     if let Some(dir) = args.only {
-        let (language, variant) = {
-            let parts: Vec<&str> = dir.split('/').collect();
-            if parts.len() != 2 {
-                panic!("Invalid directory format. Expected <language>/<variant>");
-            }
-            (parts[0].to_string(), parts[1].to_string())
-        };
+        let (language, variant) = parse_only_dir(&dir);
         if args.computation {
             let full_dir = format!("benchmark/computation/{}", dir);
             println!(" -> Running only {}", full_dir);
@@ -203,23 +207,14 @@ fn run_all_languages<F>(
 ) where
     F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
 {
-    let languages = fs::read_dir(dir).unwrap();
-    for language_folder in languages {
+    for (language, full_dir) in sub_dirs(dir) {
         if limit.reached() {
             break;
         }
 
-        let language_folder = language_folder.unwrap();
-        if !language_folder.file_type().unwrap().is_dir() {
-            continue;
-        }
-
-        // Always use forward slashes so the path stored in the result is platform independent
-        let full_dir = format!("{}/{}", dir, language_folder.file_name().to_str().unwrap());
-
         run_one_language(
             full_dir.as_str(),
-            skip_existing.get(language_folder.file_name().to_str().unwrap()),
+            skip_existing.get(&language),
             reader,
             limit,
             &run,
@@ -236,30 +231,135 @@ fn run_one_language<F>(
 ) where
     F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
 {
-    let variants = fs::read_dir(dir).expect(&format!("Could not read directory {}", dir));
-    for variant_folder in variants {
+    for (variant, full_dir) in variant_dirs(dir) {
         if limit.reached() {
             break;
         }
 
-        let variant_folder = variant_folder.unwrap();
-        if !variant_folder.file_type().unwrap().is_dir() {
-            // Only run on directories
-            continue;
-        }
-
-        let directory_name = variant_folder.file_name().to_str().unwrap().to_owned();
-
-        if directory_name == utils::copy_files::COMMON_DIR {
-            // Skip the common directory
-            continue;
-        }
-
-        let full_dir = format!("{}/{}", dir, directory_name);
-
-        let existing_result = skip_existing.and_then(|map| map.get(&directory_name));
+        let existing_result = skip_existing.and_then(|map| map.get(&variant));
 
         println!();
         run(&full_dir, existing_result, reader);
     }
+}
+
+/// Returns the number of benchmarks that would be run with the given arguments.
+fn count_benchmarks(args: &Args, existing_results: &ResultMap) -> usize {
+    if let Some(dir) = &args.only {
+        let (language, variant) = parse_only_dir(dir);
+        return if args.computation {
+            count_computation(
+                format!("benchmark/computation/{}", dir).as_str(),
+                existing_results
+                    .computation
+                    .get(&language)
+                    .and_then(|map| map.get(&variant)),
+            )
+        } else if args.web {
+            count_web(
+                format!("benchmark/web/{}", dir).as_str(),
+                existing_results
+                    .web
+                    .get(&language)
+                    .and_then(|map| map.get(&variant)),
+            )
+        } else {
+            panic!("No benchmark selected");
+        };
+    }
+
+    if let Some(language) = &args.lang {
+        return if args.computation {
+            count_one_language(
+                format!("benchmark/computation/{}", language).as_str(),
+                existing_results.computation.get(language),
+                count_computation,
+            )
+        } else if args.web {
+            count_one_language(
+                format!("benchmark/web/{}", language).as_str(),
+                existing_results.web.get(language),
+                count_web,
+            )
+        } else {
+            panic!("No benchmark selected");
+        };
+    }
+
+    // By default, count all benchmarks.
+    let all = !args.computation && !args.web;
+    let mut count = 0;
+    if args.computation || all {
+        count += count_all_languages(
+            "benchmark/computation",
+            &existing_results.computation,
+            count_computation,
+        );
+    }
+    if args.web || all {
+        count += count_all_languages("benchmark/web", &existing_results.web, count_web);
+    }
+    count
+}
+
+fn count_all_languages(
+    dir: &str,
+    skip_existing: &HashMap<String, HashMap<String, ExistingResult>>,
+    count: fn(&str, Option<&ExistingResult>) -> usize,
+) -> usize {
+    sub_dirs(dir)
+        .iter()
+        .map(|(language, full_dir)| {
+            count_one_language(full_dir.as_str(), skip_existing.get(language), count)
+        })
+        .sum()
+}
+
+fn count_one_language(
+    dir: &str,
+    skip_existing: Option<&HashMap<String, ExistingResult>>,
+    count: fn(&str, Option<&ExistingResult>) -> usize,
+) -> usize {
+    variant_dirs(dir)
+        .iter()
+        .map(|(variant, full_dir)| {
+            count(
+                full_dir.as_str(),
+                skip_existing.and_then(|map| map.get(variant)),
+            )
+        })
+        .sum()
+}
+
+/// Parses the `--only` argument into (language, variant).
+fn parse_only_dir(dir: &str) -> (String, String) {
+    let parts: Vec<&str> = dir.split('/').collect();
+    if parts.len() != 2 {
+        panic!("Invalid directory format. Expected <language>/<variant>");
+    }
+    (parts[0].to_string(), parts[1].to_string())
+}
+
+/// Returns (name, full_dir) of each benchmark variant directory of a language,
+/// excluding the common directory.
+fn variant_dirs(dir: &str) -> Vec<(String, String)> {
+    sub_dirs(dir)
+        .into_iter()
+        .filter(|(name, _)| name != utils::copy_files::COMMON_DIR)
+        .collect()
+}
+
+/// Returns (name, full_dir) of each subdirectory in `dir`.
+fn sub_dirs(dir: &str) -> Vec<(String, String)> {
+    fs::read_dir(dir)
+        .expect(&format!("Could not read directory {}", dir))
+        .map(|entry| entry.unwrap())
+        .filter(|entry| entry.file_type().unwrap().is_dir())
+        .map(|entry| {
+            let name = entry.file_name().to_str().unwrap().to_owned();
+            // Always use forward slashes so the path stored in the result is platform independent
+            let full_dir = format!("{}/{}", dir, name);
+            (name, full_dir)
+        })
+        .collect()
 }

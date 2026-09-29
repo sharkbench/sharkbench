@@ -257,6 +257,25 @@ Maybe some requests were not fired but cached responses were used?",
     }
 }
 
+/// Returns the number of benchmarks `benchmark_web` would run (as counted by `--limit`).
+pub fn count_web(dir: &str, existing: Option<&ExistingResult>) -> usize {
+    let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
+        .expect(&format!("Failed to read meta data: {dir}"));
+
+    let mut count = 0;
+    for language_version in &meta_data.language_version {
+        for framework_version in &meta_data.framework_version {
+            if !existing.is_some_and(|existing| {
+                existing.language_versions.contains(language_version)
+                    && existing.framework_versions.contains(framework_version)
+            }) {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
 #[derive(Deserialize)]
 struct PeriodicTableElement {
     name: String,

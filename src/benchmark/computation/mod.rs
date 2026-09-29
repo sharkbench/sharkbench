@@ -148,6 +148,20 @@ pub fn benchmark_computation(
     }
 }
 
+/// Returns the number of benchmarks `benchmark_computation` would run (as counted by `--limit`).
+pub fn count_computation(dir: &str, existing: Option<&ExistingResult>) -> usize {
+    let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
+        .expect(&format!("Failed to read meta data: {dir}"));
+
+    meta_data
+        .language_version
+        .iter()
+        .filter(|language_version| {
+            !existing.is_some_and(|existing| existing.language_versions.contains(*language_version))
+        })
+        .count()
+}
+
 fn take_lower_time_median<'a>(
     old_values: &'a [&'a str],
     new_values: &'a [&'a str],

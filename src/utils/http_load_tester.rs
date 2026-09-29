@@ -73,6 +73,7 @@ async fn run_load_test(
             let mut local_latency_us: Vec<u64> = Vec::with_capacity(1_000_000);
             let mut rps_per_second: Vec<i32> = Vec::with_capacity(100);
             let mut responses: Vec<PendingValidationResponse> = Vec::with_capacity(1_000_000);
+            let served: bool;
 
             let client = reqwest::Client::builder()
                 .timeout(Duration::from_secs(15))
@@ -83,6 +84,7 @@ async fn run_load_test(
             'outer: loop {
                 for request in &requests_clone {
                     let url = &request.url;
+                    let success_count_before_request = local_success_count;
                     let request_start = std::time::Instant::now();
                     match client.get(url).send().await {
                         Ok(response) => {
@@ -129,14 +131,17 @@ async fn run_load_test(
                     }
 
                     let elapsed = start.elapsed().as_secs();
-                    if elapsed >= second {
-                        if elapsed >= duration.as_secs() {
-                            break 'outer;
-                        } else {
-                            rps_per_second.push(local_success_count - success_count_temp);
-                            success_count_temp = local_success_count;
-                            second += 1;
-                        }
+                    // Close every second that has passed, not just one, so that every task
+                    // ends up with the same number of buckets even if a request took > 1s.
+                    while second <= elapsed && second < duration.as_secs() {
+                        rps_per_second.push(local_success_count - success_count_temp);
+                        success_count_temp = local_success_count;
+                        second += 1;
+                    }
+                    if elapsed >= duration.as_secs() {
+                        // Only this last request finished after the duration.
+                        served = success_count_before_request > 0;
+                        break 'outer;
                     }
                 }
             }
@@ -156,6 +161,7 @@ async fn run_load_test(
             }
 
             ThreadResult {
+                served,
                 success_count: local_success_count,
                 fail_count: local_fail_count,
                 latency_us: local_latency_us,
@@ -174,6 +180,18 @@ async fn run_load_test(
         handle_results.push(handle.await.unwrap());
     }
 
+    // Failures of unserved connections still count, but their late responses do not.
+    let fail_count = handle_results.iter().fold(0, |acc, x| acc + x.fail_count);
+    let unserved_count = handle_results.iter().filter(|x| !x.served).count();
+    if unserved_count > 0 {
+        println!(
+            "Excluding {} of {} connections that were never served",
+            unserved_count, concurrency
+        );
+    }
+    let handle_results: Vec<ThreadResult> =
+        handle_results.into_iter().filter(|x| x.served).collect();
+
     // max time of all threads
     let total_time = handle_results
         .iter()
@@ -188,7 +206,6 @@ async fn run_load_test(
     let success_count = handle_results
         .iter()
         .fold(0, |acc, x| acc + x.success_count);
-    let fail_count = handle_results.iter().fold(0, |acc, x| acc + x.fail_count);
 
     if success_count == 0 {
         panic!("No successful requests. Something is wrong. Run with --verbose to see the errors.");
@@ -235,6 +252,10 @@ async fn run_load_test(
 }
 
 struct ThreadResult {
+    /// Whether at least one request succeeded within the test duration.
+    /// Some servers (e.g. with a fixed worker pool) never serve some connections.
+    served: bool,
+
     success_count: i32,
     fail_count: i32,
 

@@ -76,7 +76,7 @@ fn main() {
     };
 
     if args.count {
-        println!("Count: {}", count_benchmarks(&args, &existing_results));
+        println!("{}", count_benchmarks(&args, &existing_results));
         return;
     }
 

@@ -2,7 +2,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 
 fn main() {
-    let listener = TcpListener::bind("0.0.0.0:3000").unwrap();
+    let listener = TcpListener::bind("0.0.0.0:5001").unwrap();
 
     for stream in listener.incoming() {
         handle_connection(stream.unwrap());

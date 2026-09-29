@@ -15,7 +15,7 @@ services:
     build: .
     container_name: benchmark
     ports:
-      - "3000:3000"
+      - "5001:5001"
     sysctls:
       - net.ipv4.ip_local_port_range=1024 65535
     deploy:
@@ -112,7 +112,7 @@ pub fn benchmark_computation(
             || {
                 let client = reqwest::blocking::Client::new();
                 let response = match client
-                    .get("http://localhost:3000")
+                    .get("http://localhost:5001")
                     .query(&QUERY)
                     .timeout(Duration::from_secs(600))
                     .send()

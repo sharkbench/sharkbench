@@ -2,7 +2,7 @@ import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs
 
-PORT = 3000
+PORT = 5001
 
 class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):

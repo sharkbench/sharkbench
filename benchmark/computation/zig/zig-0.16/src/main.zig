@@ -4,7 +4,7 @@ const http = std.http;
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    const addr = try net.IpAddress.parseIp4("0.0.0.0", 3000);
+    const addr = try net.IpAddress.parseIp4("0.0.0.0", 5001);
     var server = try addr.listen(io, .{ .reuse_address = true });
     defer server.deinit(io);
 

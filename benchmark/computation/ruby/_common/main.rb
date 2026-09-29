@@ -31,8 +31,8 @@ def calculate_pi(iterations)
   [pi, sum, custom_number]
 end
 
-server = TCPServer.new('0.0.0.0', 3000)
-puts 'Running on port 3000'
+server = TCPServer.new('0.0.0.0', 5001)
+puts 'Running on port 5001'
 
 loop do
   client = server.accept

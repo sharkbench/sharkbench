@@ -2,6 +2,7 @@ extern crate core;
 
 use crate::benchmark::computation::benchmark_computation;
 use crate::benchmark::web::benchmark_web;
+use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::docker_runner::run_docker_compose;
 use crate::utils::docker_stats;
 use crate::utils::result_reader::{ExistingResult, ResultMap};
@@ -47,6 +48,11 @@ struct Args {
     #[arg(long)]
     missing: bool,
 
+    /// Exit after N benchmarks have been run (skipped benchmarks are not counted).
+    /// Useful with `--missing` to let the machine cool down between runs.
+    #[arg(long, value_name = "N")]
+    limit: Option<usize>,
+
     /// Reduce the benchmark time to a minimum to only check if it runs.
     /// No results will be saved.
     #[arg(long)]
@@ -61,6 +67,8 @@ fn main() {
 
     let mut reader = DockerStatsReader::new();
     reader.run(CONTAINER_NAME);
+
+    let limit = BenchmarkLimit::new(args.limit);
 
     let existing_results: ResultMap = match args.missing {
         true => utils::result_reader::read_existing_result_map(),
@@ -85,6 +93,7 @@ fn main() {
                     .get(&language)
                     .and_then(|map| map.get(&variant)),
                 &mut reader,
+                &limit,
                 args.validate,
             );
         } else if args.web {
@@ -98,6 +107,7 @@ fn main() {
                         .get(&language)
                         .and_then(|map| map.get(&variant)),
                     &mut reader,
+                    &limit,
                     args.validate,
                     args.verbose,
                 );
@@ -119,8 +129,9 @@ fn main() {
                 full_dir.as_str(),
                 existing_results.computation.get(&language),
                 &mut reader,
+                &limit,
                 |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
-                    benchmark_computation(dir, existing, reader, args.validate)
+                    benchmark_computation(dir, existing, reader, &limit, args.validate)
                 },
             );
         } else if args.web {
@@ -131,10 +142,11 @@ fn main() {
                     full_dir.as_str(),
                     existing_results.web.get(&language),
                     &mut reader,
+                    &limit,
                     |dir: &str,
                      existing: Option<&ExistingResult>,
                      reader: &mut DockerStatsReader| {
-                        benchmark_web(dir, existing, reader, args.validate, args.verbose)
+                        benchmark_web(dir, existing, reader, &limit, args.validate, args.verbose)
                     },
                 );
             });
@@ -159,21 +171,23 @@ fn main() {
             "benchmark/computation",
             &existing_results.computation,
             &mut reader,
+            &limit,
             |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
-                benchmark_computation(dir, existing, reader, args.validate)
+                benchmark_computation(dir, existing, reader, &limit, args.validate)
             },
         );
     }
 
-    if args.web {
+    if args.web && !limit.reached() {
         println!(" -> Running web benchmarks");
         run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
             run_all_languages(
                 "benchmark/web",
                 &existing_results.web,
                 &mut reader,
+                &limit,
                 |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
-                    benchmark_web(dir, existing, reader, args.validate, args.verbose)
+                    benchmark_web(dir, existing, reader, &limit, args.validate, args.verbose)
                 },
             );
         });
@@ -184,21 +198,30 @@ fn run_all_languages<F>(
     dir: &str,
     skip_existing: &HashMap<String, HashMap<String, ExistingResult>>,
     reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
     run: F,
 ) where
     F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
 {
     let languages = fs::read_dir(dir).unwrap();
     for language_folder in languages {
+        if limit.reached() {
+            break;
+        }
+
         let language_folder = language_folder.unwrap();
         if !language_folder.file_type().unwrap().is_dir() {
             continue;
         }
 
+        // Always use forward slashes so the path stored in the result is platform independent
+        let full_dir = format!("{}/{}", dir, language_folder.file_name().to_str().unwrap());
+
         run_one_language(
-            language_folder.path().to_str().unwrap(),
+            full_dir.as_str(),
             skip_existing.get(language_folder.file_name().to_str().unwrap()),
             reader,
+            limit,
             &run,
         );
     }
@@ -208,12 +231,17 @@ fn run_one_language<F>(
     dir: &str,
     skip_existing: Option<&HashMap<String, ExistingResult>>,
     reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
     run: F,
 ) where
     F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
 {
     let variants = fs::read_dir(dir).expect(&format!("Could not read directory {}", dir));
     for variant_folder in variants {
+        if limit.reached() {
+            break;
+        }
+
         let variant_folder = variant_folder.unwrap();
         if !variant_folder.file_type().unwrap().is_dir() {
             // Only run on directories
@@ -227,7 +255,7 @@ fn run_one_language<F>(
             continue;
         }
 
-        let full_dir = format!("{}", variant_folder.path().display());
+        let full_dir = format!("{}/{}", dir, directory_name);
 
         let existing_result = skip_existing.and_then(|map| map.get(&directory_name));
 

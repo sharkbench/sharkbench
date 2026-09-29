@@ -1,4 +1,5 @@
 use crate::benchmark::benchmark::{run_benchmark, IterationResult};
+use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::meta_data_parser::BenchmarkMetaData;
@@ -16,8 +17,13 @@ pub fn benchmark_computation(
     dir: &str,
     existing: Option<&ExistingResult>,
     stats_reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
     validate: bool,
 ) {
+    if limit.reached() {
+        return;
+    }
+
     let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
         .expect(&format!("Failed to read meta data: {dir}"));
 
@@ -56,6 +62,10 @@ pub fn benchmark_computation(
                 );
                 continue;
             }
+        }
+
+        if limit.reached() {
+            return;
         }
 
         if let Some(copy_files) = &meta_data.copy {
@@ -112,6 +122,8 @@ pub fn benchmark_computation(
         if let Some(copy_files) = &meta_data.copy {
             copy_files::delete_copied_files(dir, &copy_files);
         }
+
+        limit.record();
 
         if validate {
             continue;

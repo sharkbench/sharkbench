@@ -1,4 +1,5 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
+use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::{
@@ -21,9 +22,14 @@ pub fn benchmark_web(
     dir: &str,
     existing: Option<&ExistingResult>,
     stats_reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
     validate: bool,
     verbose: bool,
 ) {
+    if limit.reached() {
+        return;
+    }
+
     let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
         .expect(&format!("Failed to read meta data: {dir}"));
 
@@ -119,6 +125,10 @@ pub fn benchmark_web(
                 }
             }
 
+            if limit.reached() {
+                return;
+            }
+
             if let Some(copy_files) = &meta_data.copy {
                 copy_files::copy_files(dir, &copy_files);
             }
@@ -208,6 +218,8 @@ Maybe some requests were not fired but cached responses were used?",
             if let Some(copy_files) = &meta_data.copy {
                 copy_files::delete_copied_files(dir, &copy_files);
             }
+
+            limit.record();
 
             if validate {
                 continue;

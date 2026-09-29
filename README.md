@@ -87,6 +87,12 @@ Only run missing benchmarks (skipping those with existing results) by adding `--
 cargo run --release -- --web --missing
 ```
 
+To exit after `N` benchmarks (e.g. to let the machine cool down between runs), add `--limit N`:
+
+```bash
+cargo run --release -- --web --missing --limit 1
+```
+
 ## Contributing
 
 Keep in mind that the goal of Sharkbench is to guide developers in choosing the next stack for their **production** applications.

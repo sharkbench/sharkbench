@@ -90,7 +90,7 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
+            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
                 benchmark_web(
                     full_dir.as_str(),
                     existing_results
@@ -126,7 +126,7 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", language);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
+            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
                 run_one_language(
                     full_dir.as_str(),
                     existing_results.web.get(&language),
@@ -167,7 +167,7 @@ fn main() {
 
     if args.web {
         println!(" -> Running web benchmarks");
-        run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, || {
+        run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
             run_all_languages(
                 "benchmark/web",
                 &existing_results.web,

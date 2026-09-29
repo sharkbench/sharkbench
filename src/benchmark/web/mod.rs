@@ -236,6 +236,7 @@ Maybe some requests were not fired but cached responses were used?",
                     ("memory_median", result.memory_median.to_string().as_str()),
                     ("memory_p99", result.memory_p99.to_string().as_str()),
                     ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
+                    ("build_time", result.build_time.to_string().as_str()),
                 ]),
                 take_bigger_rps,
             )

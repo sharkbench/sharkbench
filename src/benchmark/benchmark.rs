@@ -27,6 +27,8 @@ networks:
 "#;
 
 pub struct BenchmarkResult {
+    /// Docker image build time in milliseconds (excluding base image downloads)
+    pub build_time: i64,
     pub time_median: i64,
     pub memory_median: i64,
     pub memory_p99: i64,
@@ -89,7 +91,8 @@ where
     let mut memory_p99: Vec<i64> = Vec::new();
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
-    run_docker_compose(dir, Duration::from_secs(5), Some(COMPOSE_FILE), || {
+    let delay = Duration::from_secs(5);
+    let build_time = run_docker_compose(dir, delay, Some(COMPOSE_FILE), true, || {
         println!(" -> Running benchmark");
         let mut fail_count = 0;
         let mut warmup_counter = 0;
@@ -195,12 +198,14 @@ where
 
     memory_median.sort();
     memory_p99.sort();
-    return BenchmarkResult {
+
+    BenchmarkResult {
+        build_time: build_time.unwrap().as_millis() as i64,
         time_median,
         memory_median: percentile::p50(&memory_median),
         memory_p99: percentile::p99(&memory_p99),
         additional_data: additional_data_median,
-    };
+    }
 }
 
 trait SizeFormat {

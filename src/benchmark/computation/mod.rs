@@ -128,6 +128,7 @@ pub fn benchmark_computation(
             &Vec::from([
                 ("time_median", result.time_median.to_string().as_str()),
                 ("memory_median", result.memory_median.to_string().as_str()),
+                ("build_time", result.build_time.to_string().as_str()),
             ]),
             take_lower_time_median,
         )

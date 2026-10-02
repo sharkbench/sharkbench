@@ -3,7 +3,7 @@ const fastify = require('fastify')({
     logger: false,
 });
 
-const port = 3000;
+const port = 5001;
 
 // fetch() is not available prior Node.js 18, and it is slower than http.get()
 // TODO: Use fetch() as soon as the following issue is resolved:
@@ -28,7 +28,7 @@ function fetch(url) {
 
 fastify.get('/api/v1/periodic-table/element', async function (request, reply) {
     const symbol = request.query.symbol;
-    const elementRes = await fetch('http://web-data-source/element.json');
+    const elementRes = await fetch('http://127.0.0.1:5002/element.json');
     const element = elementRes[symbol];
 
     reply.send({
@@ -40,7 +40,7 @@ fastify.get('/api/v1/periodic-table/element', async function (request, reply) {
 
 fastify.get('/api/v1/periodic-table/shells', async function (request, reply) {
     const symbol = request.query.symbol;
-    const shellsRes = await fetch('http://web-data-source/shells.json');
+    const shellsRes = await fetch('http://127.0.0.1:5002/shells.json');
 
     reply.send({
         shells: shellsRes[symbol]

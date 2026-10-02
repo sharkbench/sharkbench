@@ -2,7 +2,7 @@ defmodule BenchmarkWeb.ElementController do
   use BenchmarkWeb, :controller
 
   def get_element(conn, %{"symbol" => symbol}) do
-    case HTTPoison.get("http://web-data-source/element.json") do
+    case HTTPoison.get("http://127.0.0.1:5002/element.json") do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         json_data = Jason.decode!(body)
         entry = Map.get(json_data, symbol)
@@ -28,7 +28,7 @@ defmodule BenchmarkWeb.ElementController do
   end
 
   def get_shells(conn, %{"symbol" => symbol}) do
-    case HTTPoison.get("http://web-data-source/shells.json") do
+    case HTTPoison.get("http://127.0.0.1:5002/shells.json") do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         json_data = Jason.decode!(body)
         shells = Map.get(json_data, symbol)

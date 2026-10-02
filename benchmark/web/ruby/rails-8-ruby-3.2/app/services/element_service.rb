@@ -4,7 +4,7 @@ class ElementService
   require 'connection_pool'
 
   @@connection_pool = ConnectionPool.new(size: 32, timeout: 5) do
-    http = Net::HTTP.new('web-data-source', 80)
+    http = Net::HTTP.new('127.0.0.1', 5002)
     http.keep_alive_timeout = 30
     http.start
     http

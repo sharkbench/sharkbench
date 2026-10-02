@@ -1,0 +1,9 @@
+language: C++
+mode: GCC
+version:
+  - '14'
+framework: Drogon
+framework_website: https://drogonframework.github.io/drogon-docs/#/
+framework_flavor: Default
+framework_version:
+  - '1.9'

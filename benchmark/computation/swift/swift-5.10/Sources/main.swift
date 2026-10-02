@@ -47,6 +47,6 @@ func calculatePi(iterations: Int) -> (pi: Double, sum: Double, customNumber: Dou
 }
 
 app.http.server.configuration.hostname = "0.0.0.0"
-app.http.server.configuration.port = 3000
+app.http.server.configuration.port = 5001
 
 try app.run()

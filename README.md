@@ -41,12 +41,6 @@ cargo run --release -- -h
 - [Docker](https://www.docker.com/)
 - [OpenSSL](https://www.openssl.org/)
 
-Create Docker network:
-
-```bash
-docker network create sharkbench-benchmark-network
-```
-
 ### ➤ Run all benchmarks
 
 To run all benchmarks, run:
@@ -85,6 +79,18 @@ Only run missing benchmarks (skipping those with existing results) by adding `--
 
 ```bash
 cargo run --release -- --web --missing
+```
+
+To exit after `N` benchmarks (e.g. to let the machine cool down between runs), add `--limit N`:
+
+```bash
+cargo run --release -- --web --missing --limit 1
+```
+
+To print how many benchmarks would be run without running any, add `--count`:
+
+```bash
+cargo run --release -- --web --missing --count
 ```
 
 ## Contributing
@@ -172,9 +178,14 @@ copy:
 
 ## Web Framework Benchmark
 
-Each benchmark has access to `http://web-data-source/element.json` and `http://web-data-source/shells.json`
+The application must listen on port `5001`.
+
+Each benchmark has access to `http://127.0.0.1:5002/element.json` and `http://127.0.0.1:5002/shells.json`
 which is provided by the [web-data-source](https://github.com/sharkbench/sharkbench/tree/main/src/benchmark/web/data/static).
 This data source is used to simulate I/O (similar to database queries).
+
+The benchmark and the data source run with host networking,
+so the requests go through loopback without Docker networking in between.
 
 The application should parse the `symbol` query parameter, fetch the json from the data source, and return the result.
 The exact API is as follows:

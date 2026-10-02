@@ -6,7 +6,7 @@ Future<void> bootstrap() async {
   final app = await serinus.createApplication(
     entrypoint: AppModule(),
     host: '0.0.0.0',
-    port: 3000
+    port: 5001
   );
   await app.serve();
 }

@@ -21,7 +21,7 @@ class AppController extends AbstractController
     public function getElement(Request $request): JsonResponse
     {
         $symbol = $request->query->get('symbol');
-        $response = $this->client->request('GET', 'http://web-data-source/element.json');
+        $response = $this->client->request('GET', 'http://127.0.0.1:5002/element.json');
         $json_data = $response->toArray();
         $entry = $json_data[$symbol] ?? null;
 
@@ -36,7 +36,7 @@ class AppController extends AbstractController
     public function getShells(Request $request): JsonResponse
     {
         $symbol = $request->query->get('symbol');
-        $response = $this->client->request('GET', 'http://web-data-source/shells.json');
+        $response = $this->client->request('GET', 'http://127.0.0.1:5002/shells.json');
         $json_data = $response->toArray();
 
         return $this->json([

@@ -12,7 +12,7 @@ async fn get_element(
     client: web::Data<Client>,
     query: web::Query<SymbolQuery>,
 ) -> impl Responder {
-    let json: HashMap<String, DataSourceElement> = client.get("http://web-data-source/element.json").send().await.unwrap().json().await.unwrap();
+    let json: HashMap<String, DataSourceElement> = client.get("http://127.0.0.1:5002/element.json").send().await.unwrap().json().await.unwrap();
     let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
     HttpResponse::Ok().json(ElementResponse {
         name: entry.name.clone(),
@@ -25,7 +25,7 @@ async fn get_shells(
     client: web::Data<Client>,
     query: web::Query<SymbolQuery>,
 ) -> impl Responder {
-    let json: HashMap<String, Vec<u8>> = client.get("http://web-data-source/shells.json").send().await.unwrap().json().await.unwrap();
+    let json: HashMap<String, Vec<u8>> = client.get("http://127.0.0.1:5002/shells.json").send().await.unwrap().json().await.unwrap();
     HttpResponse::Ok().json(ShellsResponse {
         shells: json.get(&query.symbol).unwrap().clone(),
     })
@@ -40,7 +40,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/v1/periodic-table/element", web::get().to(get_element))
             .route("/api/v1/periodic-table/shells", web::get().to(get_shells))
     })
-        .bind("0.0.0.0:3000")?
+        .bind("0.0.0.0:5001")?
         .run()
         .await
 }

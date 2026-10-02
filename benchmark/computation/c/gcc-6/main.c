@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define PORT 3000
+#define PORT 5001
 
 void calc_pi(int iterations, double *outPi, double *outSum, double *outCustomNumber) {
     double pi = 0.0;

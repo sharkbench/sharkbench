@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 
 class AppProvider extends Provider {
-  final elementUrl = Uri.http('web-data-source', '/element.json');
-  final shellsUrl = Uri.http('web-data-source', '/shells.json');
+  final elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
+  final shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
   final httpClient = HttpClient();
 
   Future<Map<String, dynamic>> getElement(String symbol) async {

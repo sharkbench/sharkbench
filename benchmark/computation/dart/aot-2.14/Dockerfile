@@ -8,5 +8,5 @@ COPY . .
 
 RUN dart compile exe main.dart -o main
 
-EXPOSE 3000
+EXPOSE 5001
 CMD ["./main"]

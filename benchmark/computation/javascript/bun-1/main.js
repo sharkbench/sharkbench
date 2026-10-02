@@ -32,7 +32,7 @@ function calcPi(iterations) {
 }
 
 const server = Bun.serve({
-    port: 3000,
+    port: 5001,
     fetch(request) {
         const queryObject = url.parse(request.url, true).query;
         const iterations = parseInt(queryObject.iterations);

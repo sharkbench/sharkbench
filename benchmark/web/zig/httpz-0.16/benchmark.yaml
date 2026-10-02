@@ -1,0 +1,9 @@
+language: Zig
+mode: Default
+version:
+  - '0.16.0'
+framework: httpz
+framework_website: https://github.com/karlseguin/http.zig
+framework_flavor: Default
+framework_version:
+  - '03658c279937066201aba8c0a8f1936d821d0709'

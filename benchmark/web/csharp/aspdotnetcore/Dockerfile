@@ -11,5 +11,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS deploy
 WORKDIR /app
 COPY --from=build /app/out .
 
-EXPOSE 3000
+EXPOSE 5001
 ENTRYPOINT ["dotnet", "web.dll"]

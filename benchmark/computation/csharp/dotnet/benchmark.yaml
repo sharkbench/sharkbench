@@ -4,6 +4,7 @@ version:
   - '6.0'
   - '8.0'
   - '9.0'
+  - '10.0'
 version_regex:
   Dockerfile: DEFAULT_DOCKER_REGEX
   web.csproj: '<TargetFramework>net(.+)<\/TargetFramework>'

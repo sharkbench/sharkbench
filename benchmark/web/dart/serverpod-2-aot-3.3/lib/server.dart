@@ -19,10 +19,10 @@ void run(List<String> args) async {
         publicPort: 8080,
       ),
       webServer: ServerConfig(
-        port: 3000,
+        port: 5001,
         publicScheme: 'http',
         publicHost: '0.0.0.0',
-        publicPort: 3000,
+        publicPort: 5001,
       ),
     ),
   );
@@ -35,7 +35,7 @@ void run(List<String> args) async {
 
 final httpClient = HttpClient();
 
-final _elementUrl = Uri.http('web-data-source', '/element.json');
+final _elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
 
 class ElementRoute extends WidgetRoute {
   @override
@@ -55,7 +55,7 @@ class ElementRoute extends WidgetRoute {
   }
 }
 
-final _shellsUrl = Uri.http('web-data-source', '/shells.json');
+final _shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
 
 class ShellsRoute extends WidgetRoute {
   @override

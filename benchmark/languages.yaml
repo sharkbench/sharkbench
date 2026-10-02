@@ -30,6 +30,24 @@ C:
     garbage collection. C# is primarily used on the .NET Framework for Windows
     application development but has grown to support cross-platform needs via
     .NET Core.
+"C++":
+  paradigm:
+    - ObjectOriented
+    - Imperative
+    - Procedural
+    - Generic
+  execution:
+    - Compiled
+  typing: Static
+  nullSafety: false
+  memoryManagement: Manual
+  description: >
+    C++ is a general-purpose programming language created by Bjarne Stroustrup
+    as an extension of C that adds object-oriented programming capabilities.
+    It supports multiple programming paradigms including procedural, object-oriented,
+    and generic programming through templates. C++ provides high performance with
+    fine-grained control over system resources, making it popular for system software,
+    game engines, embedded systems, and performance-critical applications.
 D:
   paradigm:
     - ObjectOriented

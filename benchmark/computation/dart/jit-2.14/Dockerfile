@@ -6,5 +6,5 @@ COPY pubspec.yaml .
 RUN dart pub get
 COPY . .
 
-EXPOSE 3000
+EXPOSE 5001
 CMD ["dart", "main.dart"]

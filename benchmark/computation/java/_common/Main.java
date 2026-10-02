@@ -6,8 +6,8 @@ import java.net.Socket;
 
 public class Main {
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(3000)) {
-            System.out.println("Server started on port 3000");
+        try (ServerSocket serverSocket = new ServerSocket(5001)) {
+            System.out.println("Server started on port 5001");
 
             while (true) {
                 try (Socket clientSocket = serverSocket.accept()) {
@@ -17,7 +17,7 @@ public class Main {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Could not listen on port 3000: " + e.getMessage());
+            System.out.println("Could not listen on port 5001: " + e.getMessage());
         }
     }
 

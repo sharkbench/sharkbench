@@ -5,11 +5,11 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-const port = 3000;
+const port = 5001;
 
 void main() async {
-  final elementUrl = Uri.http('web-data-source', '/element.json');
-  final shellsUrl = Uri.http('web-data-source', '/shells.json');
+  final elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
+  final shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
   final httpClient = HttpClient();
 
   final app = Router();

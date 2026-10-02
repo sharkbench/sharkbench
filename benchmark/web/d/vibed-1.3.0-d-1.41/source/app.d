@@ -9,7 +9,7 @@ import std.stdio : writeln;
 void elementHandler(scope HTTPServerRequest req, scope HTTPServerResponse res)
 {
 	auto symbol = req.query().get("symbol");
-	requestHTTP("http://web-data-source/element.json",
+	requestHTTP("http://127.0.0.1:5002/element.json",
 	    (scope creq) {
 		    creq.method = HTTPMethod.GET;
 	    },
@@ -23,7 +23,7 @@ void elementHandler(scope HTTPServerRequest req, scope HTTPServerResponse res)
 void shellsHandler(scope HTTPServerRequest req, scope HTTPServerResponse res)
 {
     auto symbol = req.query().get("symbol");
-    requestHTTP("http://web-data-source/shells.json",
+    requestHTTP("http://127.0.0.1:5002/shells.json",
 		(scope creq) {
             creq.method = HTTPMethod.GET;
         },
@@ -42,7 +42,7 @@ void main()
         router.get("/api/v1/periodic-table/shells", &shellsHandler);
         auto settings = new HTTPServerSettings;
         settings.options |= HTTPServerOption.reusePort;
-        settings.port = 3000;
+        settings.port = 5001;
         settings.bindAddresses = ["0.0.0.0"];
         listenHTTP(settings, router);
     }

@@ -1,7 +1,7 @@
 const http = require('http');
 const url = require('url');
 
-const PORT = 3000;
+const PORT = 5001;
 
 function calcPi(iterations) {
     let pi = 0.0;

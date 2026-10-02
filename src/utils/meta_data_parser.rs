@@ -1,6 +1,6 @@
-use std::fs;
 use indexmap::IndexMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::fs;
 
 #[derive(Serialize, Deserialize)]
 pub struct BenchmarkMetaData {
@@ -61,7 +61,7 @@ pub(crate) enum CopyValue {
     /// Copy a file without changing its path.
     /// Example: 'main.dart'
     Primitive(String),
-    
+
     /// Copy a file and change its path.
     /// Example: 'Main.java': 'src/main/java/example/Main.java'
     Map(IndexMap<String, String>),
@@ -76,12 +76,16 @@ impl BenchmarkMetaData {
         println!(" - Language: {}", self.language);
         println!(" - Mode: {}", self.mode);
         println!(" - Language version: {:?}", self.language_version);
-        println!(" - Language version regex: {}", self.language_version_regex.debug_serialize());
+        println!(
+            " - Language version regex: {}",
+            self.language_version_regex.debug_serialize()
+        );
         println!();
     }
 
     pub fn read_from_directory(dir: &str) -> Result<BenchmarkMetaData, serde_yaml::Error> {
-        let contents = fs::read_to_string(format!("{}/benchmark.yaml", dir)).expect("Failed to read benchmark.yaml");
+        let contents = fs::read_to_string(format!("{}/benchmark.yaml", dir))
+            .expect("Failed to read benchmark.yaml");
         serde_yaml::from_str(&contents)
     }
 }
@@ -91,20 +95,27 @@ impl WebBenchmarkMetaData {
         println!(" - Language: {}", self.language);
         println!(" - Mode: {}", self.mode);
         println!(" - Language version: {:?}", self.language_version);
-        println!(" - Language version regex: {}", self.language_version_regex.debug_serialize());
+        println!(
+            " - Language version regex: {}",
+            self.language_version_regex.debug_serialize()
+        );
         println!(" - Framework: {}", self.framework);
         println!(" - Framework stdlib: {}", self.framework_stdlib);
         println!(" - Framework website: {}", self.framework_website);
         println!(" - Framework flavor: {}", self.framework_flavor);
         println!(" - Framework version: {:?}", self.framework_version);
-        println!(" - Framework version regex: {:?}", self.framework_version_regex.debug_serialize());
+        println!(
+            " - Framework version regex: {:?}",
+            self.framework_version_regex.debug_serialize()
+        );
         println!(" - Concurrency: {:?}", self.concurrency);
         println!(" - Copy: {:?}", self.copy);
         println!();
     }
 
     pub fn read_from_directory(dir: &str) -> Result<WebBenchmarkMetaData, serde_yaml::Error> {
-        let contents = fs::read_to_string(format!("{}/benchmark.yaml", dir)).expect("Failed to read benchmark.yaml");
+        let contents = fs::read_to_string(format!("{}/benchmark.yaml", dir))
+            .expect("Failed to read benchmark.yaml");
         serde_yaml::from_str(&contents)
     }
 }

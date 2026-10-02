@@ -1,7 +1,7 @@
-use std::{fs, io};
+use crate::utils::version::Version;
 use std::cmp::Ordering;
 use std::path::Path;
-use crate::utils::version::Version;
+use std::{fs, io};
 
 /// Writes the given result to the given `file_path`.
 /// If the file does not exist, it will be created.
@@ -30,8 +30,16 @@ pub fn write_result_to_file(
     }
 
     let header: String = {
-        let descriptor_keys: String = descriptors.iter().map(|(k, _)| *k).collect::<Vec<&str>>().join(",");
-        let values_keys: String = values.iter().map(|(k, _)| *k).collect::<Vec<&str>>().join(",");
+        let descriptor_keys: String = descriptors
+            .iter()
+            .map(|(k, _)| *k)
+            .collect::<Vec<&str>>()
+            .join(",");
+        let values_keys: String = values
+            .iter()
+            .map(|(k, _)| *k)
+            .collect::<Vec<&str>>()
+            .join(",");
         format!("{},{}", descriptor_keys, values_keys)
     };
 
@@ -42,9 +50,18 @@ pub fn write_result_to_file(
 
     let contents: Vec<String> = {
         if old_contents.is_empty() {
-            vec!(format!("{},{}", descriptor_values.join(","), value_values.join(",")))
+            vec![format!(
+                "{},{}",
+                descriptor_values.join(","),
+                value_values.join(",")
+            )]
         } else {
-            get_updated_contents(&old_contents, descriptor_values.as_slice(), value_values.as_slice(), on_conflict)
+            get_updated_contents(
+                &old_contents,
+                descriptor_values.as_slice(),
+                value_values.as_slice(),
+                on_conflict,
+            )
         }
     };
 
@@ -99,10 +116,7 @@ fn get_updated_contents(
         temp_lines
     };
 
-    new_lines
-        .iter()
-        .map(|line| line.join(","))
-        .collect()
+    new_lines.iter().map(|line| line.join(",")).collect()
 }
 
 fn write_lines_to_file(file_path: &str, lines: &Vec<String>, header: &String) -> io::Result<()> {
@@ -125,10 +139,12 @@ fn write_lines_to_file(file_path: &str, lines: &Vec<String>, header: &String) ->
     // create directory if it does not exist
     let parent_dir = Path::new(file_path).parent().unwrap();
     if !parent_dir.exists() {
-        fs::create_dir_all(parent_dir).expect(format!("Failed to create directory {}", parent_dir.display()).as_str());
+        fs::create_dir_all(parent_dir)
+            .expect(format!("Failed to create directory {}", parent_dir.display()).as_str());
     }
 
-    fs::write(file_path, output.as_bytes()).expect(format!("Failed to write {}", file_path).as_str());
+    fs::write(file_path, output.as_bytes())
+        .expect(format!("Failed to write {}", file_path).as_str());
 
     Ok(())
 }
@@ -151,7 +167,7 @@ fn compare_lines(a: &Vec<&str>, b: &Vec<&str>) -> Ordering {
             _ => match a_value.cmp(&b_value) {
                 Ordering::Equal => continue, // check next column
                 ordering => return ordering,
-            }
+            },
         }
     }
 
@@ -179,20 +195,38 @@ mod tests {
 
         #[test]
         fn should_compare_second_entry_by_version() {
-            assert_eq!(compare_lines(&vec!["a", "1.2"], &vec!["a", "1.10"]), Ordering::Less);
-            assert_eq!(compare_lines(&vec!["a", "1.2"], &vec!["a", "1.1"]), Ordering::Greater);
+            assert_eq!(
+                compare_lines(&vec!["a", "1.2"], &vec!["a", "1.10"]),
+                Ordering::Less
+            );
+            assert_eq!(
+                compare_lines(&vec!["a", "1.2"], &vec!["a", "1.1"]),
+                Ordering::Greater
+            );
         }
 
         #[test]
         fn should_compare_second_entry_alphabetically() {
-            assert_eq!(compare_lines(&vec!["a", "a"], &vec!["a", "b"]), Ordering::Less);
-            assert_eq!(compare_lines(&vec!["a", "b"], &vec!["a", "a"]), Ordering::Greater);
+            assert_eq!(
+                compare_lines(&vec!["a", "a"], &vec!["a", "b"]),
+                Ordering::Less
+            );
+            assert_eq!(
+                compare_lines(&vec!["a", "b"], &vec!["a", "a"]),
+                Ordering::Greater
+            );
         }
 
         #[test]
         fn should_compare_first_entry_alphabetically() {
-            assert_eq!(compare_lines(&vec!["a", "b"], &vec!["b", "a"]), Ordering::Less);
-            assert_eq!(compare_lines(&vec!["b", "a"], &vec!["a", "b"]), Ordering::Greater);
+            assert_eq!(
+                compare_lines(&vec!["a", "b"], &vec!["b", "a"]),
+                Ordering::Less
+            );
+            assert_eq!(
+                compare_lines(&vec!["b", "a"], &vec!["a", "b"]),
+                Ordering::Greater
+            );
         }
     }
 
@@ -203,7 +237,10 @@ mod tests {
             new_values
         }
 
-        fn take_bigger_number<'a>(old_values: &'a [&'a str], new_values: &'a [&'a str]) -> &'a [&'a str] {
+        fn take_bigger_number<'a>(
+            old_values: &'a [&'a str],
+            new_values: &'a [&'a str],
+        ) -> &'a [&'a str] {
             if old_values[0].parse::<i32>().unwrap() < new_values[0].parse::<i32>().unwrap() {
                 new_values
             } else {
@@ -218,7 +255,15 @@ mod tests {
             let value_values = vec!["0", "0", "0"];
 
             let expected_contents = vec!["1,2,3,0,0,0"];
-            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_new_line), expected_contents);
+            assert_eq!(
+                get_updated_contents(
+                    original_contents,
+                    descriptor_values.as_slice(),
+                    value_values.as_slice(),
+                    take_new_line
+                ),
+                expected_contents
+            );
         }
 
         #[test]
@@ -228,11 +273,27 @@ mod tests {
 
             let value_values = vec!["5", "20"];
             let expected_contents = vec!["1,2,3,10,20"];
-            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_bigger_number), expected_contents);
+            assert_eq!(
+                get_updated_contents(
+                    original_contents,
+                    descriptor_values.as_slice(),
+                    value_values.as_slice(),
+                    take_bigger_number
+                ),
+                expected_contents
+            );
 
             let value_values = vec!["15", "20"];
             let expected_contents = vec!["1,2,3,15,20"];
-            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_bigger_number), expected_contents);
+            assert_eq!(
+                get_updated_contents(
+                    original_contents,
+                    descriptor_values.as_slice(),
+                    value_values.as_slice(),
+                    take_bigger_number
+                ),
+                expected_contents
+            );
         }
 
         #[test]
@@ -242,7 +303,15 @@ mod tests {
             let value_values = vec!["0", "0", "0"];
 
             let expected_contents = vec!["1,2,3,4,5,6", "1,2,4,0,0,0"];
-            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_new_line), expected_contents);
+            assert_eq!(
+                get_updated_contents(
+                    original_contents,
+                    descriptor_values.as_slice(),
+                    value_values.as_slice(),
+                    take_new_line
+                ),
+                expected_contents
+            );
         }
 
         #[test]
@@ -256,7 +325,15 @@ mod tests {
             let value_values = vec!["_", "_", "_"];
 
             let expected_contents = vec!["1,1,2,_,_,_", "1,2,3,_,_,_", "1,2,4,_,_,_"];
-            assert_eq!(get_updated_contents(original_contents, descriptor_values.as_slice(), value_values.as_slice(), take_new_line), expected_contents);
+            assert_eq!(
+                get_updated_contents(
+                    original_contents,
+                    descriptor_values.as_slice(),
+                    value_values.as_slice(),
+                    take_new_line
+                ),
+                expected_contents
+            );
         }
     }
 }

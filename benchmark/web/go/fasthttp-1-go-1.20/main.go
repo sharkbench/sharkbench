@@ -22,7 +22,7 @@ func main() {
 		}
 	})
 
-	fasthttp.ListenAndServe(":3000", router)
+	fasthttp.ListenAndServe(":5001", router)
 }
 
 type Element struct {
@@ -47,7 +47,7 @@ func getElement(ctx *fasthttp.RequestCtx) {
     defer fasthttp.ReleaseRequest(req)
     defer fasthttp.ReleaseResponse(resp)
 
-    req.SetRequestURI("http://web-data-source/element.json")
+    req.SetRequestURI("http://127.0.0.1:5002/element.json")
 
     client.Do(req, resp)
     body := resp.Body()
@@ -72,7 +72,7 @@ func getShells(ctx *fasthttp.RequestCtx) {
     defer fasthttp.ReleaseRequest(req)
     defer fasthttp.ReleaseResponse(resp)
 
-    req.SetRequestURI("http://web-data-source/shells.json")
+    req.SetRequestURI("http://127.0.0.1:5002/shells.json")
 
     client.Do(req, resp)
     body := resp.Body()

@@ -4,6 +4,8 @@ use rand::seq::SliceRandom;
 use reqwest;
 use reqwest::StatusCode;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Write;
 use std::time::Duration;
 use tokio;
 use tokio::task::JoinHandle;
@@ -71,15 +73,18 @@ async fn run_load_test(
             let mut local_latency_us: Vec<u64> = Vec::with_capacity(1_000_000);
             let mut rps_per_second: Vec<i32> = Vec::with_capacity(100);
             let mut responses: Vec<PendingValidationResponse> = Vec::with_capacity(1_000_000);
+            let served: bool;
 
             let client = reqwest::Client::builder()
-                .timeout(Duration::from_secs(5))
-                .build().unwrap();
+                .timeout(Duration::from_secs(15))
+                .build()
+                .unwrap();
             let start = std::time::Instant::now();
             let mut second = 1;
             'outer: loop {
                 for request in &requests_clone {
                     let url = &request.url;
+                    let success_count_before_request = local_success_count;
                     let request_start = std::time::Instant::now();
                     match client.get(url).send().await {
                         Ok(response) => {
@@ -98,27 +103,45 @@ async fn run_load_test(
                                 local_fail_count += 1;
                                 if verbose {
                                     println!("Unexpected response {} for {}", *status, url);
-                                    println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
+                                    println!(
+                                        "Success: {}, Fail: {}",
+                                        local_success_count, local_fail_count
+                                    );
                                 }
                             }
                         }
                         Err(e) => {
-                            if verbose {
-                                println!("Request to {} failed: {}", url, e);
-                                println!("Success: {}, Fail: {}", local_success_count, local_fail_count);
+                            if e.is_timeout() {
+                                // ignore timeout errors
+                            } else {
+                                if verbose {
+                                    println!(
+                                        "Request to {} failed: {}",
+                                        url,
+                                        report_reqwest_error(&e)
+                                    );
+                                    println!(
+                                        "Success: {}, Fail: {}",
+                                        local_success_count, local_fail_count
+                                    );
+                                }
+                                local_fail_count += 1;
                             }
-                            local_fail_count += 1;
-                        },
+                        }
                     }
 
-                    if start.elapsed().as_secs() >= second {
-                        if second == duration.as_secs() {
-                            break 'outer;
-                        } else {
-                            rps_per_second.push(local_success_count - success_count_temp);
-                            success_count_temp = local_success_count;
-                            second += 1;
-                        }
+                    let elapsed = start.elapsed().as_secs();
+                    // Close every second that has passed, not just one, so that every task
+                    // ends up with the same number of buckets even if a request took > 1s.
+                    while second <= elapsed && second < duration.as_secs() {
+                        rps_per_second.push(local_success_count - success_count_temp);
+                        success_count_temp = local_success_count;
+                        second += 1;
+                    }
+                    if elapsed >= duration.as_secs() {
+                        // Only this last request finished after the duration.
+                        served = success_count_before_request > 0;
+                        break 'outer;
                     }
                 }
             }
@@ -129,12 +152,16 @@ async fn run_load_test(
                     local_success_count -= 1;
                     local_fail_count += 1;
                     if verbose {
-                        println!("Validation failed for response for {}: {}, expected: {:?}, {}", response.url, response.body, response.expected_body, e);
+                        println!(
+                            "Validation failed for response for {}: {}, expected: {:?}, {}",
+                            response.url, response.body, response.expected_body, e
+                        );
                     }
                 }
             }
 
             ThreadResult {
+                served,
                 success_count: local_success_count,
                 fail_count: local_fail_count,
                 latency_us: local_latency_us,
@@ -153,17 +180,32 @@ async fn run_load_test(
         handle_results.push(handle.await.unwrap());
     }
 
-    // max time of all threads
-    let total_time = handle_results.iter().fold(Duration::from_secs(0), |acc, x| {
-        if x.total_time > acc {
-            x.total_time
-        } else {
-            acc
-        }
-    });
-
-    let success_count = handle_results.iter().fold(0, |acc, x| acc + x.success_count);
+    // Failures of unserved connections still count, but their late responses do not.
     let fail_count = handle_results.iter().fold(0, |acc, x| acc + x.fail_count);
+    let unserved_count = handle_results.iter().filter(|x| !x.served).count();
+    if unserved_count > 0 {
+        println!(
+            "Excluding {} of {} connections that were never served",
+            unserved_count, concurrency
+        );
+    }
+    let handle_results: Vec<ThreadResult> =
+        handle_results.into_iter().filter(|x| x.served).collect();
+
+    // max time of all threads
+    let total_time = handle_results
+        .iter()
+        .fold(Duration::from_secs(0), |acc, x| {
+            if x.total_time > acc {
+                x.total_time
+            } else {
+                acc
+            }
+        });
+
+    let success_count = handle_results
+        .iter()
+        .fold(0, |acc, x| acc + x.success_count);
 
     if success_count == 0 {
         panic!("No successful requests. Something is wrong. Run with --verbose to see the errors.");
@@ -174,7 +216,10 @@ async fn run_load_test(
     }
 
     let rps_per_second: Vec<i32> = {
-        let all_vectors: Vec<Vec<i32>> = handle_results.iter().map(|x| x.rps_per_second.clone()).collect();
+        let all_vectors: Vec<Vec<i32>> = handle_results
+            .iter()
+            .map(|x| x.rps_per_second.clone())
+            .collect();
         let mut rps_per_second: Vec<i32> = Vec::new();
         for i in 0..all_vectors[0].len() {
             let mut sum = 0;
@@ -207,6 +252,10 @@ async fn run_load_test(
 }
 
 struct ThreadResult {
+    /// Whether at least one request succeeded within the test duration.
+    /// Some servers (e.g. with a fixed worker pool) never serve some connections.
+    served: bool,
+
     success_count: i32,
     fail_count: i32,
 
@@ -216,4 +265,19 @@ struct ThreadResult {
 
     latency_us: Vec<u64>,
     total_time: Duration,
+}
+
+fn report_reqwest_error(err: &reqwest::Error) -> String {
+    let mut s = format!("{}", err);
+    if let Some(src) = err.source() {
+        let _ = write!(s, "\n\nCaused by: {}", src);
+
+        let mut std_error = src;
+        while let Some(src) = std_error.source() {
+            let _ = write!(s, "\n\nCaused by: {}", src);
+            std_error = src;
+        }
+    }
+
+    s
 }

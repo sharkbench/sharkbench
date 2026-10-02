@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-const port = 3000;
+const port = 5001;
 
 void main() async {
-  final elementUrl = Uri.http('web-data-source', '/element.json');
-  final shellsUrl = Uri.http('web-data-source', '/shells.json');
+  final elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
+  final shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
   final httpClient = HttpClient();
 
   final server = await HttpServer.bind('0.0.0.0', port);

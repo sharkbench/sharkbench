@@ -5,15 +5,16 @@ pub struct Version {
 
 impl Version {
     pub fn parse(version: &str) -> Result<Version, String> {
-        let parts: Vec<u16> = version.split(".").filter_map(|part| part.parse::<u16>().ok()).collect();
+        let parts: Vec<u16> = version
+            .split(".")
+            .filter_map(|part| part.parse::<u16>().ok())
+            .collect();
 
         if parts.is_empty() {
             return Err("Version must have at least one part".to_string());
         }
 
-        Ok(Version {
-            parts,
-        })
+        Ok(Version { parts })
     }
 }
 
@@ -23,23 +24,22 @@ mod tests {
 
     #[test]
     fn should_parse_1_part() {
-        assert_eq!(Version::parse("1"), Ok(Version {
-            parts: vec![1],
-        }));
+        assert_eq!(Version::parse("1"), Ok(Version { parts: vec![1] }));
     }
 
     #[test]
     fn should_parse_2_parts() {
-        assert_eq!(Version::parse("1.2"), Ok(Version {
-            parts: vec![1, 2],
-        }));
+        assert_eq!(Version::parse("1.2"), Ok(Version { parts: vec![1, 2] }));
     }
 
     #[test]
     fn should_parse_3_parts() {
-        assert_eq!(Version::parse("1.2.3"), Ok(Version {
-            parts: vec![1, 2, 3],
-        }));
+        assert_eq!(
+            Version::parse("1.2.3"),
+            Ok(Version {
+                parts: vec![1, 2, 3],
+            })
+        );
     }
 
     #[test]

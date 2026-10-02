@@ -1,4 +1,4 @@
-FROM gradle:8.8-jdk21 AS build
+FROM gradle:8.14.3-jdk21 AS build
 
 WORKDIR /app
 
@@ -12,6 +12,6 @@ WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
 
-EXPOSE 3000
+EXPOSE 5001
 
 CMD ["java", "-jar", "app.jar"]

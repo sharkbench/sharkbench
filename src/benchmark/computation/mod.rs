@@ -1,4 +1,5 @@
 use crate::benchmark::benchmark::{run_benchmark, IterationResult};
+use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::meta_data_parser::BenchmarkMetaData;
@@ -8,6 +9,21 @@ use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
 use std::time::Duration;
 
+const COMPOSE_FILE: &str = r#"
+services:
+  benchmark:
+    build: .
+    container_name: benchmark
+    ports:
+      - "5001:5001"
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65535
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+"#;
+
 const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
 const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.7853981633136793";
 const DEFAULT_RUNS: usize = 15;
@@ -16,8 +32,13 @@ pub fn benchmark_computation(
     dir: &str,
     existing: Option<&ExistingResult>,
     stats_reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
     validate: bool,
 ) {
+    if limit.reached() {
+        return;
+    }
+
     let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
         .expect(&format!("Failed to read meta data: {dir}"));
 
@@ -58,6 +79,10 @@ pub fn benchmark_computation(
             }
         }
 
+        if limit.reached() {
+            return;
+        }
+
         if let Some(copy_files) = &meta_data.copy {
             copy_files::copy_files(dir, &copy_files);
         }
@@ -73,6 +98,7 @@ pub fn benchmark_computation(
         };
         let result = run_benchmark(
             dir,
+            COMPOSE_FILE,
             stats_reader,
             version_migrations.iter_mut().collect(),
             match validate {
@@ -86,7 +112,7 @@ pub fn benchmark_computation(
             || {
                 let client = reqwest::blocking::Client::new();
                 let response = match client
-                    .get("http://localhost:3000")
+                    .get("http://localhost:5001")
                     .query(&QUERY)
                     .timeout(Duration::from_secs(600))
                     .send()
@@ -113,6 +139,8 @@ pub fn benchmark_computation(
             copy_files::delete_copied_files(dir, &copy_files);
         }
 
+        limit.record();
+
         if validate {
             continue;
         }
@@ -128,11 +156,26 @@ pub fn benchmark_computation(
             &Vec::from([
                 ("time_median", result.time_median.to_string().as_str()),
                 ("memory_median", result.memory_median.to_string().as_str()),
+                ("build_time", result.build_time.to_string().as_str()),
             ]),
             take_lower_time_median,
         )
         .expect("Failed to write result to file");
     }
+}
+
+/// Returns the number of benchmarks `benchmark_computation` would run (as counted by `--limit`).
+pub fn count_computation(dir: &str, existing: Option<&ExistingResult>) -> usize {
+    let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
+        .expect(&format!("Failed to read meta data: {dir}"));
+
+    meta_data
+        .language_version
+        .iter()
+        .filter(|language_version| {
+            !existing.is_some_and(|existing| existing.language_versions.contains(*language_version))
+        })
+        .count()
 }
 
 fn take_lower_time_median<'a>(

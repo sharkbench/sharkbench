@@ -24,8 +24,8 @@ defmodule SimpleServer do
   end
 
   def start do
-    {:ok, socket} = :gen_tcp.listen(3000, [:binary, packet: :raw, active: false, reuseaddr: true])
-    IO.puts "Running on port 3000"
+    {:ok, socket} = :gen_tcp.listen(5001, [:binary, packet: :raw, active: false, reuseaddr: true])
+    IO.puts "Running on port 5001"
     accept_loop(socket)
   end
 

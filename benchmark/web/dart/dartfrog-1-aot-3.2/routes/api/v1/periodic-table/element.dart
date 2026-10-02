@@ -5,7 +5,7 @@ import 'package:dart_frog/dart_frog.dart';
 
 final httpClient = HttpClient();
 
-final _elementUrl = Uri.http('web-data-source', '/element.json');
+final _elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
 
 Future<Response> onRequest(RequestContext context) async {
   final request = context.request;

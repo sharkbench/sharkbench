@@ -1,5 +1,5 @@
 import arsd.cgi;
-import arsd.http2 : Uri, HttpClient;
+import arsd.http2 : get, Uri, HttpClient, HttpResponse, HttpRequestParameters;
 import arsd.jsvar;
 
 struct Element {
@@ -13,34 +13,16 @@ struct Shell {
 }
 
 class ApiV1 : WebObject {
-    static HttpClient internClient;
-
-    void makeClient() {
-        if (internClient is null) {
-            auto c = new HttpClient();
-            c.keepAlive = true;
-            internClient = c;
-        }
-    }
-
-    this() {
-        makeClient();
-    }
-
     @DefaultFormat("json"):
     auto element(string symbol) {
-        auto request = internClient.request(Uri("http://web-data-source/element.json"));
-        request.send();
-        auto response = request.waitForCompletion();
+        auto response = get(Uri("http://127.0.0.1:5002/element.json")).waitForCompletion;
         auto entry = response.contentJson()[symbol];
         return entry.get!Element;
     }
 
     @DefaultFormat("json"):
     auto shells(string symbol) {
-        auto request = internClient.request(Uri("http://web-data-source/shells.json"));
-        request.send();
-        auto response = request.waitForCompletion();
+        auto response = get(Uri("http://127.0.0.1:5002/shells.json")).waitForCompletion();
         auto entry = response.contentJson()[symbol];
         return Shell(entry.get!(ubyte[]));
     }
@@ -53,6 +35,6 @@ void requestHandler(Cgi cgi) {
 }
 
 void main() {
-    auto server = RequestServer("0.0.0.0", 3000);
+    auto server = RequestServer("0.0.0.0", 5001);
     server.serve!requestHandler();
 }

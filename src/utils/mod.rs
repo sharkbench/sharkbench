@@ -1,3 +1,4 @@
+pub mod benchmark_limit;
 pub mod copy_files;
 pub mod docker_runner;
 pub mod docker_stats;

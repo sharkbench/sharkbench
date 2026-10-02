@@ -9,5 +9,5 @@ RUN go build -o main .
 
 RUN chmod +x main
 
-EXPOSE 3000
+EXPOSE 5001
 CMD ["./main"]

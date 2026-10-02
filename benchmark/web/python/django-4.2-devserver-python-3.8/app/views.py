@@ -6,7 +6,7 @@ session = requests.Session()
 
 def get_element(request):
     symbol = request.GET.get('symbol')
-    json_data = session.get('http://web-data-source/element.json').json()
+    json_data = session.get('http://127.0.0.1:5002/element.json').json()
     entry = json_data[symbol]
 
     return JsonResponse({
@@ -18,7 +18,7 @@ def get_element(request):
 
 def get_shells(request):
     symbol = request.GET.get('symbol')
-    json_data = session.get('http://web-data-source/shells.json').json()
+    json_data = session.get('http://127.0.0.1:5002/shells.json').json()
 
     return JsonResponse({
         'shells': json_data[symbol],

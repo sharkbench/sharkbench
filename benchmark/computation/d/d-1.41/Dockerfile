@@ -7,5 +7,5 @@ RUN dub build -b=release-nobounds --compiler=ldc2
 
 RUN chmod +x app
 
-EXPOSE 3000
+EXPOSE 5001
 CMD ["./app"]

@@ -1,4 +1,5 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
+use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::{
@@ -15,15 +16,38 @@ use std::collections::HashMap;
 use std::fs;
 use std::time::Duration;
 
+/// The benchmark and the web data source both run with host networking, so every request
+/// goes through loopback without docker-proxy, Docker bridge, NAT or DNS lookups.
+/// The benchmark listens on port 5001 and the web data source on port 5002.
+const COMPOSE_FILE: &str = r#"
+services:
+  benchmark:
+    build: .
+    container_name: benchmark
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+"#;
+
+const BENCHMARK_URL: &str = "http://127.0.0.1:5001";
+const DATA_SOURCE_RESET_URL: &str = "http://127.0.0.1:5002/reset";
+
 const DEFAULT_CONCURRENCY: usize = 32;
 
 pub fn benchmark_web(
     dir: &str,
     existing: Option<&ExistingResult>,
     stats_reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
     validate: bool,
     verbose: bool,
 ) {
+    if limit.reached() {
+        return;
+    }
+
     let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
         .expect(&format!("Failed to read meta data: {dir}"));
 
@@ -48,8 +72,8 @@ pub fn benchmark_web(
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/element?symbol={}",
-                    k
+                    "{}/api/v1/periodic-table/element?symbol={}",
+                    BENCHMARK_URL, k
                 );
                 let expected_response = HashMap::from([
                     (
@@ -75,8 +99,8 @@ pub fn benchmark_web(
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
-                    "http://localhost:3000/api/v1/periodic-table/shells?symbol={}",
-                    k
+                    "{}/api/v1/periodic-table/shells?symbol={}",
+                    BENCHMARK_URL, k
                 );
                 let expected_response = HashMap::from([(
                     "shells".to_string(),
@@ -119,6 +143,10 @@ pub fn benchmark_web(
                 }
             }
 
+            if limit.reached() {
+                return;
+            }
+
             if let Some(copy_files) = &meta_data.copy {
                 copy_files::copy_files(dir, &copy_files);
             }
@@ -147,6 +175,7 @@ pub fn benchmark_web(
             #[rustfmt::skip]
             let result = run_benchmark(
                 dir,
+                COMPOSE_FILE,
                 stats_reader,
                 version_migrations.iter_mut().collect(),
                 match validate {
@@ -161,7 +190,7 @@ pub fn benchmark_web(
                     false => 5,
                 },
                 || {
-                    let _ = reqwest::blocking::get("http://localhost:3001/reset").expect("Failed to reset counter");
+                    let _ = reqwest::blocking::get(DATA_SOURCE_RESET_URL).expect("Failed to reset counter");
 
                     let result = run_http_load_test(
                         concurrency,
@@ -174,9 +203,10 @@ pub fn benchmark_web(
                         verbose,
                     );
 
-                    if let Ok(response) = reqwest::blocking::get("http://localhost:3001/reset") {
+                    if let Ok(response) = reqwest::blocking::get(DATA_SOURCE_RESET_URL) {
                         let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
-                        if data_source_counter != result.success_count {
+                        if data_source_counter < result.success_count {
+                            // Note: data_source_counter might be bigger when some requests are timed out, which is fine
                             panic!("Request count measured by data source: {}.
 Successful responses by framework: {}.
 Maybe some requests were not fired but cached responses were used?",
@@ -208,6 +238,8 @@ Maybe some requests were not fired but cached responses were used?",
                 copy_files::delete_copied_files(dir, &copy_files);
             }
 
+            limit.record();
+
             if validate {
                 continue;
             }
@@ -235,12 +267,32 @@ Maybe some requests were not fired but cached responses were used?",
                     ("memory_median", result.memory_median.to_string().as_str()),
                     ("memory_p99", result.memory_p99.to_string().as_str()),
                     ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
+                    ("build_time", result.build_time.to_string().as_str()),
                 ]),
                 take_bigger_rps,
             )
             .expect("Failed to write result to file");
         }
     }
+}
+
+/// Returns the number of benchmarks `benchmark_web` would run (as counted by `--limit`).
+pub fn count_web(dir: &str, existing: Option<&ExistingResult>) -> usize {
+    let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
+        .expect(&format!("Failed to read meta data: {dir}"));
+
+    let mut count = 0;
+    for language_version in &meta_data.language_version {
+        for framework_version in &meta_data.framework_version {
+            if !existing.is_some_and(|existing| {
+                existing.language_versions.contains(language_version)
+                    && existing.framework_versions.contains(framework_version)
+            }) {
+                count += 1;
+            }
+        }
+    }
+    count
 }
 
 #[derive(Deserialize)]

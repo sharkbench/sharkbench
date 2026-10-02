@@ -1,9 +1,0 @@
-language: Rust
-mode: Default
-version:
-  - "1.86"
-framework: Rama
-framework_website: https://github.com/plabayo/rama
-framework_flavor: Default
-framework_version:
-  - "0.2.0"

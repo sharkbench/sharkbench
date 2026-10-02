@@ -1,6 +1,6 @@
+use crate::utils::meta_data_parser::CopyValue;
 use std::fs;
 use std::path::Path;
-use crate::utils::meta_data_parser::CopyValue;
 
 pub(crate) const COMMON_DIR: &str = "_common";
 
@@ -44,7 +44,10 @@ fn delete_empty_folder(folder_path: &Path, work_dir: &str) {
         Ok(mut entries) => {
             if entries.next().is_none() {
                 fs::remove_dir(folder_path).expect("Failed to remove directory");
-                println!(" -> Removed {}", folder_path.display().to_string().replace(work_dir, "")[1..].to_string());
+                println!(
+                    " -> Removed {}",
+                    folder_path.display().to_string().replace(work_dir, "")[1..].to_string()
+                );
 
                 let parent_path = Path::new(folder_path).parent().unwrap();
                 delete_empty_folder(parent_path, work_dir);

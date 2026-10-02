@@ -10,5 +10,5 @@ FROM debian:bookworm-slim AS runtime
 COPY --from=builder /app/target/release/app /app
 COPY static ./static
 
-EXPOSE 80
+EXPOSE 5002
 ENTRYPOINT ["/app"]

@@ -1,0 +1,11 @@
+language: C++
+mode: Default
+version:
+  - '1.86'
+framework: Drogon
+framework_website: https://drogonframework.github.io/drogon-docs/#/
+framework_flavor: Default
+framework_version:
+  - '1.86'
+
+extended_warmup: true

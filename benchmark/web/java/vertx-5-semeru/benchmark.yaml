@@ -1,0 +1,19 @@
+language: Java
+mode: Semeru
+version:
+  - '17'
+  - '21'
+  - '25'
+version_regex:
+  Dockerfile: 'ARG JAVA_VERSION=(\d+)'
+  pom.xml: '<release>(\d+)<\/release>'
+framework: Vert.x
+framework_website: https://vertx.io
+framework_flavor: Default
+framework_version:
+  - '5'
+
+extended_warmup: true
+
+copy:
+  - 'vertx-5/MainVerticle.java': 'src/main/java/MainVerticle.java'

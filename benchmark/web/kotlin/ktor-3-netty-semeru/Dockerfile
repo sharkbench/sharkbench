@@ -1,4 +1,5 @@
-FROM gradle:8.14.3-jdk21 AS build
+ARG JAVA_VERSION=17
+FROM gradle:jdk${JAVA_VERSION} AS build
 
 WORKDIR /app
 
@@ -6,12 +7,12 @@ COPY . .
 
 RUN gradle build -x test
 
-FROM eclipse-temurin:21-alpine
+FROM ibm-semeru-runtimes:open-${JAVA_VERSION}-jre
 
 WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
 
-EXPOSE 5001
+EXPOSE 3000
 
 CMD ["java", "-jar", "app.jar"]

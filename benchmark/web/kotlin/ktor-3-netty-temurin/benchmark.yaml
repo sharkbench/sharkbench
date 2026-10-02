@@ -1,0 +1,27 @@
+language: Kotlin
+mode: Temurin
+version:
+  - '17'
+  - '21'
+  - '25'
+version_regex:
+  Dockerfile: '^ARG JAVA_VERSION=(\d+)$'
+
+framework: Ktor
+framework_website: https://ktor.io
+framework_flavor: Netty
+framework_version:
+  - '3.6'
+
+extended_warmup: true
+
+copy:
+  - 'ktor-3-netty/.gitignore': '.gitignore'
+  - 'ktor-3-netty/build.gradle.kts': 'build.gradle.kts'
+  - 'ktor-3-netty/gradle.properties': 'gradle.properties'
+  - 'ktor-3-netty/settings.gradle.kts': 'settings.gradle.kts'
+  - 'ktor-3-netty/src/main/kotlin/Application.kt': 'src/main/kotlin/Application.kt'
+  - 'ktor-3-netty/src/main/kotlin/Routing.kt': 'src/main/kotlin/Routing.kt'
+  - 'ktor-3-netty/src/main/kotlin/Serialization.kt': 'src/main/kotlin/Serialization.kt'
+  - 'ktor-3-netty/src/main/resources/application.yaml': 'src/main/resources/application.yaml'
+  - 'ktor-3-netty/src/main/resources/logback.xml': 'src/main/resources/logback.xml'

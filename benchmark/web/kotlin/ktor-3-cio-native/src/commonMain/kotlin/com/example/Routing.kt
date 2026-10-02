@@ -1,7 +1,7 @@
 package com.example
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.curl.Curl
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.application.*
@@ -11,12 +11,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
-    val client = HttpClient(CIO)
+    val client = HttpClient(Curl)
 
     routing {
         get("/api/v1/periodic-table/element") {
             val symbol = call.request.queryParameters["symbol"]!!
-            val elementsJson = client.get("http://127.0.0.1:5002/element.json").bodyAsText()
+            val elementsJson = client.get("http://web-data-source/element.json").bodyAsText()
             val elements: Map<String, DataSourceElement> = Json.decodeFromString(elementsJson)
             val elementData = elements[symbol]!!
 
@@ -31,7 +31,7 @@ fun Application.configureRouting() {
 
         get("/api/v1/periodic-table/shells") {
             val symbol = call.request.queryParameters["symbol"]!!
-            val elementsJson = client.get("http://127.0.0.1:5002/shells.json").bodyAsText()
+            val elementsJson = client.get("http://web-data-source/shells.json").bodyAsText()
             val elements: Map<String, List<Int>> = Json.decodeFromString(elementsJson)
 
             call.respond(

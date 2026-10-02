@@ -11,8 +11,8 @@ import java.util.Map;
 @RestController
 class MyController {
 
-    private final WebClient webClientElement = WebClient.create("http://127.0.0.1:5002/element.json");
-    private final WebClient webClientShells = WebClient.create("http://127.0.0.1:5002/shells.json");
+    private final WebClient webClientElement = WebClient.create("http://web-data-source/element.json");
+    private final WebClient webClientShells = WebClient.create("http://web-data-source/shells.json");
 
     @GetMapping("/api/v1/periodic-table/element")
     public Mono<Map<String, Object>> getElement(@RequestParam String symbol) {

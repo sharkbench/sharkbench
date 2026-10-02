@@ -1,4 +1,5 @@
-FROM gradle:8.14.3-jdk21 AS build
+ARG JAVA_VERSION=21
+FROM gradle:jdk${JAVA_VERSION} AS build
 
 RUN apt update
 RUN apt install -y gcc g++ make cmake
@@ -12,5 +13,5 @@ FROM ubuntu:24.04
 WORKDIR /
 COPY --from=build /app/build/bin/native/releaseExecutable/ktor-3-cio-native.kexe server.kexe
 
-EXPOSE 5001
+EXPOSE 3000
 ENTRYPOINT ["/server.kexe"]

@@ -3,4 +3,4 @@ ktor:
         modules:
             - com.example.ApplicationKt.module
     deployment:
-        port: 5001
+        port: 3000

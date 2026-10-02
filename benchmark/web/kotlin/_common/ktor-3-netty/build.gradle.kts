@@ -1,11 +1,11 @@
-val ktor_version: String by project
-val kotlin_version: String by project
-val logback_version: String by project
+val kotlin_version = "2.4.20"
+val ktor_version = "3.6.0"
+val logback_version = "1.4.14"
 
 plugins {
-    kotlin("jvm") version "2.3.20"
-    id("io.ktor.plugin") version "3.4.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
+    id("io.ktor.plugin") version "3.6.0"
+    id("org.jetbrains.kotlin.jvm") version "2.4.20"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
 }
 
 group = "com.example"

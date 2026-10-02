@@ -16,7 +16,7 @@ fun Application.configureRouting() {
     routing {
         get("/api/v1/periodic-table/element") {
             val symbol = call.request.queryParameters["symbol"]!!
-            val elementsJson = client.get("http://127.0.0.1:5002/element.json").bodyAsText()
+            val elementsJson = client.get("http://web-data-source/element.json").bodyAsText()
             val elements: Map<String, DataSourceElement> = Json.decodeFromString(elementsJson)
             val elementData = elements[symbol]!!
 
@@ -29,7 +29,7 @@ fun Application.configureRouting() {
 
         get("/api/v1/periodic-table/shells") {
             val symbol = call.request.queryParameters["symbol"]!!
-            val elementsJson = client.get("http://127.0.0.1:5002/shells.json").bodyAsText()
+            val elementsJson = client.get("http://web-data-source/shells.json").bodyAsText()
             val elements: Map<String, List<Int>> = Json.decodeFromString(elementsJson)
 
             call.respond(ShellsResponse(

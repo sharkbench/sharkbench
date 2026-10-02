@@ -1,0 +1,21 @@
+language: Kotlin
+mode: Temurin
+version:
+  - '17'
+  - '21'
+  - '25'
+version_regex:
+  Dockerfile: 'ARG JAVA_VERSION=(\d+)'
+
+framework: Vert.x
+framework_website: https://vertx.io
+framework_flavor: Kotlin
+framework_version:
+  - '5.2'
+
+extended_warmup: true
+
+copy:
+  - 'vertx-5/build.gradle.kts': 'build.gradle.kts'
+  - 'vertx-5/settings.gradle.kts': 'settings.gradle.kts'
+  - 'vertx-5/src/main/kotlin/com/example/MainVerticle.kt': 'src/main/kotlin/com/example/MainVerticle.kt'

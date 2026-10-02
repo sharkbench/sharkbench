@@ -10,5 +10,5 @@ RUN mvn dependency:go-offline -B
 
 COPY src ./src
 
-EXPOSE 5001
+EXPOSE 3000
 CMD ["mvn", "compile", "exec:java"]

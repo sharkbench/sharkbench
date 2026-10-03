@@ -1,28 +1,21 @@
-use std::io::{BufRead, BufReader, Write};
-use std::net::{TcpListener, TcpStream};
+use std::io::{self, BufRead, Write};
 
 fn main() {
-    let listener = TcpListener::bind("0.0.0.0:5001").unwrap();
+    let stdin = io::stdin();
+    let stdout = io::stdout();
+    let mut out = stdout.lock();
 
-    for stream in listener.incoming() {
-        handle_connection(stream.unwrap());
+    for line in stdin.lock().lines() {
+        let line = line.unwrap();
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let iterations = line.parse::<usize>().unwrap();
+        let result = calc_pi(iterations);
+        writeln!(out, "{};{};{}", result.0, result.1, result.2).unwrap();
+        out.flush().unwrap();
     }
-}
-
-fn handle_connection(mut stream: TcpStream) {
-    let buf_reader = BufReader::new(&mut stream);
-    let request = buf_reader.lines().next().unwrap().unwrap();
-
-    let split = request.split("/?iterations=");
-    if split.clone().count() != 2 {
-        return;
-    }
-    let iterations = split.take(2).last().unwrap().split(" ").next().unwrap().parse::<usize>().unwrap();
-    let result = calc_pi(iterations);
-    let response_header = "HTTP/1.1 200 OK";
-    let response_body = format!("{};{};{}", result.0, result.1, result.2);
-
-    stream.write_all(format!("{}\r\n\r\n{}", response_header, response_body).as_bytes()).unwrap();
 }
 
 fn calc_pi(iterations: usize) -> (f64, f64, f64) {

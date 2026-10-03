@@ -1,10 +1,22 @@
-use crate::utils::docker_runner::run_docker_compose;
+use crate::utils::docker_runner::{run_docker_compose, AttachedContainer, StartMode};
 use crate::utils::percentile;
 use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
 use std::fmt::{Debug, Display};
 use std::thread;
 use std::time::Duration;
+
+const CONTAINER_NAME: &str = "benchmark";
+
+/// How the harness talks to the benchmark container.
+pub enum Transport {
+    /// The container runs an HTTP server. The compose file must publish its port
+    /// or use host networking.
+    Http,
+    /// The container reads requests from stdin and writes responses to stdout.
+    /// No port is needed.
+    Stdio,
+}
 
 pub struct BenchmarkResult {
     /// Docker image build time in milliseconds (excluding base image downloads)
@@ -58,10 +70,11 @@ pub fn run_benchmark<F>(
     mut version_migrations: Vec<&mut VersionMigrator>,
     warmup_rounds: usize,
     rounds: usize,
+    transport: Transport,
     on_iteration: F,
 ) -> BenchmarkResult
 where
-    F: Fn() -> Result<IterationResult, Box<dyn std::error::Error>>,
+    F: Fn(Option<&mut AttachedContainer>) -> Result<IterationResult, Box<dyn std::error::Error>>,
 {
     for version_migrator in &mut version_migrations {
         version_migrator.migrate();
@@ -72,8 +85,16 @@ where
     let mut memory_p99: Vec<i64> = Vec::new();
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
-    let delay = Duration::from_secs(5);
-    let build_time = run_docker_compose(dir, delay, Some(compose_file), true, || {
+    let start_mode = match transport {
+        Transport::Http => StartMode::Detached {
+            ready_delay: Duration::from_secs(5),
+        },
+        Transport::Stdio => StartMode::Attached {
+            container_name: CONTAINER_NAME,
+        },
+    };
+    let build_time = run_docker_compose(dir, start_mode, Some(compose_file), true, |container| {
+        let mut container = container;
         println!(" -> Running benchmark");
         let mut fail_count = 0;
         let mut warmup_counter = 0;
@@ -87,7 +108,7 @@ where
             let start = std::time::Instant::now();
             stats_reader.start();
 
-            let result = match on_iteration() {
+            let result = match on_iteration(container.as_deref_mut()) {
                 Ok(result) => result,
                 Err(e) => {
                     println!(" -> Error: {}", e);

@@ -11,6 +11,11 @@ Checkout the results at [sharkbench.dev](https://sharkbench.dev).
 This benchmark tests how fast a programming language can perform mathematical computations without any I/O or memory allocation.
 We are using the [Leibniz formula](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80) to approximate the value of PI.
 
+The program is driven over stdin/stdout, so no HTTP server or network library is involved
+and the measured memory and build time only reflect the language runtime itself.
+
+See [Computation Benchmark](#computation-benchmark) for more information.
+
 ### ➤ Memory (not yet implemented)
 
 This benchmark tests how efficiently a programming language can perform memory management.
@@ -103,7 +108,7 @@ Therefore, the submitted frameworks and programming languages should be **produc
 
 There might be exceptions or additional requirements, but this is the general guideline.
 
-Always bind the server to `0.0.0.0` to allow access from outside the container.
+For web benchmarks, always bind the server to `0.0.0.0` to allow access from outside the container.
 
 ### ➤ File structure
 
@@ -175,6 +180,27 @@ copy:
   - 'pom.xml' # copy into root
   - 'application.properties': 'src/main/resources/application.properties' # copy into specific folder
 ```
+
+## Computation Benchmark
+
+The harness starts the container with stdin and stdout attached and keeps it running for all warmup and measured runs.
+The program must implement the following line based protocol:
+
+1. Read one line from stdin. It contains the number of iterations, e.g. `1000000000`.
+2. Compute the three values with the Leibniz loop (see the Rust or Python benchmark for the reference implementation).
+3. Write them to stdout as one line in the form `pi;sum;custom` and **flush stdout**.
+4. Repeat until stdin is closed (EOF), then exit.
+
+Example session:
+
+```text
+stdin:  1000000000
+stdout: 3.1415926525880504;785398157.7092886;0.7853981633136793
+```
+
+The result is only accepted if the line contains exactly this output.
+
+Debug output must go to stderr, since every line on stdout is interpreted as a response.
 
 ## Web Framework Benchmark
 

@@ -3,7 +3,7 @@ extern crate core;
 use crate::benchmark::computation::{benchmark_computation, count_computation};
 use crate::benchmark::web::{benchmark_web, count_web};
 use crate::utils::benchmark_limit::BenchmarkLimit;
-use crate::utils::docker_runner::run_docker_compose;
+use crate::utils::docker_runner::{run_docker_compose, StartMode};
 use crate::utils::docker_stats;
 use crate::utils::result_reader::{ExistingResult, ResultMap};
 use clap::Parser;
@@ -103,19 +103,27 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", dir);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
-                benchmark_web(
-                    full_dir.as_str(),
-                    existing_results
-                        .web
-                        .get(&language)
-                        .and_then(|map| map.get(&variant)),
-                    &mut reader,
-                    &limit,
-                    args.validate,
-                    args.verbose,
-                );
-            });
+            run_docker_compose(
+                WEB_DATASOURCE_DIR,
+                StartMode::Detached {
+                    ready_delay: Duration::ZERO,
+                },
+                None,
+                false,
+                |_| {
+                    benchmark_web(
+                        full_dir.as_str(),
+                        existing_results
+                            .web
+                            .get(&language)
+                            .and_then(|map| map.get(&variant)),
+                        &mut reader,
+                        &limit,
+                        args.validate,
+                        args.verbose,
+                    );
+                },
+            );
         } else {
             panic!("No benchmark selected");
         }
@@ -141,19 +149,34 @@ fn main() {
         } else if args.web {
             let full_dir = format!("benchmark/web/{}", language);
             println!(" -> Running only {}", full_dir);
-            run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
-                run_one_language(
-                    full_dir.as_str(),
-                    existing_results.web.get(&language),
-                    &mut reader,
-                    &limit,
-                    |dir: &str,
-                     existing: Option<&ExistingResult>,
-                     reader: &mut DockerStatsReader| {
-                        benchmark_web(dir, existing, reader, &limit, args.validate, args.verbose)
-                    },
-                );
-            });
+            run_docker_compose(
+                WEB_DATASOURCE_DIR,
+                StartMode::Detached {
+                    ready_delay: Duration::ZERO,
+                },
+                None,
+                false,
+                |_| {
+                    run_one_language(
+                        full_dir.as_str(),
+                        existing_results.web.get(&language),
+                        &mut reader,
+                        &limit,
+                        |dir: &str,
+                         existing: Option<&ExistingResult>,
+                         reader: &mut DockerStatsReader| {
+                            benchmark_web(
+                                dir,
+                                existing,
+                                reader,
+                                &limit,
+                                args.validate,
+                                args.verbose,
+                            )
+                        },
+                    );
+                },
+            );
         } else {
             panic!("No benchmark selected");
         }
@@ -184,17 +207,27 @@ fn main() {
 
     if args.web && !limit.reached() {
         println!(" -> Running web benchmarks");
-        run_docker_compose(WEB_DATASOURCE_DIR, Duration::ZERO, None, false, || {
-            run_all_languages(
-                "benchmark/web",
-                &existing_results.web,
-                &mut reader,
-                &limit,
-                |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
-                    benchmark_web(dir, existing, reader, &limit, args.validate, args.verbose)
-                },
-            );
-        });
+        run_docker_compose(
+            WEB_DATASOURCE_DIR,
+            StartMode::Detached {
+                ready_delay: Duration::ZERO,
+            },
+            None,
+            false,
+            |_| {
+                run_all_languages(
+                    "benchmark/web",
+                    &existing_results.web,
+                    &mut reader,
+                    &limit,
+                    |dir: &str,
+                     existing: Option<&ExistingResult>,
+                     reader: &mut DockerStatsReader| {
+                        benchmark_web(dir, existing, reader, &limit, args.validate, args.verbose)
+                    },
+                );
+            },
+        );
     }
 }
 

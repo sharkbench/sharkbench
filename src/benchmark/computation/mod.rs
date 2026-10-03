@@ -1,4 +1,4 @@
-use crate::benchmark::benchmark::{run_benchmark, IterationResult};
+use crate::benchmark::benchmark::{run_benchmark, IterationResult, Transport};
 use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
 use crate::utils::docker_stats::DockerStatsReader;
@@ -9,22 +9,20 @@ use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
 use std::time::Duration;
 
+/// The program is driven over stdin/stdout, so no port is published.
 const COMPOSE_FILE: &str = r#"
 services:
   benchmark:
     build: .
     container_name: benchmark
-    ports:
-      - "5001:5001"
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65535
     deploy:
       resources:
         limits:
           cpus: "1.0"
 "#;
 
-const QUERY: [(&str, &str); 1] = [("iterations", "1000000000")];
+/// Number of Leibniz iterations sent to the program on each run
+const ITERATIONS: &str = "1000000000";
 const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.7853981633136793";
 const DEFAULT_RUNS: usize = 15;
 
@@ -109,18 +107,11 @@ pub fn benchmark_computation(
                 },
             },
             runs,
-            || {
-                let client = reqwest::blocking::Client::new();
-                let response = match client
-                    .get("http://localhost:5001")
-                    .query(&QUERY)
-                    .timeout(Duration::from_secs(600))
-                    .send()
-                {
-                    Ok(response) => Ok(response),
-                    Err(e) => Err(e.to_string()),
-                }?;
-                let body = response.text()?;
+            Transport::Stdio,
+            |container| {
+                let container = container.expect("Stdio transport requires an attached container");
+                container.write_line(ITERATIONS)?;
+                let body = container.read_line(Duration::from_secs(600))?;
                 if !body.contains(EXPECTED_RESPONSE) {
                     return Err(Box::from(format!(
                         "Invalid response: {} (expected: {})",

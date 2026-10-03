@@ -1,23 +1,5 @@
-import http.server
-import socketserver
-from urllib.parse import urlparse, parse_qs
+import sys
 
-PORT = 5001
-
-class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        # Parse query parameters
-        query_components = parse_qs(urlparse(self.path).query)
-        iterations = int(query_components.get('iterations', [1])[0])
-
-        # Calculate
-        [pi, sum, custom_number] = calc_pi(iterations)
-
-        # Send the HTTP response
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(f"{pi};{sum};{custom_number}".encode())
 
 def calc_pi(iterations):
     pi = 0.0
@@ -43,7 +25,19 @@ def calc_pi(iterations):
     pi = pi * 4
     return [pi, sum, custom_number]
 
+
+def main():
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            break
+        line = line.strip()
+        if not line:
+            continue
+        iterations = int(line)
+        [pi, sum, custom_number] = calc_pi(iterations)
+        print(f"{pi};{sum};{custom_number}", flush=True)
+
+
 if __name__ == "__main__":
-    with socketserver.TCPServer(("", PORT), SimpleHTTPRequestHandler) as httpd:
-        print(f"Serving at port {PORT}")
-        httpd.serve_forever()
+    main()

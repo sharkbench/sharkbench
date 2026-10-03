@@ -1,7 +1,9 @@
 use regex::Regex;
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
-use std::process::Command;
+use std::process::{Child, ChildStdin, Command, Stdio};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::time::Instant;
 use std::{fs, thread, time::Duration};
 
@@ -13,22 +15,140 @@ node_modules
 target
 "#;
 
+/// How the benchmark container is started.
+pub enum StartMode {
+    /// `docker compose up -d`. The harness talks to the container over the network
+    /// and waits `ready_delay` before doing so.
+    Detached { ready_delay: Duration },
+
+    /// `docker compose run` with the container's stdin and stdout piped to the harness.
+    /// The container is expected to exit when its stdin is closed.
+    Attached { container_name: &'static str },
+}
+
+/// A running container whose stdin and stdout are connected to the harness.
+///
+/// The protocol is line based: [`AttachedContainer::write_line`] sends one request,
+/// [`AttachedContainer::read_line`] waits for one response line.
+pub struct AttachedContainer {
+    container_name: &'static str,
+    child: Child,
+    stdin: Option<ChildStdin>,
+    lines: Receiver<std::io::Result<String>>,
+}
+
+impl AttachedContainer {
+    fn spawn(dir: &str, container_name: &'static str) -> AttachedContainer {
+        let mut child = Command::new("docker")
+            .args(&[
+                "compose",
+                "run",
+                "--rm",
+                "--no-deps",
+                "-T",
+                "--name",
+                container_name,
+                "benchmark",
+            ])
+            .current_dir(Path::new(dir))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("failed to start container");
+
+        let stdin = child.stdin.take().unwrap();
+        let stdout = child.stdout.take().unwrap();
+
+        // Read stdout on a separate thread so that reads can time out.
+        let (sender, receiver) = mpsc::channel();
+        thread::spawn(move || {
+            let reader = BufReader::new(stdout);
+            for line in reader.lines() {
+                if sender.send(line).is_err() {
+                    break;
+                }
+            }
+        });
+
+        AttachedContainer {
+            container_name,
+            child,
+            stdin: Some(stdin),
+            lines: receiver,
+        }
+    }
+
+    /// Sends one line (without trailing newline) to the container's stdin.
+    pub fn write_line(&mut self, line: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let stdin = self
+            .stdin
+            .as_mut()
+            .ok_or("Container stdin is already closed")?;
+        stdin.write_all(line.as_bytes())?;
+        stdin.write_all(b"\n")?;
+        stdin.flush()?;
+        Ok(())
+    }
+
+    /// Waits for the next line printed on the container's stdout.
+    /// Fails if the container exits or does not answer within `timeout`.
+    pub fn read_line(&mut self, timeout: Duration) -> Result<String, Box<dyn std::error::Error>> {
+        match self.lines.recv_timeout(timeout) {
+            Ok(Ok(line)) => Ok(line),
+            Ok(Err(e)) => Err(Box::from(format!("Failed to read from container: {e}"))),
+            Err(RecvTimeoutError::Timeout) => Err(Box::from(format!(
+                "No response from container within {} s",
+                timeout.as_secs()
+            ))),
+            Err(RecvTimeoutError::Disconnected) => Err(Box::from(
+                "Container closed its stdout (the process probably exited)",
+            )),
+        }
+    }
+
+    /// Closes stdin and waits for the container to exit.
+    /// Containers that ignore EOF are removed by force.
+    fn finish(mut self, dir: &str) {
+        drop(self.stdin.take());
+
+        let deadline = Instant::now() + Duration::from_secs(10);
+        loop {
+            match self.child.try_wait() {
+                Ok(Some(_)) => return,
+                Ok(None) if Instant::now() < deadline => thread::sleep(Duration::from_millis(100)),
+                Ok(None) => break,
+                Err(e) => panic!("Failed to wait for container: {e}"),
+            }
+        }
+
+        println!(" -> Container did not exit after stdin was closed, removing it");
+        let _ = Command::new("docker")
+            .args(&["rm", "-f", self.container_name])
+            .current_dir(Path::new(dir))
+            .status();
+        let _ = self.child.wait();
+    }
+}
+
 /// Starts a docker container with the given `compose_file`.
 /// The container is stopped after the function `on_container_started` has finished.
 /// If `compose_file` is `None`, the directory is expected to contain a docker-compose.yml file.
+///
+/// `on_container_started` receives the attached container in [`StartMode::Attached`]
+/// and `None` in [`StartMode::Detached`].
 ///
 /// If `measure_build` is true, the base images are pulled beforehand and the image is built
 /// without cache. The returned duration is the build time, excluding base image downloads
 /// and container startup. Otherwise, `None` is returned.
 pub fn run_docker_compose<F>(
     dir: &str,
-    delay: Duration,
+    start_mode: StartMode,
     compose_file: Option<&str>,
     measure_build: bool,
     on_container_started: F,
 ) -> Option<Duration>
 where
-    F: FnOnce(),
+    F: FnOnce(Option<&mut AttachedContainer>),
 {
     if let Some(compose_file_content) = compose_file {
         fs::write(format!("{}/docker-compose.yml", dir), compose_file_content).unwrap();
@@ -44,21 +164,32 @@ where
         run_shell(&["docker", "compose", "build", "--no-cache"], dir);
         let build_time = start.elapsed();
         println!(" -> Build time: {} ms", build_time.as_millis());
-
-        println!(" -> Starting container");
-        run_shell(&["docker", "compose", "up", "-d"], dir);
         Some(build_time)
     } else {
         println!(" -> Building image");
-        run_shell(&["docker", "compose", "up", "--build", "-d"], dir);
+        run_shell(&["docker", "compose", "build"], dir);
         None
     };
 
-    // A heuristic to wait for the container to be ready
-    println!(" -> Waiting for container to be ready");
-    thread::sleep(delay);
+    println!(" -> Starting container");
+    match start_mode {
+        StartMode::Detached { ready_delay } => {
+            run_shell(&["docker", "compose", "up", "-d"], dir);
 
-    on_container_started();
+            // A heuristic to wait for the container to be ready
+            println!(" -> Waiting for container to be ready");
+            thread::sleep(ready_delay);
+
+            on_container_started(None);
+        }
+        StartMode::Attached { container_name } => {
+            // No readiness heuristic needed: the first request waits in the pipe
+            // until the process reads it.
+            let mut container = AttachedContainer::spawn(dir, container_name);
+            on_container_started(Some(&mut container));
+            container.finish(dir);
+        }
+    }
 
     println!(" -> Stopping container");
     run_shell(&["docker", "compose", "down", "--rmi", "all"], dir);

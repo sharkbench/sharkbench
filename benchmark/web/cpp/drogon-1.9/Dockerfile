@@ -44,5 +44,4 @@ RUN apt-get update && \
 WORKDIR /
 COPY --from=builder /server/build/drogon drogon
 
-EXPOSE 5001
 ENTRYPOINT ["/drogon"]

@@ -7,5 +7,4 @@ FROM denoland/deno:2.1.12 AS runtime
 WORKDIR /app
 COPY --from=builder /app .
 
-EXPOSE 5001
 CMD ["deno", "run", "--allow-net", "--allow-env", "--allow-read", "main.js"]

@@ -11,6 +11,5 @@ COPY . .
 RUN dart_frog build
 RUN dart compile exe build/bin/server.dart -o server
 
-EXPOSE 5001
 ENV PORT 5001
 CMD ["./server"]

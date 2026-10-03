@@ -11,5 +11,4 @@ FROM swift:5.10-slim AS runner
 WORKDIR /app
 COPY --from=builder /app/.build/release/benchmark ./benchmark
 
-EXPOSE 5001
 CMD ["./benchmark"]

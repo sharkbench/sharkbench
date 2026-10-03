@@ -11,5 +11,4 @@ FROM mcr.microsoft.com/dotnet/runtime:6.0 AS deploy
 WORKDIR /app
 COPY --from=build /app/out .
 
-EXPOSE 5001
 ENTRYPOINT ["dotnet", "web.dll"]

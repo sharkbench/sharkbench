@@ -4,8 +4,6 @@ WORKDIR /app
 COPY src ./src
 COPY build.zig ./build.zig
 
-EXPOSE 5001
-
 RUN zig build -Doptimize=ReleaseFast
 
 CMD ["./zig-out/bin/benchmark"]

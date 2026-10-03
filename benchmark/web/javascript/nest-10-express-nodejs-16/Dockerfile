@@ -8,5 +8,4 @@ RUN npm install
 
 RUN nest build
 
-EXPOSE 5001
 CMD ["node", "dist/main.js"]

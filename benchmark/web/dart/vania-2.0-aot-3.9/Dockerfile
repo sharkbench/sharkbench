@@ -17,6 +17,4 @@ COPY --from=build /runtime/ /
 COPY --from=build /app/bin/server /bin/server
 COPY --from=build /app/.env /
 
-EXPOSE 5001
-
 CMD ["/bin/server"]

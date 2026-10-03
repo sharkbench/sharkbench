@@ -14,5 +14,4 @@ RUN apt update && apt install -y libssl-dev
 
 COPY --from=builder /app/target/release/app /app
 
-EXPOSE 5001
 ENTRYPOINT ["/app"]

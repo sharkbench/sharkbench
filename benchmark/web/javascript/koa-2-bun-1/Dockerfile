@@ -5,5 +5,4 @@ COPY . .
 
 RUN bun install
 
-EXPOSE 5001
 CMD ["bun", "run", "main.js"]

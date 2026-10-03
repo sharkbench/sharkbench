@@ -35,5 +35,4 @@ COPY nginx.conf /etc/nginx/conf.d/custom.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Start Nginx and PHP-FPM
-EXPOSE 5001
 CMD service nginx start && php-fpm

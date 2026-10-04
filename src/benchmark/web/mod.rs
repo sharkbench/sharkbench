@@ -31,6 +31,7 @@ services:
           cpus: "1.0"
 "#;
 
+const BENCHMARK_PORT: u16 = 5001;
 const BENCHMARK_URL: &str = "http://127.0.0.1:5001";
 const DATA_SOURCE_RESET_URL: &str = "http://127.0.0.1:5002/reset";
 
@@ -189,7 +190,7 @@ pub fn benchmark_web(
                     true => 1,
                     false => 5,
                 },
-                Transport::Http,
+                Transport::Http { port: BENCHMARK_PORT },
                 |_| {
                     let _ = reqwest::blocking::get(DATA_SOURCE_RESET_URL).expect("Failed to reset counter");
 

@@ -10,7 +10,6 @@ use clap::Parser;
 use docker_stats::DockerStatsReader;
 use std::collections::HashMap;
 use std::fs;
-use std::time::Duration;
 
 mod benchmark;
 mod utils;
@@ -104,9 +103,7 @@ fn main() {
             print_only_dirs(&variants);
             run_docker_compose(
                 WEB_DATASOURCE_DIR,
-                StartMode::Detached {
-                    ready_delay: Duration::ZERO,
-                },
+                StartMode::Detached { ready_port: None },
                 None,
                 false,
                 |_| {
@@ -157,9 +154,7 @@ fn main() {
             println!(" -> Running only {}", full_dir);
             run_docker_compose(
                 WEB_DATASOURCE_DIR,
-                StartMode::Detached {
-                    ready_delay: Duration::ZERO,
-                },
+                StartMode::Detached { ready_port: None },
                 None,
                 false,
                 |_| {
@@ -215,9 +210,7 @@ fn main() {
         println!(" -> Running web benchmarks");
         run_docker_compose(
             WEB_DATASOURCE_DIR,
-            StartMode::Detached {
-                ready_delay: Duration::ZERO,
-            },
+            StartMode::Detached { ready_port: None },
             None,
             false,
             |_| {

@@ -1,11 +1,15 @@
 use regex::Regex;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
+use std::net::{SocketAddr, TcpStream};
 use std::path::Path;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::time::Instant;
 use std::{fs, thread, time::Duration};
+
+/// How long to wait for a detached container to accept connections on its port.
+const READY_TIMEOUT: Duration = Duration::from_secs(120);
 
 const IGNORE_FILE: &str = r#"
 .dart_tool
@@ -17,9 +21,10 @@ target
 
 /// How the benchmark container is started.
 pub enum StartMode {
-    /// `docker compose up -d`. The harness talks to the container over the network
-    /// and waits `ready_delay` before doing so.
-    Detached { ready_delay: Duration },
+    /// `docker compose up -d`. The harness talks to the container over the network.
+    /// If `ready_port` is set, the harness waits until 127.0.0.1:`ready_port`
+    /// accepts connections before doing so.
+    Detached { ready_port: Option<u16> },
 
     /// `docker compose run` with the container's stdin and stdout piped to the harness.
     /// The container is expected to exit when its stdin is closed.
@@ -173,12 +178,13 @@ where
 
     println!(" -> Starting container");
     match start_mode {
-        StartMode::Detached { ready_delay } => {
+        StartMode::Detached { ready_port } => {
             run_shell(&["docker", "compose", "up", "-d"], dir);
 
-            // A heuristic to wait for the container to be ready
-            println!(" -> Waiting for container to be ready");
-            thread::sleep(ready_delay);
+            if let Some(port) = ready_port {
+                println!(" -> Waiting for container to be ready");
+                wait_for_port(dir, port);
+            }
 
             on_container_started(None);
         }
@@ -200,6 +206,23 @@ where
     }
 
     build_time
+}
+
+/// Blocks until 127.0.0.1:`port` accepts a TCP connection.
+/// Panics if this does not happen within [`READY_TIMEOUT`].
+fn wait_for_port(dir: &str, port: u16) {
+    let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let start = Instant::now();
+    while TcpStream::connect_timeout(&address, Duration::from_secs(1)).is_err() {
+        if start.elapsed() > READY_TIMEOUT {
+            panic!(
+                "[{dir}] Container did not accept connections on port {port} within {} s",
+                READY_TIMEOUT.as_secs()
+            );
+        }
+        thread::sleep(Duration::from_millis(100));
+    }
+    println!(" -> Ready after {} ms", start.elapsed().as_millis());
 }
 
 /// Pulls the base images of the Dockerfile in `dir`

@@ -10,9 +10,9 @@ const CONTAINER_NAME: &str = "benchmark";
 
 /// How the harness talks to the benchmark container.
 pub enum Transport {
-    /// The container runs an HTTP server. The compose file must publish its port
+    /// The container runs an HTTP server on `port`. The compose file must publish the port
     /// or use host networking.
-    Http,
+    Http { port: u16 },
     /// The container reads requests from stdin and writes responses to stdout.
     /// No port is needed.
     Stdio,
@@ -86,8 +86,8 @@ where
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
     let start_mode = match transport {
-        Transport::Http => StartMode::Detached {
-            ready_delay: Duration::from_secs(5),
+        Transport::Http { port } => StartMode::Detached {
+            ready_port: Some(port),
         },
         Transport::Stdio => StartMode::Attached {
             container_name: CONTAINER_NAME,

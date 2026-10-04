@@ -1,6 +1,7 @@
-use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult, Transport};
+use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
 use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
+use crate::utils::docker_runner::StartMode;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::{
     run_http_load_test, PendingValidationResponse, PreparedHttpRequest,
@@ -190,7 +191,7 @@ pub fn benchmark_web(
                     true => 1,
                     false => 5,
                 },
-                Transport::Http { port: BENCHMARK_PORT },
+                StartMode::Detached { ready_port: Some(BENCHMARK_PORT) },
                 |_| {
                     let _ = reqwest::blocking::get(DATA_SOURCE_RESET_URL).expect("Failed to reset counter");
 

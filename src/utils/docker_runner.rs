@@ -8,6 +8,13 @@ use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::time::Instant;
 use std::{fs, thread, time::Duration};
 
+/// Name of the benchmark container, also used to filter `docker stats`.
+/// The compose files of the benchmarks must use the same `container_name`.
+pub const CONTAINER_NAME: &str = "benchmark";
+
+/// Name of the service in the compose files of the benchmarks.
+const SERVICE_NAME: &str = "benchmark";
+
 /// How long to wait for a detached container to accept connections on its port.
 const READY_TIMEOUT: Duration = Duration::from_secs(120);
 
@@ -28,7 +35,7 @@ pub enum StartMode {
 
     /// `docker compose run` with the container's stdin and stdout piped to the harness.
     /// The container is expected to exit when its stdin is closed.
-    Attached { container_name: &'static str },
+    Attached,
 }
 
 /// A running container whose stdin and stdout are connected to the harness.
@@ -36,14 +43,13 @@ pub enum StartMode {
 /// The protocol is line based: [`AttachedContainer::write_line`] sends one request,
 /// [`AttachedContainer::read_line`] waits for one response line.
 pub struct AttachedContainer {
-    container_name: &'static str,
     child: Child,
     stdin: Option<ChildStdin>,
     lines: Receiver<std::io::Result<String>>,
 }
 
 impl AttachedContainer {
-    fn spawn(dir: &str, container_name: &'static str) -> AttachedContainer {
+    fn spawn(dir: &str) -> AttachedContainer {
         let mut child = Command::new("docker")
             .args(&[
                 "compose",
@@ -52,8 +58,8 @@ impl AttachedContainer {
                 "--no-deps",
                 "-T",
                 "--name",
-                container_name,
-                "benchmark",
+                CONTAINER_NAME,
+                SERVICE_NAME,
             ])
             .current_dir(Path::new(dir))
             .stdin(Stdio::piped())
@@ -76,7 +82,6 @@ impl AttachedContainer {
         });
 
         AttachedContainer {
-            container_name,
             child,
             stdin: Some(stdin),
             lines: receiver,
@@ -128,7 +133,7 @@ impl AttachedContainer {
 
         println!(" -> Container did not exit after stdin was closed, removing it");
         let _ = Command::new("docker")
-            .args(&["rm", "-f", self.container_name])
+            .args(&["rm", "-f", CONTAINER_NAME])
             .current_dir(Path::new(dir))
             .status();
         let _ = self.child.wait();
@@ -188,10 +193,10 @@ where
 
             on_container_started(None);
         }
-        StartMode::Attached { container_name } => {
+        StartMode::Attached => {
             // No readiness heuristic needed: the first request waits in the pipe
             // until the process reads it.
-            let mut container = AttachedContainer::spawn(dir, container_name);
+            let mut container = AttachedContainer::spawn(dir);
             on_container_started(Some(&mut container));
             container.finish(dir);
         }

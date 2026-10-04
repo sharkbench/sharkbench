@@ -6,18 +6,6 @@ use std::fmt::{Debug, Display};
 use std::thread;
 use std::time::Duration;
 
-const CONTAINER_NAME: &str = "benchmark";
-
-/// How the harness talks to the benchmark container.
-pub enum Transport {
-    /// The container runs an HTTP server on `port`. The compose file must publish the port
-    /// or use host networking.
-    Http { port: u16 },
-    /// The container reads requests from stdin and writes responses to stdout.
-    /// No port is needed.
-    Stdio,
-}
-
 pub struct BenchmarkResult {
     /// Docker image build time in milliseconds (excluding base image downloads)
     pub build_time: i64,
@@ -70,7 +58,7 @@ pub fn run_benchmark<F>(
     mut version_migrations: Vec<&mut VersionMigrator>,
     warmup_rounds: usize,
     rounds: usize,
-    transport: Transport,
+    start_mode: StartMode,
     on_iteration: F,
 ) -> BenchmarkResult
 where
@@ -85,14 +73,6 @@ where
     let mut memory_p99: Vec<i64> = Vec::new();
     let mut additional_data: Vec<IndexMap<String, AdditionalData>> = Vec::new();
 
-    let start_mode = match transport {
-        Transport::Http { port } => StartMode::Detached {
-            ready_port: Some(port),
-        },
-        Transport::Stdio => StartMode::Attached {
-            container_name: CONTAINER_NAME,
-        },
-    };
     let build_time = run_docker_compose(dir, start_mode, Some(compose_file), true, |container| {
         let mut container = container;
         println!(" -> Running benchmark");

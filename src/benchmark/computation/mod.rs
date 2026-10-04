@@ -1,6 +1,7 @@
-use crate::benchmark::benchmark::{run_benchmark, IterationResult, Transport};
+use crate::benchmark::benchmark::{run_benchmark, IterationResult};
 use crate::utils::benchmark_limit::BenchmarkLimit;
 use crate::utils::copy_files;
+use crate::utils::docker_runner::StartMode;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::meta_data_parser::BenchmarkMetaData;
 use crate::utils::result_reader::ExistingResult;
@@ -107,9 +108,9 @@ pub fn benchmark_computation(
                 },
             },
             runs,
-            Transport::Stdio,
+            StartMode::Attached,
             |container| {
-                let container = container.expect("Stdio transport requires an attached container");
+                let container = container.expect("Attached start mode provides a container");
                 container.write_line(ITERATIONS)?;
                 let body = container.read_line(Duration::from_secs(600))?;
                 if !body.contains(EXPECTED_RESPONSE) {

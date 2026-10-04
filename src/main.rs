@@ -3,7 +3,7 @@ extern crate core;
 use crate::benchmark::computation::{benchmark_computation, count_computation};
 use crate::benchmark::web::{benchmark_web, count_web};
 use crate::utils::benchmark_limit::BenchmarkLimit;
-use crate::utils::docker_runner::{run_docker_compose, StartMode};
+use crate::utils::docker_runner::{run_docker_compose, StartMode, CONTAINER_NAME};
 use crate::utils::docker_stats;
 use crate::utils::result_reader::{ExistingResult, ResultMap};
 use clap::Parser;
@@ -64,7 +64,6 @@ struct Args {
     validate: bool,
 }
 
-const CONTAINER_NAME: &str = "benchmark";
 const WEB_DATASOURCE_DIR: &str = "src/benchmark/web/data";
 
 fn main() {

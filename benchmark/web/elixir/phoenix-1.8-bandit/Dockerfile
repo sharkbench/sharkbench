@@ -1,14 +1,13 @@
-FROM elixir:1.16-slim AS builder
+FROM elixir:1.18-slim AS builder
 
 WORKDIR /app
 
 # Required by Elixir 1.18+ (OTP 26+)
 RUN apt update && apt install -y ca-certificates
 
-# Install hex package manager and Phoenix framework
+# Install hex package manager and rebar
 RUN mix local.hex --force && \
-    mix local.rebar --force && \
-    mix archive.install hex phx_new --force
+    mix local.rebar --force
 
 COPY mix.exs ./
 COPY config config
@@ -21,7 +20,7 @@ COPY lib lib
 
 RUN mix do compile, release
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 RUN apt update && apt install -y libssl-dev
 
 WORKDIR /app

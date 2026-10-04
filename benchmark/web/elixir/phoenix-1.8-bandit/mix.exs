@@ -32,10 +32,10 @@ defmodule Benchmark.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.21"},
+      {:phoenix, "~> 1.8.15"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"},
+      {:bandit, "~> 1.12"},
       {:httpoison, "~> 2.0"}
     ]
   end

@@ -78,6 +78,12 @@ Only run a specific benchmark by adding `--only <benchmark>`:
 cargo run --release -- --web --only javascript/express-4-nodejs-12
 ```
 
+The version can be omitted to run all matching variants (e.g. `javascript/express-4-nodejs-12`, `javascript/express-5-bun-1`, ...):
+
+```bash
+cargo run --release -- --web --only javascript/express
+```
+
 ### ➤ Missing benchmarks
 
 Only run missing benchmarks (skipping those with existing results) by adding `--missing`:

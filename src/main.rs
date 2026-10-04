@@ -19,6 +19,7 @@ mod utils;
 ///
 /// To only run a specific benchmark, use the `--only` flag.
 /// Example: `cargo run --release -- --web --only rust/axum-0.7-rust-1.74`
+/// The version can be omitted to run all matching variants: `--only rust/axum`
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Args {
@@ -86,23 +87,21 @@ fn main() {
     let limit = BenchmarkLimit::new(args.limit);
 
     if let Some(dir) = args.only {
-        let (language, variant) = parse_only_dir(&dir);
         if args.computation {
-            let full_dir = format!("benchmark/computation/{}", dir);
-            println!(" -> Running only {}", full_dir);
-            benchmark_computation(
-                full_dir.as_str(),
-                existing_results
-                    .computation
-                    .get(&language)
-                    .and_then(|map| map.get(&variant)),
+            let (language, variants) = resolve_only_dir("benchmark/computation", &dir);
+            print_only_dirs(&variants);
+            run_variants(
+                variants,
+                existing_results.computation.get(&language),
                 &mut reader,
                 &limit,
-                args.validate,
+                |dir: &str, existing: Option<&ExistingResult>, reader: &mut DockerStatsReader| {
+                    benchmark_computation(dir, existing, reader, &limit, args.validate)
+                },
             );
         } else if args.web {
-            let full_dir = format!("benchmark/web/{}", dir);
-            println!(" -> Running only {}", full_dir);
+            let (language, variants) = resolve_only_dir("benchmark/web", &dir);
+            print_only_dirs(&variants);
             run_docker_compose(
                 WEB_DATASOURCE_DIR,
                 StartMode::Detached {
@@ -111,16 +110,23 @@ fn main() {
                 None,
                 false,
                 |_| {
-                    benchmark_web(
-                        full_dir.as_str(),
-                        existing_results
-                            .web
-                            .get(&language)
-                            .and_then(|map| map.get(&variant)),
+                    run_variants(
+                        variants,
+                        existing_results.web.get(&language),
                         &mut reader,
                         &limit,
-                        args.validate,
-                        args.verbose,
+                        |dir: &str,
+                         existing: Option<&ExistingResult>,
+                         reader: &mut DockerStatsReader| {
+                            benchmark_web(
+                                dir,
+                                existing,
+                                reader,
+                                &limit,
+                                args.validate,
+                                args.verbose,
+                            )
+                        },
                     );
                 },
             );
@@ -240,14 +246,14 @@ fn run_all_languages<F>(
 ) where
     F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
 {
-    for (language, full_dir) in sub_dirs(dir) {
+    for language in sub_dirs(dir) {
         if limit.reached() {
             break;
         }
 
         run_one_language(
-            full_dir.as_str(),
-            skip_existing.get(&language),
+            language.full_dir.as_str(),
+            skip_existing.get(&language.name),
             reader,
             limit,
             &run,
@@ -264,38 +270,44 @@ fn run_one_language<F>(
 ) where
     F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
 {
-    for (variant, full_dir) in variant_dirs(dir) {
+    run_variants(variant_dirs(dir), skip_existing, reader, limit, run);
+}
+
+/// Runs the given variants of a single language.
+fn run_variants<F>(
+    variants: Vec<SubDir>,
+    skip_existing: Option<&HashMap<String, ExistingResult>>,
+    reader: &mut DockerStatsReader,
+    limit: &BenchmarkLimit,
+    run: F,
+) where
+    F: Fn(&str, Option<&ExistingResult>, &mut DockerStatsReader),
+{
+    for variant in variants {
         if limit.reached() {
             break;
         }
 
-        let existing_result = skip_existing.and_then(|map| map.get(&variant));
+        let existing_result = skip_existing.and_then(|map| map.get(&variant.name));
 
         println!();
-        run(&full_dir, existing_result, reader);
+        run(&variant.full_dir, existing_result, reader);
     }
 }
 
 /// Returns the number of benchmarks that would be run with the given arguments.
 fn count_benchmarks(args: &Args, existing_results: &ResultMap) -> usize {
     if let Some(dir) = &args.only {
-        let (language, variant) = parse_only_dir(dir);
         return if args.computation {
-            count_computation(
-                format!("benchmark/computation/{}", dir).as_str(),
-                existing_results
-                    .computation
-                    .get(&language)
-                    .and_then(|map| map.get(&variant)),
+            let (language, variants) = resolve_only_dir("benchmark/computation", dir);
+            count_variants(
+                &variants,
+                existing_results.computation.get(&language),
+                count_computation,
             )
         } else if args.web {
-            count_web(
-                format!("benchmark/web/{}", dir).as_str(),
-                existing_results
-                    .web
-                    .get(&language)
-                    .and_then(|map| map.get(&variant)),
-            )
+            let (language, variants) = resolve_only_dir("benchmark/web", dir);
+            count_variants(&variants, existing_results.web.get(&language), count_web)
         } else {
             panic!("No benchmark selected");
         };
@@ -342,8 +354,12 @@ fn count_all_languages(
 ) -> usize {
     sub_dirs(dir)
         .iter()
-        .map(|(language, full_dir)| {
-            count_one_language(full_dir.as_str(), skip_existing.get(language), count)
+        .map(|language| {
+            count_one_language(
+                language.full_dir.as_str(),
+                skip_existing.get(&language.name),
+                count,
+            )
         })
         .sum()
 }
@@ -353,38 +369,94 @@ fn count_one_language(
     skip_existing: Option<&HashMap<String, ExistingResult>>,
     count: fn(&str, Option<&ExistingResult>) -> usize,
 ) -> usize {
-    variant_dirs(dir)
+    count_variants(&variant_dirs(dir), skip_existing, count)
+}
+
+fn count_variants(
+    variants: &[SubDir],
+    skip_existing: Option<&HashMap<String, ExistingResult>>,
+    count: fn(&str, Option<&ExistingResult>) -> usize,
+) -> usize {
+    variants
         .iter()
-        .map(|(variant, full_dir)| {
+        .map(|variant| {
             count(
-                full_dir.as_str(),
-                skip_existing.and_then(|map| map.get(variant)),
+                variant.full_dir.as_str(),
+                skip_existing.and_then(|map| map.get(&variant.name)),
             )
         })
         .sum()
 }
 
-/// Parses the `--only` argument into (language, variant).
-fn parse_only_dir(dir: &str) -> (String, String) {
+/// Resolves the `--only` argument (`<language>/<variant>`) inside `base_dir`
+/// into (language, variants).
+///
+/// An exact directory match is preferred.
+/// Otherwise, the variant is treated as an unversioned prefix,
+/// e.g. `rust/rama` matches `rust/rama-0.4-rust-1.98.1`.
+fn resolve_only_dir(base_dir: &str, dir: &str) -> (String, Vec<SubDir>) {
     let parts: Vec<&str> = dir.split('/').collect();
     if parts.len() != 2 {
         panic!("Invalid directory format. Expected <language>/<variant>");
     }
-    (parts[0].to_string(), parts[1].to_string())
+    let (language, query) = (parts[0], parts[1]);
+
+    let available = variant_dirs(format!("{}/{}", base_dir, language).as_str());
+    let variants = match_variants(&available, query);
+    if variants.is_empty() {
+        let names: Vec<&String> = available.iter().map(|variant| &variant.name).collect();
+        panic!(
+            "No benchmark found for {}. Available in {}: {:?}",
+            dir, language, names
+        );
+    }
+
+    (language.to_string(), variants)
 }
 
-/// Returns (name, full_dir) of each benchmark variant directory of a language,
-/// excluding the common directory.
-fn variant_dirs(dir: &str) -> Vec<(String, String)> {
-    sub_dirs(dir)
-        .into_iter()
-        .filter(|(name, _)| name != utils::copy_files::COMMON_DIR)
+fn print_only_dirs(variants: &[SubDir]) {
+    for variant in variants {
+        println!(" -> Running only {}", variant.full_dir);
+    }
+}
+
+/// Returns the variants matching `query`:
+/// the exact match if there is one, otherwise all variants starting with `<query>-`.
+fn match_variants(available: &[SubDir], query: &str) -> Vec<SubDir> {
+    if let Some(exact) = available.iter().find(|variant| variant.name == query) {
+        return vec![exact.clone()];
+    }
+
+    let prefix = format!("{}-", query);
+    available
+        .iter()
+        .filter(|variant| variant.name.starts_with(&prefix))
+        .cloned()
         .collect()
 }
 
-/// Returns (name, full_dir) of each subdirectory in `dir`.
-fn sub_dirs(dir: &str) -> Vec<(String, String)> {
-    fs::read_dir(dir)
+/// A subdirectory of the benchmark tree, i.e. a language or a variant.
+#[derive(Debug, Clone)]
+struct SubDir {
+    /// Directory name, e.g. `axum-0.8.9-rust-1.98.1`
+    name: String,
+
+    /// Full path, e.g. `benchmark/web/rust/axum-0.8.9-rust-1.98.1`
+    full_dir: String,
+}
+
+/// Returns each benchmark variant directory of a language,
+/// excluding the common directory.
+fn variant_dirs(dir: &str) -> Vec<SubDir> {
+    sub_dirs(dir)
+        .into_iter()
+        .filter(|variant| variant.name != utils::copy_files::COMMON_DIR)
+        .collect()
+}
+
+/// Returns each subdirectory in `dir`, sorted by name.
+fn sub_dirs(dir: &str) -> Vec<SubDir> {
+    let mut dirs: Vec<SubDir> = fs::read_dir(dir)
         .expect(&format!("Could not read directory {}", dir))
         .map(|entry| entry.unwrap())
         .filter(|entry| entry.file_type().unwrap().is_dir())
@@ -392,7 +464,60 @@ fn sub_dirs(dir: &str) -> Vec<(String, String)> {
             let name = entry.file_name().to_str().unwrap().to_owned();
             // Always use forward slashes so the path stored in the result is platform independent
             let full_dir = format!("{}/{}", dir, name);
-            (name, full_dir)
+            SubDir { name, full_dir }
         })
-        .collect()
+        .collect();
+    // fs::read_dir does not guarantee any order
+    dirs.sort_by(|a, b| a.name.cmp(&b.name));
+    dirs
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn variants(names: &[&str]) -> Vec<SubDir> {
+        names
+            .iter()
+            .map(|name| SubDir {
+                name: name.to_string(),
+                full_dir: format!("benchmark/web/rust/{}", name),
+            })
+            .collect()
+    }
+
+    fn names(variants: Vec<SubDir>) -> Vec<String> {
+        variants.into_iter().map(|variant| variant.name).collect()
+    }
+
+    #[test]
+    fn should_prefer_exact_match() {
+        let available = variants(&["ktor-3", "ktor-3-cio-native"]);
+        assert_eq!(names(match_variants(&available, "ktor-3")), vec!["ktor-3"]);
+    }
+
+    #[test]
+    fn should_match_unversioned() {
+        let available = variants(&["rama-0.4-rust-1.98.1", "axum-0.8.9-rust-1.98.1"]);
+        assert_eq!(
+            names(match_variants(&available, "rama")),
+            vec!["rama-0.4-rust-1.98.1"]
+        );
+    }
+
+    #[test]
+    fn should_match_multiple() {
+        let available = variants(&["vertx-4-semeru-11", "vertx-4-semeru-21", "vertxx-1"]);
+        assert_eq!(
+            names(match_variants(&available, "vertx")),
+            vec!["vertx-4-semeru-11", "vertx-4-semeru-21"]
+        );
+    }
+
+    #[test]
+    fn should_not_match_partial_name() {
+        let available = variants(&["express-5-bun-1"]);
+        assert!(match_variants(&available, "bun").is_empty());
+        assert!(match_variants(&available, "expr").is_empty());
+    }
 }

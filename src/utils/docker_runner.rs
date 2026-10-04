@@ -306,11 +306,11 @@ FROM builder AS intermediate
 FROM scratch
 COPY --from=builder /app /app
 
-FROM debian:bookworm-slim
+FROM debian:13-slim
 ";
             assert_eq!(
                 parse_base_images(dockerfile),
-                vec!["rust:1.87", "debian:bookworm-slim"]
+                vec!["rust:1.87", "debian:13-slim"]
             );
         }
 

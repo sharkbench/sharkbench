@@ -28,7 +28,7 @@ RUN mkdir build && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \
     make -j$(nproc)
 
-FROM debian:trixie-slim
+FROM debian:13-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

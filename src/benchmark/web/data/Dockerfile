@@ -6,7 +6,7 @@ COPY src ./src
 
 RUN cargo build --release
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:13-slim AS runtime
 COPY --from=builder /app/target/release/app /app
 COPY static ./static
 

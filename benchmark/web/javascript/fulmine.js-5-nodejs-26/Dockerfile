@@ -1,6 +1,6 @@
-# trixie: µWebSockets.js ships glibc binaries needing GLIBC >= 2.38 (no Alpine, no bookworm),
+# µWebSockets.js ships glibc binaries needing GLIBC >= 2.38 (no Alpine, no bookworm),
 # and it is installed from GitHub, so git is needed
-FROM node:26-trixie-slim
+FROM node:26-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
 

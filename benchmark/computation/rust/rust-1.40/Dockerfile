@@ -6,7 +6,7 @@ COPY Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
 
-FROM debian:bookworm-slim AS runner
+FROM debian:13-slim AS runner
 
 WORKDIR /app
 COPY --from=builder /app/target/release/benchmark ./benchmark

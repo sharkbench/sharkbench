@@ -21,7 +21,6 @@ COPY lib lib
 RUN mix do compile, release
 
 FROM debian:13-slim AS runtime
-RUN apt update && apt install -y libssl-dev
 
 WORKDIR /app
 

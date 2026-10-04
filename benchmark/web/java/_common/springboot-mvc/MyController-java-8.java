@@ -1,5 +1,9 @@
 package com.example.demo;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +15,19 @@ import java.util.Map;
 @RestController
 class MyController {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    MyController() {
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(64);
+        connectionManager.setDefaultMaxPerRoute(32);
+
+        CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .setConnectionManager(connectionManager)
+                .build();
+
+        this.restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+    }
 
     @GetMapping("/api/v1/periodic-table/element")
     public Map<String, Object> getElement(@RequestParam String symbol) {

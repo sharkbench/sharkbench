@@ -52,7 +52,7 @@ async fn main() -> Result<(), BoxError> {
         )
         .try_init();
 
-    let client = try_new_client()?;
+    let client = new_client();
     let state = State { client };
 
     let app = Router::new_with_state(state)
@@ -143,7 +143,7 @@ async fn try_fetch_json_data<T: serde::de::DeserializeOwned + Send + 'static>(
         .into_opaque_error()
 }
 
-fn try_new_client() -> Result<Client, OpaqueError> {
+fn new_client() -> Client {
     let http_client = EasyHttpWebClient::connector_builder()
         .with_default_transport_connector()
         .with_default_dns_connector()
@@ -151,12 +151,10 @@ fn try_new_client() -> Result<Client, OpaqueError> {
         .with_proxy_support()
         .without_tls_support()
         .with_default_http_connector(Executor::default())
-        .try_with_default_connection_pool()
-        .context("build pooled http connector")
-        .into_opaque_error()?
+        .with_default_connection_pool()
         .build_client();
 
-    Ok(Arc::new(
+    Arc::new(
         (
             MapErrLayer::new(ErrorExt::into_opaque_error),
             TimeoutLayer::new(Duration::from_secs(10)),
@@ -166,7 +164,7 @@ fn try_new_client() -> Result<Client, OpaqueError> {
         )
             .into_layer(http_client)
             .boxed(),
-    ))
+    )
 }
 
 #[derive(Serialize)]

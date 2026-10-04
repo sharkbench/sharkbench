@@ -1,9 +1,9 @@
 language: Rust
 mode: Default
 version:
-  - '1.86'
-framework: Rocket
-framework_website: https://rocket.rs
+  - '1.98.1'
+framework: Hyper
+framework_website: https://hyper.rs
 framework_flavor: Default
 framework_version:
-  - '0.5'
+  - '1'

@@ -1,7 +1,4 @@
-FROM rust:1.96 AS builder
-
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y cmake clang
+FROM rust:1.98.1 AS builder
 
 WORKDIR /app
 COPY Cargo.* ./

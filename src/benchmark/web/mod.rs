@@ -1,13 +1,12 @@
 use crate::benchmark::benchmark::{run_benchmark, AdditionalData, IterationResult};
-use crate::utils::benchmark_limit::BenchmarkLimit;
+use crate::benchmark::runner::RunConfig;
+use crate::benchmark::task::WebTask;
 use crate::utils::copy_files;
 use crate::utils::docker_runner::StartMode;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::http_load_tester::{
     run_http_load_test, PendingValidationResponse, PreparedHttpRequest,
 };
-use crate::utils::meta_data_parser::WebBenchmarkMetaData;
-use crate::utils::result_reader::ExistingResult;
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::serialization::SerializedValue;
 use crate::utils::version_migrator::VersionMigrator;
@@ -39,38 +38,157 @@ const DATA_SOURCE_RESET_URL: &str = "http://127.0.0.1:5002/reset";
 const DEFAULT_CONCURRENCY: usize = 32;
 
 pub fn benchmark_web(
-    dir: &str,
-    existing: Option<&ExistingResult>,
+    task: &WebTask,
+    requests: &Vec<PreparedHttpRequest>,
     stats_reader: &mut DockerStatsReader,
-    limit: &BenchmarkLimit,
-    validate: bool,
-    verbose: bool,
+    config: &RunConfig,
 ) {
-    if limit.reached() {
+    let dir = task.dir.path.as_str();
+    let meta_data = &task.meta_data;
+    let language_version = &task.language_version;
+    let framework_version = &task.framework_version;
+
+    let concurrency = match meta_data.concurrency {
+        Some(concurrency) => {
+            println!(
+                " -> Using concurrency = {} instead of default = {}",
+                concurrency, DEFAULT_CONCURRENCY
+            );
+            concurrency
+        }
+        None => DEFAULT_CONCURRENCY,
+    };
+
+    if let Some(copy_files) = &meta_data.copy {
+        copy_files::copy_files(dir, &copy_files);
+    }
+
+    let mut version_migrations = Vec::with_capacity(2);
+
+    if meta_data.language_version.len() > 1 {
+        version_migrations.push(VersionMigrator::new(
+            dir,
+            meta_data.language_version_regex.clone(),
+            meta_data.language_version[0].clone(),
+            language_version.clone(),
+        ));
+    }
+
+    if meta_data.framework_version.len() > 1 {
+        // Also migrate the framework version
+        version_migrations.push(VersionMigrator::new(
+            dir,
+            meta_data.framework_version_regex.clone(),
+            meta_data.framework_version[0].clone(),
+            framework_version.clone(),
+        ));
+    }
+
+    #[rustfmt::skip]
+    let result = run_benchmark(
+        dir,
+        COMPOSE_FILE,
+        stats_reader,
+        version_migrations.iter_mut().collect(),
+        match config.validate {
+            true => 0,
+            false => match meta_data.extended_warmup {
+                true => 5,
+                false => 1,
+            },
+        },
+        match config.validate {
+            true => 1,
+            false => 5,
+        },
+        StartMode::Detached { ready_port: Some(BENCHMARK_PORT) },
+        |_| {
+            let _ = reqwest::blocking::get(DATA_SOURCE_RESET_URL).expect("Failed to reset counter");
+
+            let result = run_http_load_test(
+                concurrency,
+                Duration::from_secs(match config.validate {
+                    true => 2,
+                    false => 15,
+                }),
+                requests,
+                response_validator,
+                config.verbose,
+            );
+
+            if let Ok(response) = reqwest::blocking::get(DATA_SOURCE_RESET_URL) {
+                let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
+                if data_source_counter < result.success_count {
+                    // Note: data_source_counter might be bigger when some requests are timed out, which is fine
+                    panic!("Request count measured by data source: {}.
+Successful responses by framework: {}.
+Maybe some requests were not fired but cached responses were used?",
+                        data_source_counter, result.success_count);
+                }
+            } else {
+                panic!("Failed to reset counter");
+            }
+
+            let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
+            additional_data.insert("rps_median".to_string(), AdditionalData::Int(result.rps_median));
+            additional_data.insert("rps_p99".to_string(), AdditionalData::Int(result.rps_p99));
+            additional_data.insert("latency_median".to_string(), AdditionalData::Int(result.latency_median.as_micros() as i32));
+            additional_data.insert("latency_p99".to_string(), AdditionalData::Int(result.latency_p99.as_micros() as i32));
+            additional_data.insert("errors".to_string(), AdditionalData::Int(result.fail_count));
+
+            let mut debugging_data: IndexMap<String, AdditionalData> = IndexMap::new();
+            debugging_data.insert("success".to_string(), AdditionalData::Int(result.success_count));
+            debugging_data.insert("time".to_string(), AdditionalData::Int(result.total_time.as_millis() as i32));
+
+            Ok(IterationResult {
+                additional_data,
+                debugging_data,
+            })
+        },
+    );
+
+    if let Some(copy_files) = &meta_data.copy {
+        copy_files::delete_copied_files(dir, &copy_files);
+    }
+
+    if config.validate {
         return;
     }
 
-    let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
-        .expect(&format!("Failed to read meta data: {dir}"));
+    #[rustfmt::skip]
+    write_result_to_file(
+        "result/web_result.csv",
+        &Vec::from([
+            ("language", meta_data.language.as_str()),
+            ("mode", meta_data.mode.as_str()),
+            ("version", language_version.as_str()),
+            ("framework", meta_data.framework.as_str()),
+            ("framework_stdlib", meta_data.framework_stdlib.to_string().as_str()),
+            ("framework_website", meta_data.framework_website.as_str()),
+            ("framework_flavor", meta_data.framework_flavor.as_str()),
+            ("framework_version", framework_version.as_str()),
+            ("concurrency", concurrency.to_string().as_str()),
+            ("path", dir.replace("benchmark/web/", "").as_str()),
+        ]),
+        &Vec::from([
+            ("rps_median", result.additional_data.get("rps_median").unwrap().to_string().as_str()),
+            ("rps_p99", result.additional_data.get("rps_p99").unwrap().to_string().as_str()),
+            ("latency_median", result.additional_data.get("latency_median").unwrap().to_string().as_str()),
+            ("latency_p99", result.additional_data.get("latency_p99").unwrap().to_string().as_str()),
+            ("memory_median", result.memory_median.to_string().as_str()),
+            ("memory_p99", result.memory_p99.to_string().as_str()),
+            ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
+            ("build_time", result.build_time.to_string().as_str()),
+        ]),
+        take_bigger_rps,
+    )
+    .expect("Failed to write result to file");
+}
 
-    // Early check if all existing results are in metadata to avoid printing metadata info
-    if let Some(existing) = existing {
-        if meta_data.language_version.iter().all(|lang_version| {
-            meta_data.framework_version.iter().all(|framework_version| {
-                existing.language_versions.contains(lang_version)
-                    && existing.framework_versions.contains(framework_version)
-            })
-        }) {
-            println!(" -> Skipping {dir}");
-            return;
-        }
-    }
-
-    println!(" -> Benchmarking {dir}");
-    meta_data.print_info();
-
+/// Returns the requests sent to every web benchmark together with the expected responses.
+pub fn prepare_requests() -> Vec<PreparedHttpRequest> {
     let data: HashMap<String, PeriodicTableElement> = load_data();
-    let requests: Vec<PreparedHttpRequest> = [
+    [
         data.iter()
             .map(|(k, v)| {
                 let url = format!(
@@ -118,184 +236,7 @@ pub fn benchmark_web(
             })
             .collect::<Vec<PreparedHttpRequest>>(),
     ]
-    .concat();
-
-    let concurrency = match meta_data.concurrency {
-        Some(concurrency) => {
-            println!(
-                " -> Using concurrency = {} instead of default = {}",
-                concurrency, DEFAULT_CONCURRENCY
-            );
-            concurrency
-        }
-        None => DEFAULT_CONCURRENCY,
-    };
-
-    for language_version in &meta_data.language_version {
-        for framework_version in &meta_data.framework_version {
-            if let Some(existing) = existing {
-                if existing.language_versions.contains(language_version)
-                    && existing.framework_versions.contains(framework_version)
-                {
-                    println!(
-                        " -> Skipping {} v{} / {} v{} (already exists)",
-                        meta_data.mode, language_version, meta_data.framework, framework_version
-                    );
-                    continue;
-                }
-            }
-
-            if limit.reached() {
-                return;
-            }
-
-            if let Some(copy_files) = &meta_data.copy {
-                copy_files::copy_files(dir, &copy_files);
-            }
-
-            let mut version_migrations = Vec::with_capacity(2);
-
-            if meta_data.language_version.len() > 1 {
-                version_migrations.push(VersionMigrator::new(
-                    dir,
-                    meta_data.language_version_regex.clone(),
-                    meta_data.language_version[0].clone(),
-                    language_version.clone(),
-                ));
-            }
-
-            if meta_data.framework_version.len() > 1 {
-                // Also migrate the framework version
-                version_migrations.push(VersionMigrator::new(
-                    dir,
-                    meta_data.framework_version_regex.clone(),
-                    meta_data.framework_version[0].clone(),
-                    framework_version.clone(),
-                ));
-            }
-
-            #[rustfmt::skip]
-            let result = run_benchmark(
-                dir,
-                COMPOSE_FILE,
-                stats_reader,
-                version_migrations.iter_mut().collect(),
-                match validate {
-                    true => 0,
-                    false => match meta_data.extended_warmup {
-                        true => 5,
-                        false => 1,
-                    },
-                },
-                match validate {
-                    true => 1,
-                    false => 5,
-                },
-                StartMode::Detached { ready_port: Some(BENCHMARK_PORT) },
-                |_| {
-                    let _ = reqwest::blocking::get(DATA_SOURCE_RESET_URL).expect("Failed to reset counter");
-
-                    let result = run_http_load_test(
-                        concurrency,
-                        Duration::from_secs(match validate {
-                            true => 2,
-                            false => 15,
-                        }),
-                        &requests,
-                        response_validator,
-                        verbose,
-                    );
-
-                    if let Ok(response) = reqwest::blocking::get(DATA_SOURCE_RESET_URL) {
-                        let data_source_counter = response.text().expect("Failed to read counter").parse::<i32>().expect("Failed to parse counter");
-                        if data_source_counter < result.success_count {
-                            // Note: data_source_counter might be bigger when some requests are timed out, which is fine
-                            panic!("Request count measured by data source: {}.
-Successful responses by framework: {}.
-Maybe some requests were not fired but cached responses were used?",
-                                data_source_counter, result.success_count);
-                        }
-                    } else {
-                        panic!("Failed to reset counter");
-                    }
-
-                    let mut additional_data: IndexMap<String, AdditionalData> = IndexMap::new();
-                    additional_data.insert("rps_median".to_string(), AdditionalData::Int(result.rps_median));
-                    additional_data.insert("rps_p99".to_string(), AdditionalData::Int(result.rps_p99));
-                    additional_data.insert("latency_median".to_string(), AdditionalData::Int(result.latency_median.as_micros() as i32));
-                    additional_data.insert("latency_p99".to_string(), AdditionalData::Int(result.latency_p99.as_micros() as i32));
-                    additional_data.insert("errors".to_string(), AdditionalData::Int(result.fail_count));
-
-                    let mut debugging_data: IndexMap<String, AdditionalData> = IndexMap::new();
-                    debugging_data.insert("success".to_string(), AdditionalData::Int(result.success_count));
-                    debugging_data.insert("time".to_string(), AdditionalData::Int(result.total_time.as_millis() as i32));
-
-                    Ok(IterationResult {
-                        additional_data,
-                        debugging_data,
-                    })
-                },
-            );
-
-            if let Some(copy_files) = &meta_data.copy {
-                copy_files::delete_copied_files(dir, &copy_files);
-            }
-
-            limit.record();
-
-            if validate {
-                continue;
-            }
-
-            #[rustfmt::skip]
-            write_result_to_file(
-                "result/web_result.csv",
-                &Vec::from([
-                    ("language", meta_data.language.as_str()),
-                    ("mode", meta_data.mode.as_str()),
-                    ("version", language_version.as_str()),
-                    ("framework", meta_data.framework.as_str()),
-                    ("framework_stdlib", meta_data.framework_stdlib.to_string().as_str()),
-                    ("framework_website", meta_data.framework_website.as_str()),
-                    ("framework_flavor", meta_data.framework_flavor.as_str()),
-                    ("framework_version", framework_version.as_str()),
-                    ("concurrency", concurrency.to_string().as_str()),
-                    ("path", dir.replace("benchmark/web/", "").as_str()),
-                ]),
-                &Vec::from([
-                    ("rps_median", result.additional_data.get("rps_median").unwrap().to_string().as_str()),
-                    ("rps_p99", result.additional_data.get("rps_p99").unwrap().to_string().as_str()),
-                    ("latency_median", result.additional_data.get("latency_median").unwrap().to_string().as_str()),
-                    ("latency_p99", result.additional_data.get("latency_p99").unwrap().to_string().as_str()),
-                    ("memory_median", result.memory_median.to_string().as_str()),
-                    ("memory_p99", result.memory_p99.to_string().as_str()),
-                    ("errors", result.additional_data.get("errors").unwrap().to_string().as_str()),
-                    ("build_time", result.build_time.to_string().as_str()),
-                ]),
-                take_bigger_rps,
-            )
-            .expect("Failed to write result to file");
-        }
-    }
-}
-
-/// Returns the number of benchmarks `benchmark_web` would run (as counted by `--limit`).
-pub fn count_web(dir: &str, existing: Option<&ExistingResult>) -> usize {
-    let meta_data: WebBenchmarkMetaData = WebBenchmarkMetaData::read_from_directory(dir)
-        .expect(&format!("Failed to read meta data: {dir}"));
-
-    let mut count = 0;
-    for language_version in &meta_data.language_version {
-        for framework_version in &meta_data.framework_version {
-            if !existing.is_some_and(|existing| {
-                existing.language_versions.contains(language_version)
-                    && existing.framework_versions.contains(framework_version)
-            }) {
-                count += 1;
-            }
-        }
-    }
-    count
+    .concat()
 }
 
 #[derive(Deserialize)]

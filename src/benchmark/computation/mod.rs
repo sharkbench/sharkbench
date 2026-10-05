@@ -1,10 +1,9 @@
 use crate::benchmark::benchmark::{run_benchmark, IterationResult};
-use crate::utils::benchmark_limit::BenchmarkLimit;
+use crate::benchmark::runner::RunConfig;
+use crate::benchmark::task::ComputationTask;
 use crate::utils::copy_files;
 use crate::utils::docker_runner::StartMode;
 use crate::utils::docker_stats::DockerStatsReader;
-use crate::utils::meta_data_parser::BenchmarkMetaData;
-use crate::utils::result_reader::ExistingResult;
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::version_migrator::VersionMigrator;
 use indexmap::IndexMap;
@@ -28,35 +27,14 @@ const EXPECTED_RESPONSE: &str = "3.1415926525880504;785398157.7092886;0.78539816
 const DEFAULT_RUNS: usize = 15;
 
 pub fn benchmark_computation(
-    dir: &str,
-    existing: Option<&ExistingResult>,
+    task: &ComputationTask,
     stats_reader: &mut DockerStatsReader,
-    limit: &BenchmarkLimit,
-    validate: bool,
+    config: &RunConfig,
 ) {
-    if limit.reached() {
-        return;
-    }
+    let dir = task.dir.path.as_str();
+    let meta_data = &task.meta_data;
 
-    let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
-        .expect(&format!("Failed to read meta data: {dir}"));
-
-    // Early check if all existing results are in metadata to avoid printing metadata info
-    if let Some(existing) = existing {
-        if meta_data
-            .language_version
-            .iter()
-            .all(|lang_version| existing.language_versions.contains(lang_version))
-        {
-            println!(" -> Skipping {dir}");
-            return;
-        }
-    }
-
-    println!(" -> Benchmarking {}", dir);
-    meta_data.print_info();
-
-    let runs = match validate {
+    let runs = match config.validate {
         true => 1,
         false => match meta_data.runs {
             Some(runs) => {
@@ -67,107 +45,75 @@ pub fn benchmark_computation(
         },
     };
 
-    for language_version in &meta_data.language_version {
-        if let Some(existing) = existing {
-            if existing.language_versions.contains(language_version) {
-                println!(
-                    " -> Skipping {} v{} (already exists)",
-                    meta_data.mode, language_version
-                );
-                continue;
-            }
-        }
-
-        if limit.reached() {
-            return;
-        }
-
-        if let Some(copy_files) = &meta_data.copy {
-            copy_files::copy_files(dir, &copy_files);
-        }
-
-        let mut version_migrations: Vec<VersionMigrator> = match meta_data.language_version.len() {
-            1 => vec![],
-            _ => vec![VersionMigrator::new(
-                dir,
-                meta_data.language_version_regex.clone(),
-                meta_data.language_version[0].clone(),
-                language_version.clone(),
-            )],
-        };
-        let result = run_benchmark(
-            dir,
-            COMPOSE_FILE,
-            stats_reader,
-            version_migrations.iter_mut().collect(),
-            match validate {
-                true => 0,
-                false => match meta_data.extended_warmup {
-                    true => 3,
-                    false => 1,
-                },
-            },
-            runs,
-            StartMode::Attached,
-            |container| {
-                let container = container.expect("Attached start mode provides a container");
-                container.write_line(ITERATIONS)?;
-                let body = container.read_line(Duration::from_secs(600))?;
-                if !body.contains(EXPECTED_RESPONSE) {
-                    return Err(Box::from(format!(
-                        "Invalid response: {} (expected: {})",
-                        body, EXPECTED_RESPONSE
-                    )));
-                }
-
-                Ok(IterationResult {
-                    additional_data: IndexMap::new(),
-                    debugging_data: IndexMap::new(),
-                })
-            },
-        );
-
-        if let Some(copy_files) = &meta_data.copy {
-            copy_files::delete_copied_files(dir, &copy_files);
-        }
-
-        limit.record();
-
-        if validate {
-            continue;
-        }
-
-        write_result_to_file(
-            "result/computation_result.csv",
-            &Vec::from([
-                ("language", meta_data.language.as_str()),
-                ("mode", meta_data.mode.as_str()),
-                ("version", language_version.as_str()),
-                ("path", dir.replace("benchmark/computation/", "").as_str()),
-            ]),
-            &Vec::from([
-                ("time_median", result.time_median.to_string().as_str()),
-                ("memory_median", result.memory_median.to_string().as_str()),
-                ("build_time", result.build_time.to_string().as_str()),
-            ]),
-            take_lower_time_median,
-        )
-        .expect("Failed to write result to file");
+    if let Some(copy_files) = &meta_data.copy {
+        copy_files::copy_files(dir, &copy_files);
     }
-}
 
-/// Returns the number of benchmarks `benchmark_computation` would run (as counted by `--limit`).
-pub fn count_computation(dir: &str, existing: Option<&ExistingResult>) -> usize {
-    let meta_data: BenchmarkMetaData = BenchmarkMetaData::read_from_directory(dir)
-        .expect(&format!("Failed to read meta data: {dir}"));
+    let mut version_migrations: Vec<VersionMigrator> = match meta_data.language_version.len() {
+        1 => vec![],
+        _ => vec![VersionMigrator::new(
+            dir,
+            meta_data.language_version_regex.clone(),
+            meta_data.language_version[0].clone(),
+            task.language_version.clone(),
+        )],
+    };
+    let result = run_benchmark(
+        dir,
+        COMPOSE_FILE,
+        stats_reader,
+        version_migrations.iter_mut().collect(),
+        match config.validate {
+            true => 0,
+            false => match meta_data.extended_warmup {
+                true => 3,
+                false => 1,
+            },
+        },
+        runs,
+        StartMode::Attached,
+        |container| {
+            let container = container.expect("Attached start mode provides a container");
+            container.write_line(ITERATIONS)?;
+            let body = container.read_line(Duration::from_secs(600))?;
+            if !body.contains(EXPECTED_RESPONSE) {
+                return Err(Box::from(format!(
+                    "Invalid response: {} (expected: {})",
+                    body, EXPECTED_RESPONSE
+                )));
+            }
 
-    meta_data
-        .language_version
-        .iter()
-        .filter(|language_version| {
-            !existing.is_some_and(|existing| existing.language_versions.contains(*language_version))
-        })
-        .count()
+            Ok(IterationResult {
+                additional_data: IndexMap::new(),
+                debugging_data: IndexMap::new(),
+            })
+        },
+    );
+
+    if let Some(copy_files) = &meta_data.copy {
+        copy_files::delete_copied_files(dir, &copy_files);
+    }
+
+    if config.validate {
+        return;
+    }
+
+    write_result_to_file(
+        "result/computation_result.csv",
+        &Vec::from([
+            ("language", meta_data.language.as_str()),
+            ("mode", meta_data.mode.as_str()),
+            ("version", task.language_version.as_str()),
+            ("path", dir.replace("benchmark/computation/", "").as_str()),
+        ]),
+        &Vec::from([
+            ("time_median", result.time_median.to_string().as_str()),
+            ("memory_median", result.memory_median.to_string().as_str()),
+            ("build_time", result.build_time.to_string().as_str()),
+        ]),
+        take_lower_time_median,
+    )
+    .expect("Failed to write result to file");
 }
 
 fn take_lower_time_median<'a>(

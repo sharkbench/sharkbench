@@ -1,24 +1,14 @@
-import Vapor
+#if canImport(Glibc)
+import Glibc
+#else
+import Darwin
+#endif
 
-var env = try Environment.detect()
-try LoggingSystem.bootstrap(from: &env)
-let app = Application(env)
-defer { app.shutdown() }
-app.middleware = .init()
-
-app.logger.logLevel = .critical
-
-app.get { req -> String in
-    let iterations = req.query[Int.self, at: "iterations"] ?? 0
-    let result = calculatePi(iterations: iterations)
-    return "\(result.pi);\(result.sum);\(result.customNumber)"
-}
-
-func calculatePi(iterations: Int) -> (pi: Double, sum: Double, customNumber: Double) {
-    var pi: Double = 0.0
-    var denominator: Double = 1.0
-    var sum: Double = 0.0
-    var customNumber: Double = 0.0
+func calculatePi(iterations: Int) -> (Double, Double, Double) {
+    var pi = 0.0
+    var denominator = 1.0
+    var sum = 0.0
+    var customNumber = 0.0
 
     for i in 0..<iterations {
         if i % 2 == 0 {
@@ -31,22 +21,21 @@ func calculatePi(iterations: Int) -> (pi: Double, sum: Double, customNumber: Dou
         // Custom calculations
         sum += pi
         switch i % 3 {
-        case 0:
-            customNumber += pi
-        case 1:
-            customNumber -= pi
-        case 2:
-            customNumber /= 2
-        default:
-            break
+        case 0: customNumber += pi
+        case 1: customNumber -= pi
+        default: customNumber /= 2
         }
     }
 
-    pi *= 4
-    return (pi: pi, sum: sum, customNumber: customNumber)
+    return (pi * 4, sum, customNumber)
 }
 
-app.http.server.configuration.hostname = "0.0.0.0"
-app.http.server.configuration.port = 5001
-
-try app.run()
+while let line = readLine() {
+    let input = line.filter { !$0.isWhitespace }
+    if input.isEmpty {
+        continue
+    }
+    let (pi, sum, customNumber) = calculatePi(iterations: Int(input)!)
+    print("\(pi);\(sum);\(customNumber)")
+    fflush(stdout)
+}

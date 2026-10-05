@@ -1,50 +1,25 @@
 package example;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class Main {
-    public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(5001)) {
-            System.out.println("Server started on port 5001");
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        PrintStream out = System.out;
 
-            while (true) {
-                try (Socket clientSocket = serverSocket.accept()) {
-                    handleConnection(clientSocket);
-                } catch (IOException e) {
-                    System.out.println("Error handling client connection: " + e.getMessage());
-                }
+        String line;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (line.isEmpty()) {
+                continue;
             }
-        } catch (IOException e) {
-            System.out.println("Could not listen on port 5001: " + e.getMessage());
+
+            int iterations = Integer.parseInt(line);
+            double[] result = calcPi(iterations);
+
+            out.println(result[0] + ";" + String.format("%.7f", result[1]) + ";" + result[2]);
+            out.flush();
         }
-    }
-
-    private static void handleConnection(Socket clientSocket) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-
-        String requestLine = reader.readLine();
-        if (requestLine == null || !requestLine.contains("/?iterations=")) {
-            return;
-        }
-
-        String[] parts = requestLine.split("/\\?iterations=");
-        if (parts.length != 2) {
-            return;
-        }
-
-        String iterationsPart = parts[1].split(" ")[0];
-        int iterations = Integer.parseInt(iterationsPart);
-        double[] result = calcPi(iterations);
-
-        String responseHeader = "HTTP/1.1 200 OK";
-        String responseBody = result[0] + ";" + String.format("%.7f", result[1]) + ";" + result[2];
-
-        writer.println(responseHeader);
-        writer.println();
-        writer.println(responseBody);
     }
 
     private static double[] calcPi(int iterations) {

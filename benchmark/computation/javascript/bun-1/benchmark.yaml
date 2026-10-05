@@ -2,3 +2,6 @@ language: JavaScript
 mode: Bun
 version:
   - '1'
+
+copy:
+  - 'main.js'

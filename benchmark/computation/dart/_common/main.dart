@@ -1,18 +1,20 @@
 import 'dart:io';
 
-const port = 5001;
-
-void main() async {
-  final server = await HttpServer.bind('0.0.0.0', port);
-  server.listen((HttpRequest request) {
-    final params = request.uri.queryParameters;
-    final i = int.parse(params['iterations']!);
+Future<void> main() async {
+  while (true) {
+    final line = stdin.readLineSync();
+    if (line == null) {
+      break;
+    }
+    final trimmed = line.trim();
+    if (trimmed.isEmpty) {
+      continue;
+    }
+    final i = int.parse(trimmed);
     final result = pi(i);
-    request.response.write('${result[0]};${result[1]};${result[2]}');
-    request.response.close();
-  });
-
-  print('Running on port $port');
+    stdout.writeln('${result[0]};${result[1]};${result[2]}');
+    await stdout.flush();
+  }
 }
 
 List<double> pi(int iterations) {

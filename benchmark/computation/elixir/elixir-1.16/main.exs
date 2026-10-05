@@ -24,42 +24,26 @@ defmodule SimpleServer do
   end
 
   def start do
-    {:ok, socket} = :gen_tcp.listen(5001, [:binary, packet: :raw, active: false, reuseaddr: true])
-    IO.puts "Running on port 5001"
-    accept_loop(socket)
-  end
+    case IO.gets("") do
+      :eof ->
+        :ok
 
-  def accept_loop(socket) do
-    {:ok, client} = :gen_tcp.accept(socket)
-    spawn(fn -> handle_client(client) end)
-    accept_loop(socket)
-  end
+      {:error, _} ->
+        :ok
 
-  def handle_client(client) do
-    case :gen_tcp.recv(client, 0) do
-      {:ok, data} ->
-        request = data |> to_string() |> String.split("\r\n") |> List.first()
+      line ->
+        case String.trim(line) do
+          "" ->
+            nil
 
-        if request && String.match?(request, ~r/GET/) do
-          [_, path_with_query, _] = String.split(request, " ")
-
-          if String.contains?(path_with_query, "?") do
-            [_, query] = String.split(path_with_query, "?")
-            params = URI.decode_query(query)
-            iterations = String.to_integer(params["iterations"] || "100")
-
+          input ->
+            iterations = String.to_integer(input)
             result = calculate_pi(iterations)
-            response_body = Enum.join(result, ";")
-
-            response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n#{response_body}"
-            :gen_tcp.send(client, response)
-          end
+            IO.puts(Enum.join(result, ";"))
         end
 
-      {:error, _} -> nil
+        start()
     end
-
-    :gen_tcp.close(client)
   end
 end
 

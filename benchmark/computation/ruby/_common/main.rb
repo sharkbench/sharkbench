@@ -1,5 +1,3 @@
-require 'socket'
-
 def calculate_pi(iterations)
   pi = 0.0
   denominator = 1.0
@@ -31,19 +29,13 @@ def calculate_pi(iterations)
   [pi, sum, custom_number]
 end
 
-server = TCPServer.new('0.0.0.0', 5001)
-puts 'Running on port 5001'
+$stdout.sync = true
 
-loop do
-  client = server.accept
-  request_line = client.gets
-  next unless request_line
+while (line = $stdin.gets)
+  line = line.strip
+  next if line.empty?
 
-  path, query = request_line.split[1].split('?')
-  params = query.split('&').map { |param| param.split('=') }.to_h
-  iterations = params['iterations'].to_i
-
+  iterations = line.to_i
   result = calculate_pi(iterations)
-  client.puts "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n#{result.join(';')}"
-  client.close
+  $stdout.puts result.join(';')
 end

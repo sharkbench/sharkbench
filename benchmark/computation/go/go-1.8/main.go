@@ -1,28 +1,29 @@
 package main
 
 import (
+    "bufio"
     "fmt"
-    "log"
-    "net/http"
+    "os"
     "strconv"
+    "strings"
 )
 
-const port = 5001
-
 func main() {
-    http.HandleFunc("/", handleRequest)
-
-    addr := fmt.Sprintf(":%d", port)
-    fmt.Printf("Running on port %d\n", port)
-    log.Fatal(http.ListenAndServe(addr, nil))
-}
-
-func handleRequest(w http.ResponseWriter, r *http.Request) {
-    query := r.URL.Query()
-    iterationsStr := query.Get("iterations")
-    iterations, _ := strconv.Atoi(iterationsStr)
-    result := pi(iterations)
-    fmt.Fprintf(w, "%.16f;%.7f;%.16f", result[0], result[1], result[2])
+    // os.Stdout is unbuffered, so every response is written immediately
+    scanner := bufio.NewScanner(os.Stdin)
+    for scanner.Scan() {
+        line := strings.TrimSpace(scanner.Text())
+        if line == "" {
+            continue
+        }
+        iterations, err := strconv.Atoi(line)
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "Invalid iterations: %s\n", line)
+            os.Exit(1)
+        }
+        result := pi(iterations)
+        fmt.Printf("%.16f;%.7f;%.16f\n", result[0], result[1], result[2])
+    }
 }
 
 func pi(iterations int) []float64 {

@@ -1,56 +1,19 @@
-import std.socket;
-import std.array;
-import std.algorithm;
-import std.typecons : Yes;
+import std.stdio;
+import std.string : strip;
 import std.format;
 import std.conv;
 
-class TCPServer {
-    string host;
-    ushort port;
-
-    @disable this();
-
-    this(string host, ushort port){
-        this.host = host;
-        this.port = port;
-    }
-
-    void start(){
-        auto tcps = new TcpSocket(AddressFamily.INET);
-
-        auto addr = new InternetAddress(host, port);
-
-        tcps.bind(addr);
-
-        tcps.listen(10);
-
-        while(true){
-            auto s = tcps.accept();
-
-            char[1024] data;
-            auto nbytes = s.receive(data);
-            auto sp = data[0..nbytes].split("/?iterations=");
-            if (sp.length < 2)
-                continue;
-            auto iter = sp[1].split(" ")[0];
-            auto result = calcPi(iter.to!int);
-            auto response = appender!string;
-            response.reserve(30);
-            response ~= "HTTP/1.1 200 OK";
-            response ~= "\r\n\r\n";
-            response ~= result;
-            s.send(response[]);
-
-            s.close();
-        }
-    }
-}
-
 void main()
 {
-    auto ts = new TCPServer("0.0.0.0", 5001);
-    ts.start();
+    foreach (line; stdin.byLine())
+    {
+        auto trimmed = line.strip();
+        if (trimmed.length == 0)
+            continue;
+        auto result = calcPi(trimmed.to!int);
+        stdout.writeln(result);
+        stdout.flush();
+    }
 }
 
 string calcPi(int iterations) {

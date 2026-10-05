@@ -1,8 +1,4 @@
-using HTTP
-using Sockets
 using Printf
-
-const PORT = 5001
 
 function calc_pi(iterations)
     pi = 0.0
@@ -34,14 +30,17 @@ function calc_pi(iterations)
     return pi, sum, custom_number
 end
 
-function handle_request(request::HTTP.Request)
-    query = HTTP.URIs.queryparams(HTTP.URIs.URI(request.target))
-    iterations = parse(Int, get(query, "iterations", "1"))
+function main()
+    for line in eachline(stdin)
+        line = strip(line)
+        isempty(line) && continue
+        iterations = parse(Int, line)
 
-    pi, sum, custom_number = calc_pi(iterations)
+        pi, sum, custom_number = calc_pi(iterations)
 
-    formatted_output = @sprintf("%.16f;%.7f;%.16f", pi, sum, custom_number)
-    return HTTP.Response(200, formatted_output)
+        @printf(stdout, "%.16f;%.7f;%.16f\n", pi, sum, custom_number)
+        flush(stdout)
+    end
 end
 
-HTTP.serve(handle_request, "0.0.0.0", PORT; verbose=true)
+main()

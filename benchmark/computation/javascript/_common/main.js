@@ -1,7 +1,4 @@
-const http = require('http');
-const url = require('url');
-
-const PORT = 5001;
+const readline = require('readline');
 
 function calcPi(iterations) {
     let pi = 0.0;
@@ -34,15 +31,17 @@ function calcPi(iterations) {
     return [pi, sum, customNumber];
 }
 
-const server = http.createServer((req, res) => {
-    const queryObject = url.parse(req.url, true).query;
-    const iterations = parseInt(queryObject.iterations);
-
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    const result = calcPi(iterations);
-    res.end(`${result[0]};${result[1]};${result[2]}`);
+const rl = readline.createInterface({
+    input: process.stdin,
+    terminal: false,
 });
 
-server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+rl.on('line', (line) => {
+    line = line.trim();
+    if (line.length === 0) {
+        return;
+    }
+    const iterations = parseInt(line);
+    const result = calcPi(iterations);
+    process.stdout.write(`${result[0]};${result[1]};${result[2]}\n`);
 });

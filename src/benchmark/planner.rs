@@ -16,6 +16,9 @@ pub struct TaskFilter {
     pub web: bool,
 
     pub selection: Selection,
+
+    /// Only include the last (highest) version combination of each benchmark
+    pub only_latest: bool,
 }
 
 /// Which benchmark directories to plan.
@@ -31,7 +34,8 @@ pub enum Selection {
 }
 
 /// Returns every task matching the filter, computation tasks first.
-/// Every version combination declared in `benchmark.yaml` becomes its own task.
+/// Every version combination declared in `benchmark.yaml` becomes its own task,
+/// or only the last one if [TaskFilter::only_latest] is set.
 pub fn plan_tasks(filter: &TaskFilter) -> Vec<BenchmarkTask> {
     let mut tasks = Vec::new();
 
@@ -41,7 +45,7 @@ pub fn plan_tasks(filter: &TaskFilter) -> Vec<BenchmarkTask> {
                 BenchmarkMetaData::read_from_directory(&dir.path)
                     .expect(&format!("Failed to read meta data: {}", dir.path)),
             );
-            for language_version in &meta_data.language_version {
+            for language_version in versions(&meta_data.language_version, filter.only_latest) {
                 tasks.push(BenchmarkTask::Computation(ComputationTask {
                     dir: dir.clone(),
                     meta_data: Rc::clone(&meta_data),
@@ -57,8 +61,9 @@ pub fn plan_tasks(filter: &TaskFilter) -> Vec<BenchmarkTask> {
                 WebBenchmarkMetaData::read_from_directory(&dir.path)
                     .expect(&format!("Failed to read meta data: {}", dir.path)),
             );
-            for language_version in &meta_data.language_version {
-                for framework_version in &meta_data.framework_version {
+            for language_version in versions(&meta_data.language_version, filter.only_latest) {
+                for framework_version in versions(&meta_data.framework_version, filter.only_latest)
+                {
                     tasks.push(BenchmarkTask::Web(WebTask {
                         dir: dir.clone(),
                         meta_data: Rc::clone(&meta_data),
@@ -71,6 +76,16 @@ pub fn plan_tasks(filter: &TaskFilter) -> Vec<BenchmarkTask> {
     }
 
     tasks
+}
+
+/// Returns the versions to plan.
+/// Versions are declared in ascending order, so the latest one is the last.
+fn versions(versions: &[String], only_latest: bool) -> &[String] {
+    if only_latest && !versions.is_empty() {
+        &versions[versions.len() - 1..]
+    } else {
+        versions
+    }
 }
 
 /// Returns the variant directories inside `base_dir` matching the selection.
@@ -174,6 +189,18 @@ mod tests {
             .into_iter()
             .map(|variant| variant.variant)
             .collect()
+    }
+
+    #[test]
+    fn should_return_all_versions() {
+        let all = vec!["1".to_string(), "2".to_string()];
+        assert_eq!(versions(&all, false), &all[..]);
+    }
+
+    #[test]
+    fn should_return_latest_version() {
+        let all = vec!["1".to_string(), "2".to_string()];
+        assert_eq!(versions(&all, true), &["2".to_string()]);
     }
 
     #[test]

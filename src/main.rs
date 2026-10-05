@@ -36,6 +36,10 @@ struct Args {
     #[arg(long, value_name = "DIR")]
     only: Option<String>,
 
+    /// Only run the last (highest) version combination of each benchmark
+    #[arg(long)]
+    only_latest: bool,
+
     /// Print more information
     #[arg(short, long)]
     verbose: bool,
@@ -50,7 +54,7 @@ struct Args {
     limit: Option<usize>,
 
     /// Do not run any benchmarks, only print how many would be run.
-    /// Respects `--missing`, `--lang` and `--only`.
+    /// Respects `--missing`, `--only-latest`, `--lang` and `--only`.
     #[arg(long)]
     count: bool,
 
@@ -80,6 +84,7 @@ fn main() {
         computation,
         web,
         selection,
+        only_latest: args.only_latest,
     });
 
     let mut skipped = 0;

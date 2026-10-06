@@ -6,6 +6,7 @@ use crate::utils::docker_runner::StartMode;
 use crate::utils::docker_stats::DockerStatsReader;
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::version_migrator::VersionMigrator;
+use crate::utils::work_dir;
 use indexmap::IndexMap;
 use std::time::Duration;
 
@@ -31,7 +32,6 @@ pub fn benchmark_computation(
     stats_reader: &mut DockerStatsReader,
     config: &RunConfig,
 ) {
-    let dir = task.dir.path.as_str();
     let meta_data = &task.meta_data;
 
     let runs = match config.validate {
@@ -45,11 +45,14 @@ pub fn benchmark_computation(
         },
     };
 
+    let src_dir = task.dir.path.as_str();
+    let dir = work_dir::prepare_work_dir(src_dir);
+
     if let Some(copy_files) = &meta_data.copy {
-        copy_files::copy_files(dir, &copy_files);
+        copy_files::copy_files(src_dir, dir, &copy_files);
     }
 
-    let mut version_migrations: Vec<VersionMigrator> = match meta_data.language_version.len() {
+    let version_migrations: Vec<VersionMigrator> = match meta_data.language_version.len() {
         1 => vec![],
         _ => vec![VersionMigrator::new(
             dir,
@@ -62,7 +65,7 @@ pub fn benchmark_computation(
         dir,
         COMPOSE_FILE,
         stats_reader,
-        version_migrations.iter_mut().collect(),
+        &version_migrations,
         match config.validate {
             true => 0,
             false => match meta_data.extended_warmup {
@@ -90,9 +93,7 @@ pub fn benchmark_computation(
         },
     );
 
-    if let Some(copy_files) = &meta_data.copy {
-        copy_files::delete_copied_files(dir, &copy_files);
-    }
+    work_dir::remove_work_dir();
 
     if config.validate {
         return;

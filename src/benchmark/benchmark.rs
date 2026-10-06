@@ -58,7 +58,7 @@ pub fn run_benchmark<F>(
     dir: &str,
     compose_file: &str,
     stats_reader: &mut crate::utils::docker_stats::DockerStatsReader,
-    mut version_migrations: Vec<&mut VersionMigrator>,
+    version_migrations: &[VersionMigrator],
     warmup_rounds: usize,
     rounds: usize,
     start_mode: StartMode,
@@ -67,7 +67,7 @@ pub fn run_benchmark<F>(
 where
     F: Fn(Option<&mut AttachedContainer>) -> Result<IterationResult, Box<dyn std::error::Error>>,
 {
-    for version_migrator in &mut version_migrations {
+    for version_migrator in version_migrations {
         version_migrator.migrate();
     }
 
@@ -139,10 +139,6 @@ where
             thread::sleep(COOLDOWN);
         }
     });
-
-    for version_migrator in &version_migrations {
-        version_migrator.restore();
-    }
 
     // Calculate medians
     execution_times.sort();

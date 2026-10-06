@@ -10,6 +10,7 @@ use crate::utils::http_load_tester::{
 use crate::utils::result_writer::write_result_to_file;
 use crate::utils::serialization::SerializedValue;
 use crate::utils::version_migrator::VersionMigrator;
+use crate::utils::work_dir;
 use indexmap::IndexMap;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -43,7 +44,6 @@ pub fn benchmark_web(
     stats_reader: &mut DockerStatsReader,
     config: &RunConfig,
 ) {
-    let dir = task.dir.path.as_str();
     let meta_data = &task.meta_data;
     let language_version = &task.language_version;
     let framework_version = &task.framework_version;
@@ -59,8 +59,11 @@ pub fn benchmark_web(
         None => DEFAULT_CONCURRENCY,
     };
 
+    let src_dir = task.dir.path.as_str();
+    let dir = work_dir::prepare_work_dir(src_dir);
+
     if let Some(copy_files) = &meta_data.copy {
-        copy_files::copy_files(dir, &copy_files);
+        copy_files::copy_files(src_dir, dir, &copy_files);
     }
 
     let mut version_migrations = Vec::with_capacity(2);
@@ -89,7 +92,7 @@ pub fn benchmark_web(
         dir,
         COMPOSE_FILE,
         stats_reader,
-        version_migrations.iter_mut().collect(),
+        &version_migrations,
         match config.validate {
             true => 0,
             false => match meta_data.extended_warmup {
@@ -147,9 +150,7 @@ Maybe some requests were not fired but cached responses were used?",
         },
     );
 
-    if let Some(copy_files) = &meta_data.copy {
-        copy_files::delete_copied_files(dir, &copy_files);
-    }
+    work_dir::remove_work_dir();
 
     if config.validate {
         return;

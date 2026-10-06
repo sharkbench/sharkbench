@@ -8,3 +8,6 @@ docker-compose.yml
 /target
 
 .DS_Store
+
+# Working copy of the benchmark being run
+/tmp/

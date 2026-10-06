@@ -13,7 +13,6 @@ pub struct VersionMigrator {
 #[derive(Debug, PartialEq, Eq)]
 struct Transformation {
     path: String,
-    original: Option<String>,
     regex: String,
 }
 
@@ -31,14 +30,13 @@ impl VersionMigrator {
         }
     }
 
-    pub fn migrate(&mut self) {
-        self.load_original_contents();
-
-        for t in &mut self.transformations {
-            let contents = t.original.as_ref().unwrap();
+    pub fn migrate(&self) {
+        for t in &self.transformations {
+            let contents = std::fs::read_to_string(&t.path)
+                .expect(format!("Could not read {}", t.path).as_str());
 
             match migrate_contents(
-                contents,
+                &contents,
                 &t.regex,
                 &self.initial_version,
                 &self.target_version,
@@ -67,29 +65,6 @@ impl VersionMigrator {
             }
         }
     }
-
-    pub fn restore(&self) {
-        for t in &self.transformations {
-            let contents = t.original.as_ref().expect(
-                format!(
-                    "Could not restore {} (original not found). This should not happen.",
-                    t.path
-                )
-                .as_str(),
-            );
-            std::fs::write(&t.path, contents)
-                .expect(format!("Could not write {}", t.path).as_str());
-        }
-    }
-
-    /// Store the contents in self.transformations.original
-    fn load_original_contents(&mut self) {
-        for t in &mut self.transformations {
-            let contents = std::fs::read_to_string(&t.path)
-                .expect(format!("Could not read {}", t.path).as_str());
-            t.original = Some(contents);
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -112,7 +87,6 @@ fn build_initial_transformation(
         .iter()
         .map(|(path, regex)| Transformation {
             path: format!("{}/{}", dir, path),
-            original: None,
             regex: match regex.as_str() {
                 DEFAULT_REGEX_KEYWORD => DEFAULT_REGEX_STRING.to_string(),
                 _ => regex.to_string(),
@@ -185,7 +159,6 @@ mod tests {
         assert_eq!(
             vec![Transformation {
                 path: "test/Dockerfile".to_string(),
-                original: None,
                 regex: DEFAULT_REGEX_STRING.to_string(),
             },],
             actual
@@ -198,7 +171,6 @@ mod tests {
         assert_eq!(
             vec![Transformation {
                 path: "test/Dockerfile2".to_string(),
-                original: None,
                 regex: DEFAULT_REGEX_STRING.to_string(),
             },],
             actual
@@ -213,12 +185,10 @@ mod tests {
             vec![
                 Transformation {
                     path: "test/Dockerfile3".to_string(),
-                    original: None,
                     regex: "my regex".to_string(),
                 },
                 Transformation {
                     path: "test/Dockerfile4".to_string(),
-                    original: None,
                     regex: DEFAULT_REGEX_STRING.to_string(),
                 },
             ],

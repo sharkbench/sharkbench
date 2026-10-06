@@ -18,13 +18,8 @@ const SERVICE_NAME: &str = "benchmark";
 /// How long to wait for a detached container to accept connections on its port.
 const READY_TIMEOUT: Duration = Duration::from_secs(120);
 
-const IGNORE_FILE: &str = r#"
-.dart_tool
-.gradle
-build
-node_modules
-target
-"#;
+/// Directories excluded from the docker context.
+pub const IGNORED_DIRS: [&str; 5] = [".dart_tool", ".gradle", "build", "node_modules", "target"];
 
 /// How the benchmark container is started.
 pub enum StartMode {
@@ -162,7 +157,7 @@ where
 {
     if let Some(compose_file_content) = compose_file {
         fs::write(format!("{}/docker-compose.yml", dir), compose_file_content).unwrap();
-        fs::write(format!("{}/.dockerignore", dir), IGNORE_FILE).unwrap();
+        fs::write(format!("{}/.dockerignore", dir), IGNORED_DIRS.join("\n")).unwrap();
     }
 
     let build_time = if measure_build {

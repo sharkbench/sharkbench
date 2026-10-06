@@ -10,3 +10,4 @@ pub mod result_writer;
 pub mod serialization;
 pub mod version;
 pub mod version_migrator;
+pub mod work_dir;

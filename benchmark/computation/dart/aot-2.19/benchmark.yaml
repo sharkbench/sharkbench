@@ -1,0 +1,9 @@
+language: Dart
+mode: AOT
+version: # only last minor of each major
+  - '2.19'
+  - '3.13'
+
+copy:
+  - 'main.dart'
+  - 'pubspec.yaml'

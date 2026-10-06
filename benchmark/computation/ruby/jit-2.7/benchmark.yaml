@@ -1,10 +1,9 @@
 language: Ruby
 mode: JIT
-version:
+version: # only last minor of each major
   - '2.7'
-  - '3.0'
-  - '3.2'
   - '3.4'
+  - '4.0'
 
 # Ruby takes too long to run
 runs: 3

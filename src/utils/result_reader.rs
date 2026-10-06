@@ -43,32 +43,49 @@ pub fn read_existing_result_map() -> ResultMap {
     };
 
     read_from_csv(
-        "result/computation_result.csv",
-        CsvStructure {
-            dir: 3,
-            language_version: 2,
-            framework_version: None,
-        },
+        COMPUTATION_RESULT_FILE.path,
+        COMPUTATION_RESULT_FILE.structure,
         &mut result_map.computation,
     );
 
     read_from_csv(
-        "result/web_result.csv",
-        CsvStructure {
-            dir: 9,
-            language_version: 2,
-            framework_version: Some(7),
-        },
+        WEB_RESULT_FILE.path,
+        WEB_RESULT_FILE.structure,
         &mut result_map.web,
     );
 
     result_map
 }
 
-struct CsvStructure {
-    dir: usize,
-    language_version: usize,
-    framework_version: Option<usize>,
+pub struct ResultFile {
+    pub path: &'static str,
+    pub structure: CsvStructure,
+}
+
+pub const COMPUTATION_RESULT_FILE: ResultFile = ResultFile {
+    path: "result/computation_result.csv",
+    structure: CsvStructure {
+        dir: 3,
+        language_version: 2,
+        framework_version: None,
+    },
+};
+
+pub const WEB_RESULT_FILE: ResultFile = ResultFile {
+    path: "result/web_result.csv",
+    structure: CsvStructure {
+        dir: 9,
+        language_version: 2,
+        framework_version: Some(7),
+    },
+};
+
+/// Column indices of the values identifying a result row.
+#[derive(Clone, Copy)]
+pub struct CsvStructure {
+    pub dir: usize,
+    pub language_version: usize,
+    pub framework_version: Option<usize>,
 }
 
 fn read_from_csv(

@@ -168,7 +168,7 @@ Maybe some requests were not fired but cached responses were used?",
             ("framework_flavor", meta_data.framework_flavor.as_str()),
             ("framework_version", framework_version.as_str()),
             ("concurrency", concurrency.to_string().as_str()),
-            ("path", dir.replace("benchmark/web/", "").as_str()),
+            ("path", task.dir.result_path().as_str()),
         ]),
         &Vec::from([
             ("rps_median", result.additional_data.get("rps_median").unwrap().to_string().as_str()),

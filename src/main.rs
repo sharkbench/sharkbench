@@ -1,6 +1,7 @@
 extern crate core;
 
 use crate::benchmark::planner::{plan_tasks, Selection, TaskFilter};
+use crate::benchmark::pruner::prune_results;
 use crate::benchmark::runner::{run_tasks, RunConfig};
 use crate::utils::docker_runner::CONTAINER_NAME;
 use crate::utils::docker_stats;
@@ -55,8 +56,15 @@ struct Args {
 
     /// Do not run any benchmarks, only print how many would be run.
     /// Respects `--missing`, `--only-latest`, `--lang` and `--only`.
+    /// With `--prune`, only print the rows that would be removed.
     #[arg(long)]
     count: bool,
+
+    /// Do not run any benchmarks, instead remove result rows
+    /// not belonging to any benchmark (version) anymore.
+    /// Respects `--computation`, `--web`, `--lang` and `--only`.
+    #[arg(long, conflicts_with_all = ["only_latest", "missing", "limit", "validate"])]
+    prune: bool,
 
     /// Reduce the benchmark time to a minimum to only check if it runs.
     /// No results will be saved.
@@ -80,12 +88,21 @@ fn main() {
         (computation, web, _) => (computation, web),
     };
 
-    let mut tasks = plan_tasks(&TaskFilter {
+    let filter = TaskFilter {
         computation,
         web,
         selection,
         only_latest: args.only_latest,
-    });
+    };
+    let mut tasks = plan_tasks(&filter);
+
+    if args.prune {
+        let removed = prune_results(&tasks, &filter, args.count);
+        if removed == 0 {
+            println!(" -> Nothing to prune");
+        }
+        return;
+    }
 
     let mut skipped = 0;
     if args.missing {

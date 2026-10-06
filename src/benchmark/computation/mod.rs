@@ -104,7 +104,7 @@ pub fn benchmark_computation(
             ("language", meta_data.language.as_str()),
             ("mode", meta_data.mode.as_str()),
             ("version", task.language_version.as_str()),
-            ("path", dir.replace("benchmark/computation/", "").as_str()),
+            ("path", task.dir.result_path().as_str()),
         ]),
         &Vec::from([
             ("time_median", result.time_median.to_string().as_str()),

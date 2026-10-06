@@ -36,6 +36,13 @@ pub struct BenchmarkDir {
     pub path: String,
 }
 
+impl BenchmarkDir {
+    /// The path as stored in the result CSV, e.g. `rust/axum-0.8.9-rust-1.98.1`
+    pub fn result_path(&self) -> String {
+        format!("{}/{}", self.language, self.variant)
+    }
+}
+
 impl BenchmarkTask {
     /// Returns true if the result CSV already contains a result for this task.
     pub fn has_result(&self, existing: &ResultMap) -> bool {

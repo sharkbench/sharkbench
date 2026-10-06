@@ -104,6 +104,15 @@ To print how many benchmarks would be run without running any, add `--count`:
 cargo run --release -- --web --missing --count
 ```
 
+### ➤ Prune results
+
+Remove result rows that no longer belong to any benchmark (e.g. a renamed directory or a version removed from `benchmark.yaml`) by adding `--prune`.
+It respects `--web`, `--computation`, `--lang` and `--only`. Add `--count` to only print the rows that would be removed:
+
+```bash
+cargo run --release -- --prune --count
+```
+
 ## Contributing
 
 Keep in mind that the goal of Sharkbench is to guide developers in choosing the next stack for their **production** applications.

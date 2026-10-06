@@ -1,4 +1,6 @@
-FROM gradle:9.8.0-jdk25 AS build
+ARG JAVA_VERSION=21
+
+FROM gradle:9.8.0-jdk${JAVA_VERSION} AS build
 
 WORKDIR /app
 
@@ -6,7 +8,7 @@ COPY . .
 
 RUN gradle installDist --no-daemon
 
-FROM eclipse-temurin:25-alpine
+FROM eclipse-temurin:${JAVA_VERSION}-alpine
 
 WORKDIR /app
 

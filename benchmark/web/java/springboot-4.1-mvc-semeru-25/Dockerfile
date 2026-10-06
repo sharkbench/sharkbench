@@ -1,6 +1,6 @@
-ARG JAVA_VERSION=17
+ARG JAVA_VERSION=25
 
-FROM maven:3-ibm-semeru-${JAVA_VERSION}-focal AS build
+FROM maven:3-ibm-semeru-${JAVA_VERSION}-noble AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY src ./src
 
 RUN mvn package -DskipTests
 
-FROM ibm-semeru-runtimes:open-${JAVA_VERSION}-jre-focal AS runtime
+FROM ibm-semeru-runtimes:open-${JAVA_VERSION}-jre-noble AS runtime
 
 WORKDIR /app
 

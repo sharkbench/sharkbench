@@ -3,6 +3,8 @@ mode: Semeru
 version:
   - '11'
   - '17'
+  - '21'
+  - '25'
 version_regex:
   Dockerfile: 'ARG JAVA_VERSION=(\d+)'
   pom.xml: '<release>(\d+)<\/release>'

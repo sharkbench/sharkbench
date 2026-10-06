@@ -1,6 +1,6 @@
 ARG JAVA_VERSION=11
 
-FROM maven:3-ibm-semeru-${JAVA_VERSION}-focal
+FROM maven:3-ibm-semeru-${JAVA_VERSION}-noble
 
 WORKDIR /app
 

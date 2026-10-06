@@ -1,14 +1,13 @@
 language: Java
 mode: OpenJDK
 version:
-  - '17'
-  - '21'
+  - '25'
 version_regex:
   Dockerfile: 'ARG JAVA_VERSION=(\d+)'
   pom.xml: '<maven\.compiler\.release>(\d+)<\/maven\.compiler\.release>'
 framework: Quarkus
 framework_website: https://quarkus.io
-framework_flavor: Imperative
+framework_flavor: Reactive
 framework_version:
   - '3'
 
@@ -17,5 +16,5 @@ extended_warmup: true
 copy:
   - 'quarkus-3/pom.xml': 'pom.xml'
   - 'quarkus-3/application.properties': 'src/main/resources/application.properties'
-  - 'quarkus-3-imperative/ElementServiceClient.java': 'src/main/java/org/acme/ElementServiceClient.java'
-  - 'quarkus-3-imperative/PeriodicTableResource.java': 'src/main/java/org/acme/PeriodicTableResource.java'
+  - 'quarkus-3-reactive/ElementServiceClient.java': 'src/main/java/org/acme/ElementServiceClient.java'
+  - 'quarkus-3-reactive/PeriodicTableResource.java': 'src/main/java/org/acme/PeriodicTableResource.java'

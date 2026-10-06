@@ -6,6 +6,9 @@ use std::fmt::{Debug, Display};
 use std::thread;
 use std::time::Duration;
 
+// Pause after every warmup and measured run to let the container cool down
+const COOLDOWN: Duration = Duration::from_secs(10);
+
 pub struct BenchmarkResult {
     /// Docker image build time in milliseconds (excluding base image downloads)
     pub build_time: i64,
@@ -116,6 +119,7 @@ where
                     result.additional_data,
                     result.debugging_data,
                 );
+                thread::sleep(COOLDOWN);
                 continue;
             }
 
@@ -132,8 +136,7 @@ where
             memory_p99.push(memory_usage.p99);
             additional_data.push(result.additional_data);
 
-            // Wait for 2 seconds to let the container cool down
-            thread::sleep(Duration::from_secs(2));
+            thread::sleep(COOLDOWN);
         }
     });
 

@@ -1,7 +1,7 @@
 language: Kotlin
 mode: Temurin
 version:
-  - '21'
+  - '25'
 framework: Ktor
 framework_website: https://ktor.io
 framework_flavor: Netty

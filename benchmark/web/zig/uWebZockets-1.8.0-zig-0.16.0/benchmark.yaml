@@ -1,0 +1,9 @@
+language: Zig
+mode: Default
+version:
+  - '0.16.0'
+framework: uWebZockets
+framework_website: https://github.com/farbenbuilds/uWebZockets
+framework_flavor: Default
+framework_version:
+  - '1.8.0'

@@ -201,6 +201,12 @@ Quarkus: >
   unified reactive and imperative programming model optimized for containers and
   serverless environments. Quarkus focuses on fast startup time, low memory
   footprint, and developer productivity.
+uWebZockets: >
+  uWebZockets is a zero-allocation, shared-nothing server framework for Zig
+  inspired by uWebSockets. One type-safe Request/Response API serves HTTP/1.1,
+  HTTP/2, HTTP/3, WebSocket, and JSON-RPC from bounded memory slabs that are
+  allocated once at startup, with per-worker event loops coordinated through
+  lock-free rings.
 Vania: >
   Vania is a robust backend framework for building high-performance web
   applications using Dart. It features a straightforward approach and powerful

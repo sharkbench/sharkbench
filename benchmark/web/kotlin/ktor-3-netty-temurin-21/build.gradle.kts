@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("io.ktor:ktor-bom:3.6.0"))
+    implementation(platform("io.ktor:ktor-bom:3.5.2"))
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-serialization-kotlinx-json")

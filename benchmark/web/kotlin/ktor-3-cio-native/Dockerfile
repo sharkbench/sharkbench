@@ -1,4 +1,4 @@
-FROM gradle:8.14.3-jdk21 AS build
+FROM gradle:9.8.0-jdk21 AS build
 
 RUN apt update
 RUN apt install -y gcc g++ make cmake

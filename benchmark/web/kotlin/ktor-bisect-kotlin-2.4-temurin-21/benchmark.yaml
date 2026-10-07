@@ -1,0 +1,13 @@
+language: Kotlin
+mode: Temurin
+version:
+  - '21'
+version_regex:
+  Dockerfile: 'ARG JAVA_VERSION=(\d+)'
+framework: Ktor
+framework_website: https://ktor.io
+framework_flavor: Netty
+framework_version:
+  - '3.4'
+
+extended_warmup: true

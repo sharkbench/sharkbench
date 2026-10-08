@@ -2,6 +2,7 @@ language: JavaScript
 mode: Node.js
 version:
   - '22'
+  - '24'
 framework: Express
 framework_website: https://expressjs.com
 framework_flavor: Default

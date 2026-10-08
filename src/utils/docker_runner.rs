@@ -18,6 +18,10 @@ const SERVICE_NAME: &str = "benchmark";
 /// How long to wait for a detached container to accept connections on its port.
 const READY_TIMEOUT: Duration = Duration::from_secs(120);
 
+/// Minimum time to wait for a detached container, even if its port is open earlier,
+/// so that servers which open the port before finishing their initialization can settle.
+const MIN_READY_DELAY: Duration = Duration::from_secs(5);
+
 /// Directories excluded from the docker context.
 pub const IGNORED_DIRS: [&str; 5] = [".dart_tool", ".gradle", "build", "node_modules", "target"];
 
@@ -25,7 +29,7 @@ pub const IGNORED_DIRS: [&str; 5] = [".dart_tool", ".gradle", "build", "node_mod
 pub enum StartMode {
     /// `docker compose up -d`. The harness talks to the container over the network.
     /// If `ready_port` is set, the harness waits until 127.0.0.1:`ready_port`
-    /// accepts connections before doing so.
+    /// accepts connections (but at least [`MIN_READY_DELAY`]) before doing so.
     Detached { ready_port: Option<u16> },
 
     /// `docker compose run` with the container's stdin and stdout piped to the harness.
@@ -209,6 +213,7 @@ where
 }
 
 /// Blocks until 127.0.0.1:`port` accepts a TCP connection.
+/// Waits at least [`MIN_READY_DELAY`] in total.
 /// Panics if this does not happen within [`READY_TIMEOUT`].
 fn wait_for_port(dir: &str, port: u16) {
     let address = SocketAddr::from(([127, 0, 0, 1], port));
@@ -223,6 +228,9 @@ fn wait_for_port(dir: &str, port: u16) {
         thread::sleep(Duration::from_millis(100));
     }
     println!(" -> Ready after {} ms", start.elapsed().as_millis());
+    if let Some(remaining) = MIN_READY_DELAY.checked_sub(start.elapsed()) {
+        thread::sleep(remaining);
+    }
 }
 
 /// Pulls the base images of the Dockerfile in `dir`

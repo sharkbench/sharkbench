@@ -22,6 +22,9 @@ const READY_TIMEOUT: Duration = Duration::from_secs(120);
 /// so that servers which open the port before finishing their initialization can settle.
 const MIN_READY_DELAY: Duration = Duration::from_secs(5);
 
+/// Image used to drop the page cache of the host, see [`drop_page_cache`].
+const DROP_CACHE_IMAGE: &str = "alpine:3.22";
+
 /// Directories excluded from the docker context.
 pub const IGNORED_DIRS: [&str; 5] = [".dart_tool", ".gradle", "build", "node_modules", "target"];
 
@@ -168,6 +171,9 @@ where
         // Expects the Dockerfile to be already migrated to the target version
         pull_base_images(dir);
 
+        // Cold build, independent of previously pulled images and earlier tasks
+        drop_page_cache(dir);
+
         println!(" -> Building image");
         let start = Instant::now();
         run_shell(&["docker", "compose", "build", "--no-cache"], dir);
@@ -179,6 +185,8 @@ where
         run_shell(&["docker", "compose", "build"], dir);
         None
     };
+
+    drop_page_cache(dir);
 
     println!(" -> Starting container");
     match start_mode {
@@ -231,6 +239,26 @@ fn wait_for_port(dir: &str, port: u16) {
     if let Some(remaining) = MIN_READY_DELAY.checked_sub(start.elapsed()) {
         thread::sleep(remaining);
     }
+}
+
+/// Drops the page cache of the host so that every build and container starts cold.
+/// Keeps build time and memory (RAM) stats consistent.
+fn drop_page_cache(dir: &str) {
+    println!(" -> Dropping page cache");
+    run_shell(&["sync"], dir);
+    run_shell(
+        &[
+            "docker",
+            "run",
+            "--rm",
+            "--privileged",
+            DROP_CACHE_IMAGE,
+            "sh",
+            "-c",
+            "echo 3 > /proc/sys/vm/drop_caches",
+        ],
+        dir,
+    );
 }
 
 /// Pulls the base images of the Dockerfile in `dir`

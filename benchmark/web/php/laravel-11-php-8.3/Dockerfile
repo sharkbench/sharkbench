@@ -31,6 +31,8 @@ RUN chmod -R 777 storage
 RUN mkdir -p var
 RUN chown -R www-data:www-data var
 
+# Remove the default site (port 80) which conflicts with host networking
+RUN rm /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/custom.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 

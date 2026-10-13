@@ -20,6 +20,8 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer update && composer install --no-dev --op
 RUN mkdir -p temp log
 RUN chown -R www-data:www-data temp log
 
+# Remove the default site (port 80) which conflicts with host networking
+RUN rm /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/custom.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 

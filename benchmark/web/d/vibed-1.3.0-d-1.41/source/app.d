@@ -42,7 +42,7 @@ void main()
         router.get("/api/v1/periodic-table/shells", &shellsHandler);
         auto settings = new HTTPServerSettings;
         settings.options |= HTTPServerOption.reusePort;
-        settings.port = 5001;
+        settings.port = 3000;
         settings.bindAddresses = ["0.0.0.0"];
         listenHTTP(settings, router);
     }

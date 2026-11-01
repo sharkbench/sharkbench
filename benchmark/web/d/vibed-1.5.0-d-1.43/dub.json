@@ -1,0 +1,19 @@
+{
+  "authors": ["Sergei Giniatulin"],
+  "copyright": "Copyright © 2026, Sergei Giniatulin",
+  "dependencies": {
+    "vibe-http": "~>1.5.1",
+    "vibe-stream:tls": "~>1.4.1"
+  },
+  "subConfigurations": {
+    "vibe-stream:tls": "notls"
+  },
+  "versions": [
+    "VibeManualMemoryManagement",
+    "VibeHighEventPriority",
+    "VibeDisableCommandLineParsing"
+  ],
+  "description": "VibeD (server, client, json)",
+  "license": "MIT",
+  "name": "app"
+}

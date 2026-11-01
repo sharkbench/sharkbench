@@ -1,0 +1,9 @@
+language: D
+mode: Default
+version:
+  - "1.43"
+framework: Vibe.d
+framework_website: https://github.com/vibe-d/vibe.d
+framework_flavor: Default
+framework_version:
+  - "1.5.1"

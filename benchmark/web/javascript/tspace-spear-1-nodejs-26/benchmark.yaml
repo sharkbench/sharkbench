@@ -1,0 +1,9 @@
+language: JavaScript
+mode: Node.js
+version:
+  - '26'
+framework: tspace-spear
+framework_website: https://github.com/thanathip41/tspace-spear
+framework_flavor: Default
+framework_version:
+  - '1.3'

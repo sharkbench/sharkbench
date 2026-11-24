@@ -121,6 +121,10 @@ Laravel: >
   comprehensive ecosystem for web development including authentication, routing,
   sessions, and caching. Laravel emphasizes developer productivity through
   convention over configuration and helpful tooling.
+Micronaut: >
+  Micronaut is a JVM framework for building applications and services. It
+  provides compile-time dependency injection and supports Netty HTTP servers
+  and GraalVM Native Image.
 Nest: >
   Nest is a progressive Node.js framework for building efficient, reliable, and
   scalable server-side applications. It is built with TypeScript and combines

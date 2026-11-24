@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 // 1. Configure high-throughput loopback HttpClient (no proxy, no cookies, pooled HTTP/1.1)
+ThreadPool.SetMinThreads(32, 32); // Prevent ThreadPool injection delays under 32-way concurrency on 1-core Docker
+
 var socketsHandler = new SocketsHttpHandler
 {
     UseProxy = false,

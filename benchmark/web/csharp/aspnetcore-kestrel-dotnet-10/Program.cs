@@ -178,27 +178,10 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
     private static async Task<(byte[] Buffer, int Length)> FetchUpstreamBytesAsync(HttpClient client, Uri uri)
     {
         using var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-        int initialSize = (int)(response.Content.Headers.ContentLength ?? 16384);
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(initialSize);
-        int offset = 0;
-
-        await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        while (true)
-        {
-            if (offset == buffer.Length)
-            {
-                byte[] larger = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
-                Buffer.BlockCopy(buffer, 0, larger, 0, offset);
-                ArrayPool<byte>.Shared.Return(buffer);
-                buffer = larger;
-            }
-
-            int read = await stream.ReadAsync(buffer.AsMemory(offset)).ConfigureAwait(false);
-            if (read == 0) break;
-            offset += read;
-        }
-
-        return (buffer, offset);
+        int initialSize = (int)(response.Content.Headers.ContentLength ?? 65536);
+        var poolStream = new ArrayPoolStream(initialSize);
+        await response.Content.CopyToAsync(poolStream).ConfigureAwait(false);
+        return (poolStream.Buffer, poolStream.WrittenLength);
     }
 
     private static bool TryWriteElementResponse(ReadOnlySpan<byte> json, ReadOnlySpan<byte> targetSymbol, Context ctx)
@@ -305,5 +288,53 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
             return true;
         }
         return false;
+    }
+
+    sealed class ArrayPoolStream(int initialCapacity) : Stream
+    {
+        private byte[] _buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
+        private int _length;
+
+        public byte[] Buffer => _buffer;
+        public int WrittenLength => _length;
+        public override long Length => _length;
+
+        public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            int required = _length + buffer.Length;
+            if (required > _buffer.Length)
+            {
+                byte[] next = ArrayPool<byte>.Shared.Rent(Math.Max(_buffer.Length * 2, required));
+                System.Buffer.BlockCopy(_buffer, 0, next, 0, _length);
+                ArrayPool<byte>.Shared.Return(_buffer);
+                _buffer = next;
+            }
+            buffer.CopyTo(_buffer.AsSpan(_length));
+            _length += buffer.Length;
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            Write(buffer.Span);
+            return ValueTask.CompletedTask;
+        }
+
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            Write(buffer.AsSpan(offset, count));
+            return Task.CompletedTask;
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Position { get => _length; set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override Task FlushAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
     }
 }

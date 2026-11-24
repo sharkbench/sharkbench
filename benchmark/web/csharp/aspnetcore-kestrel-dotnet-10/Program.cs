@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-ThreadPool.SetMinThreads(32, 32);
-
 // 1. Direct loopback HttpClient (zero DNS/proxy/cookie overhead)
 var socketsHandler = new SocketsHttpHandler
 {
@@ -19,7 +17,7 @@ var socketsHandler = new SocketsHttpHandler
     UseCookies = false,
     AllowAutoRedirect = false,
     AutomaticDecompression = DecompressionMethods.None,
-    MaxConnectionsPerServer = 256,
+    MaxConnectionsPerServer = 64,
     PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
     ConnectTimeout = TimeSpan.FromSeconds(5)
 };
@@ -32,11 +30,12 @@ using var httpClient = new HttpClient(socketsHandler)
     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact
 };
 
-// 2. Raw Kestrel server tuned for 1-core Docker CPU cap
+// 2. Raw Kestrel server with inline scheduling (avoids ThreadPool dispatch & CFS throttling)
 var socketOptions = Options.Create(new SocketTransportOptions
 {
-    IOQueueCount = 1, // Optimal for 1-core Docker CPU cap
-    NoDelay = true
+    IOQueueCount = 1,
+    NoDelay = true,
+    UnsafePreferInlineScheduling = true
 });
 var transportFactory = new SocketTransportFactory(socketOptions, NullLoggerFactory.Instance);
 
@@ -149,7 +148,6 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
             {
                 ctx.Response.StatusCode = 404;
             }
-            // No explicit FlushAsync needed: Kestrel coalesces headers + body on completion
         }
         finally
         {
@@ -180,7 +178,7 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
     private static async Task<(byte[] Buffer, int Length)> FetchUpstreamBytesAsync(HttpClient client, Uri uri)
     {
         using var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-        int initialSize = (int)(response.Content.Headers.ContentLength ?? 131072);
+        int initialSize = (int)(response.Content.Headers.ContentLength ?? 16384);
         byte[] buffer = ArrayPool<byte>.Shared.Rent(initialSize);
         int offset = 0;
 

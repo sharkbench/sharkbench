@@ -6,8 +6,11 @@
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
     <ServerGarbageCollection>false</ServerGarbageCollection>
-    <OptimizationPreference>Speed</OptimizationPreference>
+    <OptimizationPreference>Size</OptimizationPreference>
     <IlcInstructionSet>native</IlcInstructionSet>
     <StripSymbols>true</StripSymbols>
+    <EventSourceSupport>false</EventSourceSupport>
+    <DebuggerSupport>false</DebuggerSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
   </PropertyGroup>
 </Project>

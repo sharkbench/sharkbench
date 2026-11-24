@@ -1,24 +1,24 @@
 using System.Buffers;
-using System.IO.Pipelines;
+using System.Buffers.Text;
 using System.Net;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-// 1. Configure high-throughput loopback HttpClient (no proxy, no cookies, pooled HTTP/1.1)
-ThreadPool.SetMinThreads(32, 32); // Prevent ThreadPool injection delays under 32-way concurrency on 1-core Docker
+ThreadPool.SetMinThreads(32, 32);
 
+// 1. Direct loopback HttpClient (zero DNS/proxy/cookie overhead)
 var socketsHandler = new SocketsHttpHandler
 {
     UseProxy = false,
     UseCookies = false,
     AllowAutoRedirect = false,
+    AutomaticDecompression = DecompressionMethods.None,
     MaxConnectionsPerServer = 256,
     PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
     ConnectTimeout = TimeSpan.FromSeconds(5)
@@ -32,7 +32,7 @@ using var httpClient = new HttpClient(socketsHandler)
     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact
 };
 
-// 2. Configure raw Kestrel server directly (no MVC, no Routing, no Middleware pipeline)
+// 2. Raw Kestrel server tuned for 1-core Docker CPU cap
 var socketOptions = Options.Create(new SocketTransportOptions
 {
     IOQueueCount = 1, // Optimal for 1-core Docker CPU cap
@@ -84,7 +84,7 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
 
     public void DisposeContext(Context context, Exception? exception) { }
 
-    public async Task ProcessRequestAsync(Context ctx)
+    public Task ProcessRequestAsync(Context ctx)
     {
         var path = ctx.Request.Path.AsSpan();
         var symbolSpan = ExtractSymbol(ctx.Request.QueryString.AsSpan());
@@ -92,28 +92,33 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
         if (symbolSpan.IsEmpty)
         {
             ctx.Response.StatusCode = 400;
-            return;
+            return Task.CompletedTask;
         }
 
-        var symbol = symbolSpan.ToString();
+        Span<byte> utf8Buf = stackalloc byte[8];
+        int utf8Len = Encoding.UTF8.GetBytes(symbolSpan, utf8Buf);
+        ulong packedSymbol = 0;
+        for (int i = 0; i < utf8Len && i < 8; i++)
+        {
+            packedSymbol |= (ulong)utf8Buf[i] << (i * 8);
+        }
 
         if (path.SequenceEqual(ElementPath.AsSpan()))
         {
-            await HandleElementAsync(ctx, symbol);
+            return HandleElementAsync(ctx, packedSymbol, utf8Len);
         }
-        else if (path.SequenceEqual(ShellsPath.AsSpan()))
+
+        if (path.SequenceEqual(ShellsPath.AsSpan()))
         {
-            await HandleShellsAsync(ctx, symbol);
+            return HandleShellsAsync(ctx, packedSymbol, utf8Len);
         }
-        else
-        {
-            ctx.Response.StatusCode = 404;
-        }
+
+        ctx.Response.StatusCode = 404;
+        return Task.CompletedTask;
     }
 
     private static ReadOnlySpan<char> ExtractSymbol(ReadOnlySpan<char> queryString)
     {
-        // Expects "?symbol=He" or "?foo=1&symbol=He"
         if (queryString.IsEmpty) return default;
         var q = queryString[0] == '?' ? queryString[1..] : queryString;
 
@@ -131,77 +136,176 @@ sealed class PeriodicTableApp(HttpClient client) : IHttpApplication<PeriodicTabl
         return default;
     }
 
-    private async Task HandleElementAsync(Context ctx, string symbol)
+    private async Task HandleElementAsync(Context ctx, ulong packedSymbol, int symbolLen)
     {
-        using var response = await client.GetAsync(ElementUpstreamUri, HttpCompletionOption.ResponseHeadersRead);
-        if (!response.IsSuccessStatusCode)
+        var (buffer, length) = await FetchUpstreamBytesAsync(client, ElementUpstreamUri).ConfigureAwait(false);
+        try
         {
-            ctx.Response.StatusCode = 502;
-            return;
-        }
-        await using var stream = await response.Content.ReadAsStreamAsync();
+            Span<byte> symbolUtf8 = stackalloc byte[8];
+            for (int i = 0; i < symbolLen && i < 8; i++)
+                symbolUtf8[i] = (byte)(packedSymbol >> (i * 8));
 
-        // element.json is a JSON object keyed by symbol, e.g. {"He": {"name":"Helium","number":2,"group":18}, ...}
-        // (see benchmark/web/csharp/aspdotnetcore and src/benchmark/web/data/static/element.json)
-        var elements = await JsonSerializer.DeserializeAsync(stream, AppJsonContext.Default.DictionaryStringUpstreamElement);
-        if (elements is null || !elements.TryGetValue(symbol, out var found))
+            if (!TryWriteElementResponse(buffer.AsSpan(0, length), symbolUtf8[..symbolLen], ctx))
+            {
+                ctx.Response.StatusCode = 404;
+            }
+            // No explicit FlushAsync needed: Kestrel coalesces headers + body on completion
+        }
+        finally
         {
-            ctx.Response.StatusCode = 404;
-            return;
+            ArrayPool<byte>.Shared.Return(buffer);
         }
-
-        ctx.Response.StatusCode = 200;
-        ctx.Response.Headers.ContentType = "application/json";
-        await JsonSerializer.SerializeAsync(
-            ctx.ResponseBody.Stream,
-            new ElementResponse(found.Name, found.Number, found.Group),
-            AppJsonContext.Default.ElementResponse);
     }
 
-    private async Task HandleShellsAsync(Context ctx, string symbol)
+    private async Task HandleShellsAsync(Context ctx, ulong packedSymbol, int symbolLen)
     {
-        using var response = await client.GetAsync(ShellsUpstreamUri, HttpCompletionOption.ResponseHeadersRead);
-        if (!response.IsSuccessStatusCode)
+        var (buffer, length) = await FetchUpstreamBytesAsync(client, ShellsUpstreamUri).ConfigureAwait(false);
+        try
         {
-            ctx.Response.StatusCode = 502;
-            return;
-        }
-        await using var stream = await response.Content.ReadAsStreamAsync();
+            Span<byte> symbolUtf8 = stackalloc byte[8];
+            for (int i = 0; i < symbolLen && i < 8; i++)
+                symbolUtf8[i] = (byte)(packedSymbol >> (i * 8));
 
-        // shells.json is a JSON object keyed by symbol, e.g. {"He": [2], ...}
-        // (see benchmark/web/csharp/aspdotnetcore and src/benchmark/web/data/static/shells.json)
-        var shellsMap = await JsonSerializer.DeserializeAsync(stream, AppJsonContext.Default.DictionaryStringInt32Array);
-        if (shellsMap is null || !shellsMap.TryGetValue(symbol, out var shells))
+            if (!TryWriteShellsResponse(buffer.AsSpan(0, length), symbolUtf8[..symbolLen], ctx))
+            {
+                ctx.Response.StatusCode = 404;
+            }
+        }
+        finally
         {
-            ctx.Response.StatusCode = 404;
-            return;
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
+    private static async Task<(byte[] Buffer, int Length)> FetchUpstreamBytesAsync(HttpClient client, Uri uri)
+    {
+        using var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+        int initialSize = (int)(response.Content.Headers.ContentLength ?? 131072);
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(initialSize);
+        int offset = 0;
+
+        await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        while (true)
+        {
+            if (offset == buffer.Length)
+            {
+                byte[] larger = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
+                Buffer.BlockCopy(buffer, 0, larger, 0, offset);
+                ArrayPool<byte>.Shared.Return(buffer);
+                buffer = larger;
+            }
+
+            int read = await stream.ReadAsync(buffer.AsMemory(offset)).ConfigureAwait(false);
+            if (read == 0) break;
+            offset += read;
         }
 
-        ctx.Response.StatusCode = 200;
-        ctx.Response.Headers.ContentType = "application/json";
-        await JsonSerializer.SerializeAsync(
-            ctx.ResponseBody.Stream,
-            new ShellsResponse(shells),
-            AppJsonContext.Default.ShellsResponse);
+        return (buffer, offset);
+    }
+
+    private static bool TryWriteElementResponse(ReadOnlySpan<byte> json, ReadOnlySpan<byte> targetSymbol, Context ctx)
+    {
+        var reader = new Utf8JsonReader(json);
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject) return false;
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            if (reader.TokenType != JsonTokenType.PropertyName) continue;
+
+            if (!reader.ValueTextEquals(targetSymbol))
+            {
+                reader.Read();
+                reader.Skip();
+                continue;
+            }
+
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject) return false;
+
+            ReadOnlySpan<byte> nameUtf8 = default;
+            int number = 0;
+            int group = 0;
+
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName) continue;
+
+                if (reader.ValueTextEquals("name"u8))
+                {
+                    reader.Read();
+                    nameUtf8 = reader.ValueSpan;
+                }
+                else if (reader.ValueTextEquals("number"u8))
+                {
+                    reader.Read();
+                    number = reader.GetInt32();
+                }
+                else if (reader.ValueTextEquals("group"u8))
+                {
+                    reader.Read();
+                    group = reader.GetInt32();
+                }
+                else
+                {
+                    reader.Read();
+                    reader.Skip();
+                }
+            }
+
+            ctx.Response.StatusCode = 200;
+            ctx.Response.Headers.ContentType = "application/json";
+
+            Span<byte> outSpan = ctx.ResponseBody.Writer.GetSpan(128 + nameUtf8.Length);
+            int pos = 0;
+            "{\"name\":\""u8.CopyTo(outSpan[pos..]); pos += 9;
+            nameUtf8.CopyTo(outSpan[pos..]); pos += nameUtf8.Length;
+            "\",\"number\":"u8.CopyTo(outSpan[pos..]); pos += 11;
+            Utf8Formatter.TryFormat(number, outSpan[pos..], out int numWritten); pos += numWritten;
+            ",\"group\":"u8.CopyTo(outSpan[pos..]); pos += 9;
+            Utf8Formatter.TryFormat(group, outSpan[pos..], out int grpWritten); pos += grpWritten;
+            outSpan[pos++] = (byte)'}';
+
+            ctx.ResponseBody.Writer.Advance(pos);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryWriteShellsResponse(ReadOnlySpan<byte> json, ReadOnlySpan<byte> targetSymbol, Context ctx)
+    {
+        var reader = new Utf8JsonReader(json);
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject) return false;
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            if (reader.TokenType != JsonTokenType.PropertyName) continue;
+            if (!reader.ValueTextEquals(targetSymbol))
+            {
+                reader.Read();
+                reader.Skip();
+                continue;
+            }
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartArray) return false;
+            ctx.Response.StatusCode = 200;
+            ctx.Response.Headers.ContentType = "application/json";
+            Span<byte> outSpan = ctx.ResponseBody.Writer.GetSpan(128);
+            int pos = 0;
+            "{\"shells\":["u8.CopyTo(outSpan[pos..]); pos += 11;
+            bool first = true;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (!first)
+                {
+                    outSpan[pos++] = (byte)',';
+                }
+                first = false;
+                Utf8Formatter.TryFormat(reader.GetInt32(), outSpan[pos..], out int written);
+                pos += written;
+            }
+            outSpan[pos++] = (byte)']';
+            outSpan[pos++] = (byte)'}';
+            ctx.ResponseBody.Writer.Advance(pos);
+            return true;
+        }
+        return false;
     }
 }
-// 4. Source-Generated JSON Models (Zero Reflection)
-public sealed record UpstreamElement(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("number")] int Number,
-    [property: JsonPropertyName("group")] int Group);
-
-public sealed record ElementResponse(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("number")] int Number,
-    [property: JsonPropertyName("group")] int Group);
-
-public sealed record ShellsResponse(
-    [property: JsonPropertyName("shells")] int[] Shells);
-
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default)]
-[JsonSerializable(typeof(Dictionary<string, UpstreamElement>))]
-[JsonSerializable(typeof(Dictionary<string, int[]>))]
-[JsonSerializable(typeof(ElementResponse))]
-[JsonSerializable(typeof(ShellsResponse))]
-internal partial class AppJsonContext : JsonSerializerContext;

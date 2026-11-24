@@ -8,7 +8,7 @@ builder.Logging.ClearProviders();
 
 builder.Services.AddHttpClient<IBenchmarkService, BenchmarkService>(client =>
 {
-	client.BaseAddress = new Uri("http://127.0.0.1:5002/");
+	client.BaseAddress = new Uri("http://host.docker.internal:5002/");
 	client.DefaultRequestHeaders.ConnectionClose = false;
 }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
 {

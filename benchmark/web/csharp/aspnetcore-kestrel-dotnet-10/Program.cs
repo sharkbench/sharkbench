@@ -24,7 +24,8 @@ var socketsHandler = new SocketsHttpHandler
 
 using var httpClient = new HttpClient(socketsHandler)
 {
-    BaseAddress = new Uri("http://127.0.0.1:5002"),
+    // host.docker.internal resolves to the host machine from inside a Docker container
+    BaseAddress = new Uri("http://host.docker.internal:5002"),
     DefaultRequestVersion = HttpVersion.Version11,
     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact
 };

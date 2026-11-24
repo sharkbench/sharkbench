@@ -26,7 +26,7 @@ async fn get_element(
     State(client): State<Arc<Client>>,
     query: Query<SymbolQuery>,
 ) -> Json<ElementResponse> {
-    let json: HashMap<String, DataSourceElement> = client.get("http://127.0.0.1:5002/element.json").send().await.unwrap().json().await.unwrap();
+    let json: HashMap<String, DataSourceElement> = client.get("http://host.docker.internal:5002/element.json").send().await.unwrap().json().await.unwrap();
     let entry: &DataSourceElement = json.get(&query.symbol).unwrap();
     Json(ElementResponse {
         name: entry.name.clone(),
@@ -39,7 +39,7 @@ async fn get_shells(
     State(client): State<Arc<Client>>,
     query: Query<SymbolQuery>,
 ) -> Json<ShellsResponse> {
-    let json: HashMap<String, Vec<u8>> = client.get("http://127.0.0.1:5002/shells.json").send().await.unwrap().json().await.unwrap();
+    let json: HashMap<String, Vec<u8>> = client.get("http://host.docker.internal:5002/shells.json").send().await.unwrap().json().await.unwrap();
     Json(ShellsResponse {
         shells: json.get(&query.symbol).unwrap().clone(),
     })

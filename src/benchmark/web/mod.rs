@@ -25,7 +25,8 @@ services:
   benchmark:
     build: .
     container_name: benchmark
-    network_mode: host
+    ports:
+      - "5001:5001"
     deploy:
       resources:
         limits:

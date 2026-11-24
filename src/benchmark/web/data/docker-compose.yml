@@ -2,4 +2,5 @@ services:
   web-data-source:
     build: .
     container_name: web_data_source
-    network_mode: host
+    ports:
+      - "5002:5002"

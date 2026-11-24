@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <IlcInstructionSet>native</IlcInstructionSet>
+    <StripSymbols>true</StripSymbols>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,12 @@
+language: C#
+mode: .NET
+version:
+  - '10'
+version_regex:
+  Dockerfile: DEFAULT_DOCKER_REGEX
+  Bench.csproj: '<TargetFramework>net(\d+)\.0<\/TargetFramework>'
+framework: ASP.NET Core
+framework_website: https://microsoft.com
+framework_flavor: Kestrel AOT
+framework_version:
+  - '10'

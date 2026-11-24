@@ -1,15 +1,15 @@
-import 'dart:convert';
-
 import 'package:dox_core/dox_core.dart';
 import 'package:dox_http_client/dox_http_client.dart';
 
 void main() async {
-  Dox().initialize(AppConfig(
-    appKey: 'benchbenchbenchbenchbenchbench12',
-    host: '0.0.0.0',
-    serverPort: 5001,
-    routers: <Router>[ApiRouter()],
-  ));
+  Dox().initialize(
+    AppConfig(
+      appKey: 'benchbenchbenchbenchbenchbench12',
+      host: '0.0.0.0',
+      serverPort: 5001,
+      routers: <Router>[ApiRouter()],
+    ),
+  );
   await Dox().startServer();
 }
 
@@ -29,14 +29,11 @@ class ApiController {
   static final Uri _elementUrl = Uri.http('127.0.0.1:5002', '/element.json');
   static final Uri _shellsUrl = Uri.http('127.0.0.1:5002', '/shells.json');
 
-  static final Converter<List<int>, Object?> _decoder =
-      utf8.decoder.fuse(json.decoder);
-
   final DoxHttpClient _httpClient = DoxHttpClient();
 
   Future<Map<String, dynamic>> _fetch(Uri url) async {
     DoxHttpClientResponse res = await _httpClient.get(url);
-    return _decoder.convert(res.bodyBytes) as Map<String, dynamic>;
+    return JSON.parse(res.bodyBytes) as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> element(DoxRequest req) async {

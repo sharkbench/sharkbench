@@ -14,7 +14,8 @@ framework_version:
 extended_warmup: true
 
 copy:
-  - 'quarkus-3/pom.xml': 'pom.xml'
-  - 'quarkus-3/application.properties': 'src/main/resources/application.properties'
+  - 'quarkus-3-reactive/pom.xml': 'pom.xml'
+  - 'quarkus-3-reactive/application.properties': 'src/main/resources/application.properties'
+  - 'quarkus-3-reactive/Element.java': 'src/main/java/org/acme/Element.java'
   - 'quarkus-3-reactive/ElementServiceClient.java': 'src/main/java/org/acme/ElementServiceClient.java'
   - 'quarkus-3-reactive/PeriodicTableResource.java': 'src/main/java/org/acme/PeriodicTableResource.java'

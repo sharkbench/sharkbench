@@ -16,10 +16,10 @@ public interface ElementServiceClient {
     @GET
     @Path("/element.json")
     @Produces(MediaType.APPLICATION_JSON)
-    CompletionStage<Map<String, Object>> getElements();
+    CompletionStage<Map<String, Element>> getElements();
 
     @GET
     @Path("/shells.json")
     @Produces(MediaType.APPLICATION_JSON)
-    CompletionStage<Map<String, Object>> getShells();
+    CompletionStage<Map<String, int[]>> getShells();
 }

@@ -42,6 +42,11 @@ Django: >
   an extensive suite of built-in features from authentication to site maps.
   Django is widely used for developing complex, database-driven websites with an
   emphasis on reusability and security.
+Dox: >
+  Dox is a full-stack backend framework for Dart with a familiar MVC structure:
+  routing, controllers, middleware, dependency injection, validation, and an
+  ORM. Its HTTP server is written in Rust and runs one event loop per isolate,
+  and applications are compiled ahead of time to a native bundle.
 Drogon: >
   Drogon is a high-performance C++14/17-based HTTP application framework that
   supports both synchronous and asynchronous programming models. It provides

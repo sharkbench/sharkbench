@@ -1,0 +1,9 @@
+language: Dart
+mode: AOT
+version:
+  - '3.13'
+framework: Dox
+framework_website: https://dartondox.dev
+framework_flavor: Default
+framework_version:
+  - '3.2'

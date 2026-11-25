@@ -1,0 +1,9 @@
+name: dox_bench
+publish_to: 'none'
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  dox_core: ^3.2.0
+  dox_http_client: ^0.0.4

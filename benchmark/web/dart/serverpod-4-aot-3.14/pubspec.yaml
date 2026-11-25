@@ -1,0 +1,6 @@
+name: app
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  serverpod: ^4.1.0

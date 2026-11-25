@@ -9,12 +9,15 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Path("/api/v1/periodic-table")
 @Produces(MediaType.APPLICATION_JSON)
 public class PeriodicTableResource {
+
+    public record ElementResponse(String name, int number, int group) {
+    }
+
+    public record ShellsResponse(int[] shells) {
+    }
 
     @Inject
     @RestClient
@@ -22,26 +25,21 @@ public class PeriodicTableResource {
 
     @GET
     @Path("/element")
-    public Uni<Map<String, Object>> getElement(@QueryParam("symbol") String symbol) {
+    public Uni<ElementResponse> getElement(@QueryParam("symbol") String symbol) {
         return Uni.createFrom().completionStage(elementServiceClient.getElements())
                 .onItem().transform(elements -> {
-                    Map<String, Object> elementData = (Map<String, Object>) elements.get(symbol);
-                    return Map.of(
-                            "name", elementValueOrDefault(elementData, "name"),
-                            "number", elementValueOrDefault(elementData, "number"),
-                            "group", elementValueOrDefault(elementData, "group")
-                    );
+                    Element e = elements.get(symbol);
+                    return e == null ? null : new ElementResponse(e.name, e.number, e.group);
                 });
     }
 
     @GET
     @Path("/shells")
-    public Uni<Map<String, Object>> getShells(@QueryParam("symbol") String symbol) {
+    public Uni<ShellsResponse> getShells(@QueryParam("symbol") String symbol) {
         return Uni.createFrom().completionStage(elementServiceClient.getShells())
-                .onItem().transform(elements -> Map.of("shells", elements.get(symbol)));
-    }
-
-    private Object elementValueOrDefault(Map<String, Object> elementData, String key) {
-        return elementData != null ? elementData.getOrDefault(key, "") : "";
+                .onItem().transform(shells -> {
+                    int[] s = shells.get(symbol);
+                    return s == null ? null : new ShellsResponse(s);
+                });
     }
 }

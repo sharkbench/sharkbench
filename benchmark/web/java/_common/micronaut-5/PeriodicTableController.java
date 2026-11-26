@@ -7,8 +7,6 @@ import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.micronaut.serde.annotation.Serdeable;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 @Controller("/api/v1/periodic-table")
@@ -21,16 +19,15 @@ public class PeriodicTableController {
 
     @Get("/element")
     public CompletionStage<ElementServiceClient.Element> getElement(@QueryValue("symbol") String symbol) {
-        return client.getElements().thenApply(elements -> findBySymbol(elements, symbol));
+        return client.getElement(symbol).thenApply(element -> requireSymbol(element, symbol));
     }
 
     @Get("/shells")
     public CompletionStage<Shells> getShells(@QueryValue("symbol") String symbol) {
-        return client.getShells().thenApply(shells -> new Shells(findBySymbol(shells, symbol)));
+        return client.getShells(symbol).thenApply(shells -> new Shells(requireSymbol(shells, symbol)));
     }
 
-    private static <T> T findBySymbol(Map<String, T> data, String symbol) {
-        T value = data.get(symbol);
+    private static <T> T requireSymbol(T value, String symbol) {
         if (value == null) {
             throw new HttpStatusException(HttpStatus.NOT_FOUND, "Unknown element: " + symbol);
         }
@@ -38,6 +35,6 @@ public class PeriodicTableController {
     }
 
     @Serdeable
-    public record Shells(List<Integer> shells) {
+    public record Shells(int[] shells) {
     }
 }

@@ -1,18 +1,17 @@
 language: Java
-mode: Temurin
+mode: GraalVM Native Image
 version:
   - '25'
 framework: Micronaut
 framework_website: https://micronaut.io
-framework_flavor: Default
+framework_flavor: Tuned
 framework_version:
   - '5'
-
-extended_warmup: true
 
 copy:
   - 'micronaut-5/pom.xml': 'pom.xml'
   - 'micronaut-5/Application.java': 'src/main/java/sharkbench/Application.java'
   - 'micronaut-5/ElementServiceClient.java': 'src/main/java/sharkbench/ElementServiceClient.java'
   - 'micronaut-5/PeriodicTableController.java': 'src/main/java/sharkbench/PeriodicTableController.java'
+  - 'micronaut-5/PeriodicTableJson.java': 'src/main/java/sharkbench/PeriodicTableJson.java'
   - 'micronaut-5/application.properties': 'src/main/resources/application.properties'

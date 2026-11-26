@@ -1,0 +1,18 @@
+language: Java
+mode: Temurin
+version:
+  - '27'
+framework: Micronaut
+framework_website: https://micronaut.io
+framework_flavor: Default
+framework_version:
+  - '5'
+
+extended_warmup: true
+
+copy:
+  - 'micronaut-5-default/pom.xml': 'pom.xml'
+  - 'micronaut-5/Application.java': 'src/main/java/sharkbench/Application.java'
+  - 'micronaut-5-default/ElementServiceClient.java': 'src/main/java/sharkbench/ElementServiceClient.java'
+  - 'micronaut-5-default/PeriodicTableController.java': 'src/main/java/sharkbench/PeriodicTableController.java'
+  - 'micronaut-5-default/application.properties': 'src/main/resources/application.properties'
